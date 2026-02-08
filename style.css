@@ -1,0 +1,258 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #faf9f7;
+  --text: #2c2c2c;
+  --text-light: #6b6b6b;
+  --accent: #888888;
+  --accent-dark: #555555;
+  --border: #dcdcdc;
+  --bg-sub: #f2f2f2;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.9;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+/* ── header ── */
+.site-header {
+  padding: 3rem 2rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header h1 {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 300;
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+}
+
+.site-header h1 a {
+  color: var(--text-light);
+}
+
+.site-header h1 a:hover {
+  color: var(--text);
+}
+
+.site-header .tagline {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: var(--text-light);
+  opacity: 0.5;
+}
+
+/* ── nav ── */
+nav {
+  text-align: center;
+  padding: 1.2rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+nav a {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  margin: 0 1rem;
+  transition: color 0.2s;
+}
+
+nav a:hover {
+  color: var(--text);
+}
+
+/* ── main ── */
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ── page content ── */
+.page {
+  padding: 4rem 0 5rem;
+  animation: fadeIn 0.8s ease-out both;
+}
+
+.page-title {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 500;
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.8rem;
+}
+
+.page-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 2.5rem;
+}
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background-color: var(--accent);
+  margin: 0 0 2.5rem;
+  opacity: 0.4;
+}
+
+/* ── article sections ── */
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section h3 {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 500;
+  font-size: 1.02rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--accent);
+}
+
+.section p {
+  font-size: 0.92rem;
+  margin-bottom: 1.3rem;
+  text-align: justify;
+}
+
+.section strong {
+  font-weight: 400;
+  color: var(--accent-dark);
+}
+
+blockquote {
+  margin: 1.8rem 0;
+  padding: 1.4rem 1.4rem 1.4rem 1.8rem;
+  background-color: var(--bg-sub);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 3px 3px 0;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.88rem;
+  color: var(--text-light);
+  line-height: 2;
+}
+
+ul {
+  list-style: none;
+  margin: 1.2rem 0;
+  padding: 0;
+}
+
+ul li {
+  position: relative;
+  padding-left: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  opacity: 0.5;
+}
+
+/* ── card list (top page, likes index) ── */
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card-list li {
+  padding: 0;
+  margin: 0;
+}
+
+.card-list li::before {
+  display: none;
+}
+
+.card-list a {
+  display: block;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: padding-left 0.2s;
+}
+
+.card-list a:hover {
+  padding-left: 0.5rem;
+}
+
+.card-list .card-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.card-list .card-desc {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0.3rem;
+}
+
+/* ── footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+footer p {
+  font-size: 0.68rem;
+  color: var(--text-light);
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+}
+
+/* ── animation ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── responsive ── */
+@media (max-width: 600px) {
+  .site-header { padding: 2.5rem 1.5rem 1.5rem; }
+  nav { padding: 1rem 1rem; }
+  nav a { margin: 0 0.6rem; font-size: 0.72rem; }
+  main { padding: 0 1.5rem; }
+  .page { padding: 3rem 0 4rem; }
+  .page-title { font-size: 1.15rem; }
+}
