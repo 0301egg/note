@@ -227,6 +227,36 @@ ul li::before {
   margin-top: 0.3rem;
 }
 
+/* ── gallery ── */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.gallery-item {
+  overflow: hidden;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: grayscale(20%);
+  transition: filter 0.3s;
+}
+
+.gallery-item img:hover {
+  filter: grayscale(0%);
+}
+
+.gallery-item figcaption {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
 /* ── footer ── */
 footer {
   border-top: 1px solid var(--border);
