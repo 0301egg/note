@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>note — 思考の断片</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #faf9f7;
+      --text: #2c2c2c;
+      --text-light: #6b6b6b;
+      --rust: #8b4513;
+      --rust-light: #a0522d;
+      --border: #e0ddd8;
+      --bg-warm: #f5f0eb;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── header ── */
+    header {
+      padding: 4rem 2rem 3rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 300;
+      font-size: 1.1rem;
+      letter-spacing: 0.3em;
+      color: var(--text-light);
+    }
+
+    header p.tagline {
+      margin-top: 0.8rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--text-light);
+      opacity: 0.6;
+    }
+
+    /* ── main ── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── article ── */
+    article {
+      padding: 5rem 0 6rem;
+    }
+
+    article header {
+      border-bottom: none;
+      padding: 0 0 3rem;
+      text-align: left;
+    }
+
+    article header .date {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.2rem;
+    }
+
+    article header h2 {
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 500;
+      font-size: 1.6rem;
+      line-height: 1.7;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+
+    article header .subtitle {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      line-height: 1.8;
+    }
+
+    .divider {
+      width: 40px;
+      height: 1px;
+      background-color: var(--rust);
+      margin: 0 0 3rem;
+      opacity: 0.5;
+    }
+
+    article section {
+      margin-bottom: 3rem;
+    }
+
+    article h3 {
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 500;
+      font-size: 1.05rem;
+      margin-bottom: 1.2rem;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      padding-left: 0.8rem;
+      border-left: 2px solid var(--rust);
+    }
+
+    article p {
+      font-size: 0.92rem;
+      margin-bottom: 1.4rem;
+      color: var(--text);
+      text-align: justify;
+    }
+
+    article strong {
+      font-weight: 400;
+      color: var(--rust-light);
+    }
+
+    blockquote {
+      margin: 2rem 0;
+      padding: 1.5rem 1.5rem 1.5rem 2rem;
+      background-color: var(--bg-warm);
+      border-left: 2px solid var(--rust);
+      border-radius: 0 4px 4px 0;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.88rem;
+      color: var(--text-light);
+      line-height: 2;
+      font-style: normal;
+    }
+
+    ul {
+      list-style: none;
+      margin: 1.5rem 0;
+      padding: 0;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 1.2rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.9rem;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.7em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--rust);
+      opacity: 0.5;
+    }
+
+    /* ── footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+    }
+
+    /* ── fade in ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    article {
+      animation: fadeIn 1s ease-out both;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 600px) {
+      header {
+        padding: 3rem 1.5rem 2rem;
+      }
+
+      main {
+        padding: 0 1.5rem;
+      }
+
+      article {
+        padding: 3rem 0 4rem;
+      }
+
+      article header h2 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>note</h1>
+    <p class="tagline">思考の断片を、静かに置いておく場所</p>
+  </header>
+
+  <main>
+    <article>
+      <header>
+        <p class="date">2025.02.08</p>
+        <h2>AI時代に自分という人間の仕様書を作る</h2>
+        <p class="subtitle">AIと共に生きるために、まず自分を知ること。</p>
+      </header>
+
+      <div class="divider"></div>
+
+      <section>
+        <h3>なぜ「自分の仕様書」なのか</h3>
+        <p>
+          AIの進化が加速するいま、「人間にしかできないこと」という問いが繰り返し語られる。だが、その問いに答えるためには、まず<strong>自分がどういう人間なのか</strong>を知る必要がある。
+        </p>
+        <p>
+          ソフトウェアに仕様書があるように、自分自身にも仕様書があっていい。自分の価値観、思考の癖、得意なこと、苦手なこと。それらを言語化して整理することが、AI時代を生きる最初の一歩になる。
+        </p>
+      </section>
+
+      <section>
+        <h3>仕様書に書くべきこと</h3>
+        <p>
+          自分の仕様書に記すべきは、履歴書のような事実の羅列ではない。もっと内面的な、自分の「動作原理」のようなものだ。
+        </p>
+        <ul>
+          <li>何に心が動くのか ── 動機の源泉</li>
+          <li>どう考える傾向があるのか ── 思考のパターン</li>
+          <li>何を美しいと感じるのか ── 美意識の輪郭</li>
+          <li>どんな環境で力を発揮するのか ── 最適な条件</li>
+          <li>何が許せないのか ── 譲れない価値観</li>
+        </ul>
+        <p>
+          これらは一度書いたら終わりではない。生きている限り、仕様は変わり続ける。だからこそ、定期的に見直し、更新していくことに意味がある。
+        </p>
+      </section>
+
+      <section>
+        <h3>AIは鏡になる</h3>
+        <p>
+          興味深いことに、AIとの対話は自分を知るための優れた手段になりうる。AIに自分の考えを伝え、それに対するフィードバックを受け取る。その過程で、自分でも気づいていなかった思考の偏りや、言語化できていなかった感覚が浮かび上がることがある。
+        </p>
+        <blockquote>
+          AIは答えをくれる道具ではなく、問いを映し返す鏡である。
+        </blockquote>
+        <p>
+          自分の仕様書を作るということは、AIに「使われる」のではなく、AIと「共に考える」ための土台を築くことでもある。自分を知っている人間は、AIに適切な問いを投げることができる。適切な問いは、適切な答えを導く。
+        </p>
+      </section>
+
+      <section>
+        <h3>完璧でなくていい</h3>
+        <p>
+          仕様書といっても、完璧なものを目指す必要はない。むしろ、<strong>不完全であることを認める</strong>ことこそが、人間の仕様書の本質かもしれない。バグのない人間はいない。予期しない振る舞いをすることもある。それも含めて、自分の仕様なのだ。
+        </p>
+        <p>
+          大切なのは、書き始めること。たった数行でもいい。「自分はこういう人間だ」と静かに宣言すること。それが、AI時代における自分の居場所を定める最初の一行になる。
+        </p>
+      </section>
+
+    </article>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 note</p>
+  </footer>
+
+</body>
+</html>
