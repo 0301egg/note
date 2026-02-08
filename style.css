@@ -227,6 +227,80 @@ ul li::before {
   margin-top: 0.3rem;
 }
 
+/* ── book card ── */
+.book-card {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.book-card .book-cover {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+.book-card .book-cover img {
+  width: 100%;
+  height: auto;
+  display: block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.book-card .book-info {
+  flex: 1;
+}
+
+.book-card .book-title {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin-bottom: 0.3rem;
+}
+
+.book-card .book-author {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.book-card .book-meta {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  margin-bottom: 0.8rem;
+  line-height: 1.8;
+}
+
+.book-card .book-desc {
+  font-size: 0.85rem;
+  line-height: 1.9;
+  margin-bottom: 1rem;
+}
+
+.book-card .book-link {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--accent-dark);
+  border: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.book-card .book-link:hover {
+  background-color: var(--bg-sub);
+}
+
+@media (max-width: 600px) {
+  .book-card {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .book-card .book-cover {
+    width: 120px;
+  }
+}
+
 /* ── gallery ── */
 .gallery {
   display: grid;
