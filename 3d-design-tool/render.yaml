@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: 3d-design-tool
+    runtime: python
+    rootDir: 3d-design-tool
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false   # Renderのダッシュボードで手動設定
+      - key: FLASK_DEBUG
+        value: false
+    plan: free
