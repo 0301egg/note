@@ -1,0 +1,34 @@
+# 環境変数（APIキーを含むため必ずgitignoreする）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 仮想環境
+venv/
+.venv/
+env/
+.env_dir/
+
+# 生成されたSTLファイル
+output/
+*.stl
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+anthropic>=0.40.0
+flask>=3.0.0
+trimesh>=4.0.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+# trimeshの追加依存（形状によっては必要）
+scipy>=1.11.0
