@@ -1,5 +1,5 @@
 """
-3Dデザインツール - Flask + Claude API バックエンド
+3Dデザインツール - Flask + Ollama バックエンド
 テキストから3DモデルのSTLファイルを生成する
 Bambu Lab mini 対応
 """
@@ -10,7 +10,7 @@ import json
 import os
 import re
 
-import anthropic
+import ollama
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request, send_file
 
@@ -19,7 +19,8 @@ from stl_generator import generate_stl, get_supported_shapes
 load_dotenv()
 
 app = Flask(__name__)
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 # Claude API に渡すシステムプロンプト
 SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。
@@ -103,32 +104,26 @@ def generate():
     if len(text) > 1000:
         return jsonify({"error": "テキストは1000文字以内で入力してください"}), 400
 
-    # Claude API でテキスト解析 (adaptive thinking + streaming)
+    # Ollama でテキスト解析
     try:
-        with client.messages.stream(
-            model="claude-opus-4-6",
-            max_tokens=2048,
-            thinking={"type": "adaptive"},
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": text}],
-        ) as stream:
-            response = stream.get_final_message()
-
-    except anthropic.AuthenticationError:
-        return jsonify({"error": "APIキーが無効です。.envファイルを確認してください"}), 401
-    except anthropic.RateLimitError:
-        return jsonify({"error": "APIレート制限に達しました。しばらく待ってから再試行してください"}), 429
-    except anthropic.APIConnectionError:
-        return jsonify({"error": "Claude APIへの接続に失敗しました"}), 503
+        client = ollama.Client(host=OLLAMA_HOST)
+        response = client.chat(
+            model=OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": text},
+            ],
+        )
+    except ollama.ResponseError as e:
+        if "not found" in str(e).lower():
+            return jsonify({"error": f"モデル '{OLLAMA_MODEL}' が見つかりません。'ollama pull {OLLAMA_MODEL}' を実行してください"}), 503
+        return jsonify({"error": f"Ollamaエラー: {str(e)}"}), 500
     except Exception as e:
+        if "connection" in str(e).lower() or "refused" in str(e).lower():
+            return jsonify({"error": f"Ollamaに接続できません。Ollamaが起動しているか確認してください ({OLLAMA_HOST})"}), 503
         return jsonify({"error": f"API呼び出しエラー: {str(e)}"}), 500
 
-    # レスポンスからテキストブロックを抽出
-    response_text = ""
-    for block in response.content:
-        if block.type == "text":
-            response_text = block.text
-            break
+    response_text = response.message.content
 
     if not response_text:
         return jsonify({"error": "モデルからの回答を取得できませんでした"}), 500
@@ -203,11 +198,19 @@ def shapes():
 @app.route("/api/health", methods=["GET"])
 def health():
     """ヘルスチェック"""
-    api_key_set = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    try:
+        client = ollama.Client(host=OLLAMA_HOST)
+        client.list()
+        ollama_ok = True
+    except Exception:
+        ollama_ok = False
+
     return jsonify(
         {
             "status": "ok",
-            "api_key_configured": api_key_set,
+            "ollama_connected": ollama_ok,
+            "ollama_host": OLLAMA_HOST,
+            "ollama_model": OLLAMA_MODEL,
         }
     )
 
