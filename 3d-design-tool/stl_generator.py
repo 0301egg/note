@@ -32,8 +32,10 @@ def generate_stl(shape_params: dict) -> bytes:
 
     # Bambu Lab用: メッシュの底面をZ=0に配置
     bounds = mesh.bounds
-    if bounds[0][2] < 0:
-        mesh.apply_translation([0, 0, -bounds[0][2]])
+    if bounds is not None and np.asarray(bounds).ndim == 2:
+        z_min = float(bounds[0][2])
+        if z_min < 0:
+            mesh.apply_translation([0, 0, -z_min])
 
     # バイナリSTLとして出力
     stl_bytes = mesh.export(file_type="stl")
