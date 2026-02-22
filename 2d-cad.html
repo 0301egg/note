@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2D CAD ツール</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+#header { background: #16213e; border-bottom: 1px solid #0f3460; padding: 6px 12px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+#header h1 { font-size: 16px; color: #e94560; font-weight: 700; letter-spacing: 1px; }
+.header-info { font-size: 11px; color: #666; margin-left: auto; }
+#main { display: flex; flex: 1; overflow: hidden; }
+#toolbar { width: 52px; background: #16213e; border-right: 1px solid #0f3460; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 4px; flex-shrink: 0; }
+.tool-btn { width: 40px; height: 40px; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; transition: all 0.15s; position: relative; color: #aaa; }
+.tool-btn:hover { background: #0f3460; border-color: #e94560; color: #fff; }
+.tool-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+.tool-sep { width: 32px; height: 1px; background: #0f3460; margin: 2px 0; }
+.tool-btn[title]:hover::after { content: attr(title); position: absolute; left: 48px; top: 50%; transform: translateY(-50%); background: #0f3460; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 1000; pointer-events: none; border: 1px solid #e94560; }
+#canvas-container { flex: 1; position: relative; overflow: hidden; background: #0d0d1a; }
+#canvas { display: block; cursor: crosshair; }
+#panel { width: 220px; background: #16213e; border-left: 1px solid #0f3460; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+.psec { padding: 10px; border-bottom: 1px solid #0f3460; }
+.ptitle { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #e94560; margin-bottom: 8px; font-weight: 600; }
+.prow { display: flex; align-items: center; margin-bottom: 6px; gap: 6px; }
+.plabel { font-size: 11px; color: #888; width: 56px; flex-shrink: 0; }
+.pinput { flex: 1; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+.pinput:focus { outline: none; border-color: #e94560; }
+.punit { font-size: 11px; color: #666; width: 18px; }
+input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; }
+.layer-item { display: flex; align-items: center; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; gap: 6px; }
+.layer-item:hover { background: #1a1a2e; }
+.layer-item.active { background: #0f3460; }
+.obj-item { display: flex; align-items: center; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 4px; }
+.obj-item:hover { background: #1a1a2e; }
+.obj-item.selected { background: #0f3460; color: #e94560; }
+#statusbar { height: 24px; background: #16213e; border-top: 1px solid #0f3460; display: flex; align-items: center; padding: 0 12px; gap: 20px; font-size: 11px; color: #888; flex-shrink: 0; }
+#statusbar .val { color: #e0e0e0; font-family: monospace; }
+.btn { background: #0f3460; border: 1px solid #555; color: #e0e0e0; padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.15s; }
+.btn:hover { background: #e94560; border-color: #e94560; color: #fff; }
+.btn-row { display: flex; gap: 5px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>2D CAD</h1>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="btn" onclick="newDoc()">新規</button>
+    <button class="btn" onclick="exportSVG()">SVG出力</button>
+    <button class="btn" onclick="exportPNG()">PNG出力</button>
+    <button class="btn" onclick="clearAll()">全削除</button>
+  </div>
+  <div class="header-info">ホイール:ズーム | 中ボタン/Alt+ドラッグ:パン | Del:削除 | Esc:キャンセル</div>
+</div>
+<div id="main">
+  <div id="toolbar">
+    <button class="tool-btn active" id="tool-select" title="選択 (S)" onclick="setTool('select')">↖</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" id="tool-line" title="直線 (L)" onclick="setTool('line')">╱</button>
+    <button class="tool-btn" id="tool-rect" title="矩形 (R)" onclick="setTool('rect')">▭</button>
+    <button class="tool-btn" id="tool-circle" title="円 (C)" onclick="setTool('circle')">○</button>
+    <button class="tool-btn" id="tool-arc" title="円弧 (A)" onclick="setTool('arc')">◜</button>
+    <button class="tool-btn" id="tool-polyline" title="ポリライン (P)" onclick="setTool('polyline')">⌒</button>
+    <button class="tool-btn" id="tool-text" title="テキスト (T)" onclick="setTool('text')">T</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" id="tool-measure" title="計測 (M)" onclick="setTool('measure')">📐</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" title="元に戻す (Ctrl+Z)" onclick="undo()">↩</button>
+    <button class="tool-btn" title="やり直し (Ctrl+Y)" onclick="redo()">↪</button>
+  </div>
+  <div id="canvas-container">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div id="panel">
+    <div class="psec">
+      <div class="ptitle">プロパティ</div>
+      <div class="prow"><span class="plabel">線の色</span><input type="color" id="p-stroke" value="#00ccff" onchange="updateProps()"></div>
+      <div class="prow"><span class="plabel">塗り色</span><input type="color" id="p-fill" value="#1a3a5a" onchange="updateProps()"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="checkbox" id="p-fill-none" checked onchange="updateProps()">なし</label></div>
+      <div class="prow"><span class="plabel">線幅</span><input type="number" class="pinput" id="p-lw" value="0.5" min="0.1" max="20" step="0.1" onchange="updateProps()"><span class="punit">mm</span></div>
+      <div class="prow"><span class="plabel">線種</span>
+        <select class="pinput" id="p-dash" onchange="updateProps()" style="padding:2px 4px;">
+          <option value="solid">実線</option>
+          <option value="dashed">破線</option>
+          <option value="dotted">点線</option>
+          <option value="dashdot">一点鎖線</option>
+        </select>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="ptitle">選択情報</div>
+      <div id="sel-info" style="font-size:11px;color:#666;">なし</div>
+      <div id="sel-detail" style="font-size:11px;color:#aaa;margin-top:4px;line-height:1.6;"></div>
+    </div>
+    <div class="psec">
+      <div class="ptitle">グリッド / スナップ</div>
+      <div class="prow"><span class="plabel">グリッド</span><input type="number" class="pinput" id="grid-mm" value="10" min="0.1" max="500" step="0.1" onchange="updateGrid()"><span class="punit">mm</span></div>
+      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-grid" checked>グリッドスナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-end" checked>端点スナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-mid" checked>中点スナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="show-grid" checked onchange="redraw()">グリッド表示</label></div>
+    </div>
+    <div class="psec">
+      <div class="ptitle">ビュー</div>
+      <div class="prow"><span class="plabel">ズーム</span><span id="zoom-label" style="font-size:12px;font-family:monospace;color:#e0e0e0;">100%</span></div>
+      <div class="btn-row" style="margin-top:4px;">
+        <button class="btn" onclick="zoomFit()">全体表示</button>
+        <button class="btn" onclick="zoom1()">1:1</button>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="ptitle">レイヤー</div>
+      <div id="layer-list"></div>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="btn" onclick="addLayer()">追加</button>
+        <button class="btn" onclick="delLayer()">削除</button>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="ptitle">オブジェクト一覧</div>
+      <div id="obj-list" style="max-height:180px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+<div id="statusbar">
+  <span>X: <span class="val" id="st-x">0.0</span> mm</span>
+  <span>Y: <span class="val" id="st-y">0.0</span> mm</span>
+  <span>ΔX: <span class="val" id="st-dx">—</span></span>
+  <span>ΔY: <span class="val" id="st-dy">—</span></span>
+  <span>距離: <span class="val" id="st-dist">—</span></span>
+  <span>ズーム: <span class="val" id="st-zoom">100</span>%</span>
+  <span>オブジェクト数: <span class="val" id="st-count">0</span></span>
+  <span id="st-tool" style="color:#e94560;">ツール: 選択</span>
+</div>
+<script>
+// ==================== State ====================
+const PX_PER_MM = 3.7795275591;
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let container = document.getElementById('canvas-container');
+
+let vx = 0, vy = 0, vscale = 1.0; // viewport: origin px, scale factor
+let BASE = PX_PER_MM;
+
+let objects = [], layers = [{ id: 1, name: 'Layer 1', visible: true }];
+let curLayer = 1, selIds = new Set();
+let hist = [], histIdx = -1, nextId = 1;
+
+let tool = 'select', drawing = false;
+let drawStart = null, drawPts = [], firstPt = null;
+let mouseW = { x: 0, y: 0 }, snapW = null;
+let panning = false, panStart = null, panV0 = null;
+let selecting = false, selBox = null;
+let moving = false, moveStart = null, moveSnap = null;
+
+let pStroke = '#00ccff', pFill = '#1a3a5a', pFillNone = true, pLW = 0.5, pDash = 'solid';
+let gridMM = 10;
+
+// ==================== Init ====================
+function init() {
+  resize();
+  window.addEventListener('resize', resize);
+  vx = canvas.width / 2;
+  vy = canvas.height / 2;
+  canvas.addEventListener('mousedown', onMD);
+  canvas.addEventListener('mousemove', onMM);
+  canvas.addEventListener('mouseup', onMU);
+  canvas.addEventListener('wheel', onWheel, { passive: false });
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('dblclick', onDblClick);
+  document.addEventListener('keydown', onKey);
+  updateLayerList();
+  saveHist();
+  redraw();
+}
+function resize() {
+  let r = container.getBoundingClientRect();
+  canvas.width = r.width; canvas.height = r.height;
+  redraw();
+}
+
+// ==================== Coords ====================
+function s2w(px, py) { return { x: (px - vx) / (vscale * BASE), y: -(py - vy) / (vscale * BASE) }; }
+function w2s(wx, wy) { return { x: vx + wx * vscale * BASE, y: vy - wy * vscale * BASE }; }
+function mm2px(mm) { return mm * vscale * BASE; }
+function px2mm(px) { return px / (vscale * BASE); }
+
+// ==================== Snap ====================
+function doSnap(wpos, excludeId) {
+  let best = { x: wpos.x, y: wpos.y, type: 'free' };
+  let thr = px2mm(9);
+
+  if (document.getElementById('snap-end').checked) {
+    for (let obj of objects) {
+      if (obj.id === excludeId || !layerOf(obj.layer)?.visible) continue;
+      for (let sp of endPts(obj)) {
+        let d = vdist(wpos, sp);
+        if (d < thr) { best = { ...sp, type: 'end' }; thr = d; }
+      }
+    }
+  }
+  if (document.getElementById('snap-mid').checked && best.type === 'free') {
+    for (let obj of objects) {
+      if (obj.id === excludeId || !layerOf(obj.layer)?.visible) continue;
+      for (let mp of midPts(obj)) {
+        let d = vdist(wpos, mp);
+        if (d < thr) { best = { ...mp, type: 'mid' }; thr = d; }
+      }
+    }
+  }
+  if (document.getElementById('snap-grid').checked && best.type === 'free') {
+    let gx = Math.round(wpos.x / gridMM) * gridMM;
+    let gy = Math.round(wpos.y / gridMM) * gridMM;
+    best = { x: gx, y: gy, type: 'grid' };
+  }
+  return best;
+}
+
+function endPts(obj) {
+  switch (obj.type) {
+    case 'line': return [{ x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 }];
+    case 'rect': return [
+      { x: obj.x, y: obj.y }, { x: obj.x + obj.w, y: obj.y },
+      { x: obj.x, y: obj.y + obj.h }, { x: obj.x + obj.w, y: obj.y + obj.h }
+    ];
+    case 'circle': return [
+      { x: obj.cx, y: obj.cy },
+      { x: obj.cx + obj.r, y: obj.cy }, { x: obj.cx - obj.r, y: obj.cy },
+      { x: obj.cx, y: obj.cy + obj.r }, { x: obj.cx, y: obj.cy - obj.r }
+    ];
+    case 'polyline': return obj.pts.map(p => ({ ...p }));
+    default: return [];
+  }
+}
+function midPts(obj) {
+  switch (obj.type) {
+    case 'line': return [{ x: (obj.x1 + obj.x2) / 2, y: (obj.y1 + obj.y2) / 2 }];
+    case 'rect': return [
+      { x: obj.x + obj.w / 2, y: obj.y }, { x: obj.x + obj.w / 2, y: obj.y + obj.h },
+      { x: obj.x, y: obj.y + obj.h / 2 }, { x: obj.x + obj.w, y: obj.y + obj.h / 2 }
+    ];
+    default: return [];
+  }
+}
+function vdist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+// ==================== Draw ====================
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (document.getElementById('show-grid')?.checked) drawGrid();
+  drawAxes();
+  for (let obj of objects) {
+    if (!layerOf(obj.layer)?.visible) continue;
+    drawObj(obj, selIds.has(obj.id));
+  }
+  drawPreview();
+  if (selecting && selBox) drawSelBox();
+  drawSnapIndicator();
+  updateStatus();
+}
+
+function drawGrid() {
+  let minW = s2w(0, canvas.height), maxW = s2w(canvas.width, 0);
+  let g = gridMM;
+  while (mm2px(g) < 8) g *= 5;
+  let sub = g / 5;
+  ctx.save();
+  if (mm2px(sub) >= 3) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.lineWidth = 0.5;
+    drawGridLines(sub, minW, maxW);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 0.5;
+  drawGridLines(g, minW, maxW);
+  // labels
+  if (mm2px(g) > 50) {
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.font = '9px monospace';
+    let sx = Math.floor(minW.x / g) * g;
+    for (let x = sx; x <= maxW.x; x += g) {
+      let px = w2s(x, 0).x;
+      ctx.fillText(x.toFixed(0), px + 2, canvas.height - 3);
+    }
+    let sy = Math.floor(minW.y / g) * g;
+    for (let y = sy; y <= maxW.y; y += g) {
+      let py = w2s(0, y).y;
+      ctx.fillText(y.toFixed(0), 3, py - 2);
+    }
+  }
+  ctx.restore();
+}
+function drawGridLines(g, minW, maxW) {
+  let sx = Math.floor(minW.x / g) * g;
+  for (let x = sx; x <= maxW.x + g; x += g) {
+    let px = w2s(x, 0).x;
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, canvas.height); ctx.stroke();
+  }
+  let sy = Math.floor(minW.y / g) * g;
+  for (let y = sy; y <= maxW.y + g; y += g) {
+    let py = w2s(0, y).y;
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(canvas.width, py); ctx.stroke();
+  }
+}
+function drawAxes() {
+  let o = w2s(0, 0);
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,60,60,0.4)';
+  ctx.beginPath(); ctx.moveTo(o.x, 0); ctx.lineTo(o.x, canvas.height); ctx.stroke();
+  ctx.strokeStyle = 'rgba(60,255,60,0.4)';
+  ctx.beginPath(); ctx.moveTo(0, o.y); ctx.lineTo(canvas.width, o.y); ctx.stroke();
+  ctx.restore();
+}
+
+function dashArr(dash, lw) {
+  let s = mm2px(lw);
+  switch (dash) {
+    case 'dashed': return [s * 8, s * 4];
+    case 'dotted': return [s, s * 3];
+    case 'dashdot': return [s * 12, s * 3, s * 2, s * 3];
+    default: return [];
+  }
+}
+
+function applyStyle(obj, sel) {
+  ctx.lineWidth = Math.max(mm2px(obj.lw || 0.5), 0.5);
+  ctx.strokeStyle = sel ? '#ffdd00' : (obj.stroke || '#00ccff');
+  ctx.fillStyle = obj.fillNone ? 'transparent' : (obj.fill || 'transparent');
+  ctx.setLineDash(dashArr(obj.dash || 'solid', obj.lw || 0.5));
+}
+
+function drawObj(obj, sel) {
+  ctx.save();
+  applyStyle(obj, sel);
+  switch (obj.type) {
+    case 'line': {
+      let a = w2s(obj.x1, obj.y1), b = w2s(obj.x2, obj.y2);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      if (sel) {
+        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        let d = vdist({ x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 });
+        let m = w2s((obj.x1 + obj.x2) / 2, (obj.y1 + obj.y2) / 2);
+        ctx.fillText(d.toFixed(1) + ' mm', m.x + 4, m.y - 4);
+      }
+      break;
+    }
+    case 'rect': {
+      let s = w2s(obj.x, obj.y);
+      let pw = mm2px(obj.w), ph = mm2px(obj.h);
+      ctx.beginPath(); ctx.rect(s.x, s.y - ph, pw, ph);
+      if (!obj.fillNone) ctx.fill(); ctx.stroke();
+      if (sel) {
+        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        ctx.fillText(`${Math.abs(obj.w).toFixed(1)} x ${Math.abs(obj.h).toFixed(1)} mm`, s.x + 2, s.y - ph - 4);
+      }
+      break;
+    }
+    case 'circle': {
+      let c = w2s(obj.cx, obj.cy), r = mm2px(obj.r);
+      ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+      if (!obj.fillNone) ctx.fill(); ctx.stroke();
+      if (sel) {
+        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        ctx.fillText(`R${obj.r.toFixed(1)} / ⌀${(obj.r*2).toFixed(1)} mm`, c.x + r + 4, c.y);
+      }
+      break;
+    }
+    case 'arc': {
+      let c = w2s(obj.cx, obj.cy), r = mm2px(obj.r);
+      let a1 = -obj.a1 * Math.PI / 180, a2 = -obj.a2 * Math.PI / 180;
+      ctx.beginPath(); ctx.arc(c.x, c.y, r, a1, a2, true); ctx.stroke();
+      break;
+    }
+    case 'polyline': {
+      if (obj.pts.length < 2) break;
+      ctx.beginPath();
+      let p0 = w2s(obj.pts[0].x, obj.pts[0].y); ctx.moveTo(p0.x, p0.y);
+      for (let i = 1; i < obj.pts.length; i++) { let p = w2s(obj.pts[i].x, obj.pts[i].y); ctx.lineTo(p.x, p.y); }
+      if (obj.closed) ctx.closePath();
+      if (!obj.fillNone && obj.closed) ctx.fill(); ctx.stroke();
+      break;
+    }
+    case 'text': {
+      let s = w2s(obj.x, obj.y);
+      ctx.setLineDash([]);
+      ctx.font = `${mm2px(obj.fs || 5)}px sans-serif`;
+      ctx.fillStyle = sel ? '#ffdd00' : (obj.stroke || '#00ccff');
+      ctx.fillText(obj.text, s.x, s.y);
+      break;
+    }
+  }
+  if (sel) drawHandles(obj);
+  ctx.restore();
+}
+
+function drawHandles(obj) {
+  ctx.save(); ctx.fillStyle = '#ffdd00'; ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.setLineDash([]);
+  for (let p of endPts(obj)) {
+    let s = w2s(p.x, p.y);
+    ctx.beginPath(); ctx.arc(s.x, s.y, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPreview() {
+  if (!drawing) return;
+  let mp = snapW || mouseW;
+  ctx.save();
+  ctx.strokeStyle = pStroke; ctx.lineWidth = Math.max(mm2px(pLW), 0.5);
+  ctx.setLineDash(dashArr(pDash, pLW)); ctx.globalAlpha = 0.75;
+  switch (tool) {
+    case 'line':
+      if (drawStart) {
+        let s = w2s(drawStart.x, drawStart.y), e = w2s(mp.x, mp.y);
+        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        let d = vdist(drawStart, mp);
+        ctx.fillText(d.toFixed(1) + ' mm', e.x + 8, e.y - 4);
+      }
+      break;
+    case 'rect':
+      if (drawStart) {
+        let s = w2s(drawStart.x, drawStart.y);
+        let pw = mm2px(mp.x - drawStart.x), ph = mm2px(mp.y - drawStart.y);
+        ctx.strokeRect(s.x, s.y - ph, pw, ph);
+        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        ctx.fillText(`${Math.abs(mp.x-drawStart.x).toFixed(1)} x ${Math.abs(mp.y-drawStart.y).toFixed(1)} mm`, s.x+2, s.y - ph - 4);
+      }
+      break;
+    case 'circle':
+      if (drawStart) {
+        let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, mp));
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        ctx.fillText(`R${vdist(drawStart, mp).toFixed(1)} mm`, c.x + r + 4, c.y);
+      }
+      break;
+    case 'arc':
+      if (drawStart && drawPts.length === 0) {
+        // show center
+        let c = w2s(drawStart.x, drawStart.y);
+        ctx.setLineDash([]); ctx.fillStyle = '#e94560'; ctx.beginPath(); ctx.arc(c.x, c.y, 3, 0, Math.PI * 2); ctx.fill();
+      } else if (drawStart && drawPts.length === 1) {
+        let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, drawPts[0]));
+        ctx.setLineDash([3,3]); ctx.globalAlpha = 0.2;
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.stroke();
+        let pe = w2s(drawPts[0].x, drawPts[0].y);
+        ctx.globalAlpha = 0.7; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(pe.x, pe.y); ctx.stroke();
+        ctx.fillStyle = pStroke; ctx.globalAlpha = 1; ctx.font = '11px monospace';
+        ctx.fillText('終点クリック', c.x + r + 4, c.y - 4);
+      } else if (drawStart && drawPts.length === 2) {
+        let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, drawPts[0]));
+        let a1 = -Math.atan2(drawPts[0].y - drawStart.y, drawPts[0].x - drawStart.x);
+        let a2 = -Math.atan2(mp.y - drawStart.y, mp.x - drawStart.x);
+        ctx.beginPath(); ctx.arc(c.x, c.y, r, a1, a2, true); ctx.stroke();
+      }
+      break;
+    case 'polyline':
+      if (drawPts.length > 0) {
+        ctx.beginPath();
+        let p0 = w2s(drawPts[0].x, drawPts[0].y); ctx.moveTo(p0.x, p0.y);
+        for (let i = 1; i < drawPts.length; i++) { let p = w2s(drawPts[i].x, drawPts[i].y); ctx.lineTo(p.x, p.y); }
+        let e = w2s(mp.x, mp.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+        // close hint
+        if (drawPts.length >= 3 && vdist(mp, drawPts[0]) < px2mm(12)) {
+          ctx.setLineDash([]); ctx.fillStyle = '#00ff88'; ctx.font = '11px monospace';
+          ctx.fillText('クリックで閉じる', e.x + 6, e.y - 4);
+        }
+      }
+      break;
+    case 'measure':
+      if (drawStart) {
+        let s = w2s(drawStart.x, drawStart.y), e = w2s(mp.x, mp.y);
+        ctx.strokeStyle = '#ffff00'; ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = '#ffff00'; ctx.font = '13px monospace'; ctx.globalAlpha = 1;
+        let d = vdist(drawStart, mp);
+        ctx.fillText(d.toFixed(1) + ' mm', (s.x+e.x)/2+6, (s.y+e.y)/2-4);
+      }
+      break;
+  }
+  ctx.restore();
+}
+
+function drawSelBox() {
+  let s = w2s(selBox.x1, selBox.y1), e = w2s(selBox.x2, selBox.y2);
+  let x = Math.min(s.x, e.x), y = Math.min(s.y, e.y), w = Math.abs(s.x-e.x), h = Math.abs(s.y-e.y);
+  let crossSel = selBox.x1 > selBox.x2;
+  ctx.save();
+  ctx.strokeStyle = crossSel ? '#ffaa00' : 'rgba(0,200,255,0.9)';
+  ctx.fillStyle = crossSel ? 'rgba(255,170,0,0.05)' : 'rgba(0,200,255,0.05)';
+  ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+  ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h);
+  ctx.restore();
+}
+
+function drawSnapIndicator() {
+  if (!snapW) return;
+  let s = w2s(snapW.x, snapW.y);
+  ctx.save();
+  switch (snapW.type) {
+    case 'end':
+      ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(s.x-5, s.y-5, 10, 10); break;
+    case 'mid':
+      ctx.strokeStyle = '#ffaa00'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(s.x-5,s.y+5); ctx.lineTo(s.x,s.y-5); ctx.lineTo(s.x+5,s.y+5); ctx.closePath(); ctx.stroke(); break;
+    case 'grid':
+      ctx.strokeStyle = '#4466ff'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(s.x-4,s.y); ctx.lineTo(s.x+4,s.y); ctx.moveTo(s.x,s.y-4); ctx.lineTo(s.x,s.y+4); ctx.stroke(); break;
+  }
+  ctx.restore();
+}
+
+// ==================== Mouse ====================
+function getPos(e) { let r = canvas.getBoundingClientRect(); return { px: e.clientX - r.left, py: e.clientY - r.top }; }
+
+function onMD(e) {
+  let { px, py } = getPos(e);
+  let w = s2w(px, py);
+  let sn = doSnap(w);
+  snapW = sn;
+
+  if (e.button === 1 || (e.button === 0 && e.altKey)) {
+    panning = true; panStart = { px, py }; panV0 = { x: vx, y: vy };
+    e.preventDefault(); return;
+  }
+  if (e.button === 2) {
+    if (tool === 'polyline' && drawPts.length >= 2) { finishPoly(false); return; }
+    if (drawing) { drawing = false; drawStart = null; drawPts = []; firstPt = null; redraw(); return; }
+    if (!e.shiftKey) { selIds.clear(); updateObjList(); updateSelPanel(); redraw(); }
+    return;
+  }
+  if (e.button !== 0) return;
+
+  switch (tool) {
+    case 'select': doSelectDown(px, py, w, sn); break;
+    case 'line': doLineDown(sn); break;
+    case 'rect': doRectDown(sn); break;
+    case 'circle': doCircleDown(sn); break;
+    case 'arc': doArcDown(sn); break;
+    case 'polyline': doPolyDown(sn); break;
+    case 'text': doTextDown(sn); break;
+    case 'measure':
+      if (!drawing) { drawing = true; drawStart = { ...sn }; }
+      else { drawing = false; drawStart = null; }
+      break;
+  }
+}
+
+function onMM(e) {
+  let { px, py } = getPos(e);
+  let w = s2w(px, py);
+  mouseW = w;
+  snapW = doSnap(w);
+
+  if (panning) { vx = panV0.x + px - panStart.px; vy = panV0.y + py - panStart.py; redraw(); return; }
+  if (moving && moveStart) {
+    let dx = snapW.x - moveStart.x, dy = snapW.y - moveStart.y;
+    for (let id of selIds) {
+      let obj = objects.find(o => o.id === id);
+      let snap_o = moveSnap.find(o => o.id === id);
+      if (obj && snap_o) applyMove(obj, snap_o, dx, dy);
+    }
+    redraw(); return;
+  }
+  if (selecting) { selBox.x2 = w.x; selBox.y2 = w.y; redraw(); return; }
+  redraw();
+}
+
+function onMU(e) {
+  if (panning) { panning = false; return; }
+  let { px, py } = getPos(e);
+  let w = s2w(px, py);
+  if (moving) { moving = false; moveStart = null; saveHist(); return; }
+  if (selecting) {
+    selecting = false;
+    if (selBox) {
+      let x1 = Math.min(selBox.x1, selBox.x2), x2 = Math.max(selBox.x1, selBox.x2);
+      let y1 = Math.min(selBox.y1, selBox.y2), y2 = Math.max(selBox.y1, selBox.y2);
+      let cross = selBox.x1 > selBox.x2;
+      for (let obj of objects) {
+        if (!layerOf(obj.layer)?.visible) continue;
+        if (cross ? objCross(obj, x1, y1, x2, y2) : objInside(obj, x1, y1, x2, y2)) selIds.add(obj.id);
+      }
+    }
+    selBox = null; updateObjList(); updateSelPanel(); redraw();
+  }
+}
+
+function onDblClick(e) {
+  if (tool === 'polyline' && drawPts.length >= 2) finishPoly(false);
+}
+
+function onWheel(e) {
+  e.preventDefault();
+  let { px, py } = getPos(e);
+  let f = e.deltaY < 0 ? 1.12 : 1/1.12;
+  vx = px - (px - vx) * f; vy = py - (py - vy) * f;
+  vscale = Math.max(0.01, Math.min(500, vscale * f));
+  redraw();
+}
+
+// ==================== Tool handlers ====================
+function doSelectDown(px, py, w, sn) {
+  let picked = pickObj(w);
+  if (picked) {
+    if (!event.shiftKey && !selIds.has(picked.id)) selIds.clear();
+    selIds.add(picked.id);
+    moving = true; moveStart = { ...sn };
+    moveSnap = objects.map(o => JSON.parse(JSON.stringify(o)));
+    updateObjList(); updateSelPanel(); redraw();
+  } else {
+    if (!event.shiftKey) selIds.clear();
+    selecting = true; selBox = { x1: w.x, y1: w.y, x2: w.x, y2: w.y };
+    updateObjList(); updateSelPanel(); redraw();
+  }
+}
+
+function doLineDown(sn) {
+  if (!drawing) { drawing = true; drawStart = { ...sn }; firstPt = { ...sn }; }
+  else {
+    addObj({ id: nextId++, type: 'line', layer: curLayer, x1: drawStart.x, y1: drawStart.y, x2: sn.x, y2: sn.y, stroke: pStroke, lw: pLW, dash: pDash });
+    drawStart = { ...sn }; // chain
+  }
+}
+
+function doRectDown(sn) {
+  if (!drawing) { drawing = true; drawStart = { ...sn }; firstPt = { ...sn }; }
+  else {
+    let w = sn.x - drawStart.x, h = sn.y - drawStart.y;
+    if (Math.abs(w) < 0.01 || Math.abs(h) < 0.01) { drawing = false; drawStart = null; firstPt = null; return; }
+    addObj({ id: nextId++, type: 'rect', layer: curLayer, x: drawStart.x, y: drawStart.y, w, h, stroke: pStroke, fill: pFill, fillNone: pFillNone, lw: pLW, dash: pDash });
+    drawing = false; drawStart = null; firstPt = null;
+  }
+}
+
+function doCircleDown(sn) {
+  if (!drawing) { drawing = true; drawStart = { ...sn }; firstPt = { ...sn }; }
+  else {
+    let r = vdist(drawStart, sn);
+    if (r < 0.01) { drawing = false; drawStart = null; firstPt = null; return; }
+    addObj({ id: nextId++, type: 'circle', layer: curLayer, cx: drawStart.x, cy: drawStart.y, r, stroke: pStroke, fill: pFill, fillNone: pFillNone, lw: pLW, dash: pDash });
+    drawing = false; drawStart = null; firstPt = null;
+  }
+}
+
+function doArcDown(sn) {
+  if (!drawing) { drawing = true; drawStart = { ...sn }; firstPt = { ...sn }; }
+  else if (drawPts.length === 0) { drawPts.push({ ...sn }); }
+  else if (drawPts.length === 1) {
+    let r = vdist(drawStart, drawPts[0]);
+    let a1 = Math.atan2(drawPts[0].y - drawStart.y, drawPts[0].x - drawStart.x) * 180 / Math.PI;
+    let a2 = Math.atan2(sn.y - drawStart.y, sn.x - drawStart.x) * 180 / Math.PI;
+    addObj({ id: nextId++, type: 'arc', layer: curLayer, cx: drawStart.x, cy: drawStart.y, r, a1, a2, stroke: pStroke, lw: pLW, dash: pDash });
+    drawing = false; drawStart = null; drawPts = []; firstPt = null;
+  }
+}
+
+function doPolyDown(sn) {
+  if (!drawing) { drawing = true; drawPts = [{ ...sn }]; firstPt = { ...sn }; }
+  else {
+    if (drawPts.length >= 3 && vdist(sn, drawPts[0]) < px2mm(12)) { finishPoly(true); return; }
+    drawPts.push({ ...sn });
+  }
+}
+
+function finishPoly(closed) {
+  if (drawPts.length < 2) { drawing = false; drawPts = []; firstPt = null; return; }
+  addObj({ id: nextId++, type: 'polyline', layer: curLayer, pts: drawPts.map(p => ({ ...p })), closed, stroke: pStroke, fill: pFill, fillNone: pFillNone, lw: pLW, dash: pDash });
+  drawing = false; drawPts = []; firstPt = null;
+}
+
+function doTextDown(sn) {
+  let text = prompt('テキスト入力:', '');
+  if (!text || !text.trim()) return;
+  addObj({ id: nextId++, type: 'text', layer: curLayer, x: sn.x, y: sn.y, text: text.trim(), fs: 5, stroke: pStroke });
+}
+
+// ==================== Pick / Hit ====================
+function pickObj(w) {
+  let thr = px2mm(7);
+  for (let i = objects.length - 1; i >= 0; i--) {
+    let obj = objects[i];
+    if (!layerOf(obj.layer)?.visible) continue;
+    if (hitTest(obj, w, thr)) return obj;
+  }
+  return null;
+}
+
+function hitTest(obj, p, thr) {
+  switch (obj.type) {
+    case 'line': return distSeg(p, { x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 }) < thr;
+    case 'rect': {
+      let x2 = obj.x + obj.w, y2 = obj.y + obj.h;
+      let onEdge = distSeg(p,{x:obj.x,y:obj.y},{x:x2,y:obj.y})<thr || distSeg(p,{x:x2,y:obj.y},{x:x2,y:y2})<thr || distSeg(p,{x:x2,y:y2},{x:obj.x,y:y2})<thr || distSeg(p,{x:obj.x,y:y2},{x:obj.x,y:obj.y})<thr;
+      let inside = !obj.fillNone && p.x>=Math.min(obj.x,x2) && p.x<=Math.max(obj.x,x2) && p.y>=Math.min(obj.y,y2) && p.y<=Math.max(obj.y,y2);
+      return onEdge || inside;
+    }
+    case 'circle': return Math.abs(vdist(p, { x: obj.cx, y: obj.cy }) - obj.r) < thr;
+    case 'arc': return Math.abs(vdist(p, { x: obj.cx, y: obj.cy }) - obj.r) < thr;
+    case 'polyline': {
+      for (let i = 0; i < obj.pts.length - 1; i++) if (distSeg(p, obj.pts[i], obj.pts[i+1]) < thr) return true;
+      if (obj.closed && obj.pts.length >= 3) return distSeg(p, obj.pts[obj.pts.length-1], obj.pts[0]) < thr;
+      return false;
+    }
+    case 'text': return vdist(p, { x: obj.x, y: obj.y }) < thr * 5;
+  }
+  return false;
+}
+
+function distSeg(p, a, b) {
+  let dx = b.x-a.x, dy = b.y-a.y, l2 = dx*dx+dy*dy;
+  if (l2 === 0) return vdist(p, a);
+  let t = Math.max(0, Math.min(1, ((p.x-a.x)*dx+(p.y-a.y)*dy)/l2));
+  return vdist(p, { x: a.x+t*dx, y: a.y+t*dy });
+}
+
+function objInside(obj, x1, y1, x2, y2) {
+  let pts = endPts(obj);
+  return pts.length > 0 && pts.every(p => p.x >= x1 && p.x <= x2 && p.y >= y1 && p.y <= y2);
+}
+function objCross(obj, x1, y1, x2, y2) {
+  return endPts(obj).some(p => p.x >= x1 && p.x <= x2 && p.y >= y1 && p.y <= y2);
+}
+
+function applyMove(obj, snap_o, dx, dy) {
+  switch (obj.type) {
+    case 'line': obj.x1=snap_o.x1+dx; obj.y1=snap_o.y1+dy; obj.x2=snap_o.x2+dx; obj.y2=snap_o.y2+dy; break;
+    case 'rect': obj.x=snap_o.x+dx; obj.y=snap_o.y+dy; break;
+    case 'circle': obj.cx=snap_o.cx+dx; obj.cy=snap_o.cy+dy; break;
+    case 'arc': obj.cx=snap_o.cx+dx; obj.cy=snap_o.cy+dy; break;
+    case 'polyline': obj.pts=snap_o.pts.map(p=>({x:p.x+dx,y:p.y+dy})); break;
+    case 'text': obj.x=snap_o.x+dx; obj.y=snap_o.y+dy; break;
+  }
+}
+
+// ==================== Objects ====================
+function addObj(obj) {
+  objects.push(obj);
+  saveHist(); updateObjList(); updateCountStatus(); redraw();
+}
+function deleteSelected() {
+  if (!selIds.size) return;
+  objects = objects.filter(o => !selIds.has(o.id));
+  selIds.clear(); saveHist(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
+}
+
+// ==================== History ====================
+function saveHist() {
+  hist = hist.slice(0, histIdx + 1);
+  hist.push(JSON.stringify(objects));
+  histIdx = hist.length - 1;
+  if (hist.length > 60) { hist.shift(); histIdx--; }
+}
+function undo() {
+  if (histIdx <= 0) { objects = []; histIdx = 0; hist[0] = '[]'; }
+  else histIdx--;
+  objects = JSON.parse(hist[histIdx] || '[]');
+  selIds.clear(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
+}
+function redo() {
+  if (histIdx >= hist.length - 1) return;
+  histIdx++; objects = JSON.parse(hist[histIdx]);
+  selIds.clear(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
+}
+
+// ==================== Keyboard ====================
+function onKey(e) {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { deleteSelected(); return; }
+  if (e.key === 'Escape') {
+    drawing = false; drawStart = null; drawPts = []; firstPt = null;
+    selIds.clear(); updateObjList(); updateSelPanel(); redraw(); return;
+  }
+  if (e.key === 'Enter' && tool === 'polyline' && drawPts.length >= 2) { finishPoly(false); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') { e.preventDefault(); objects.forEach(o => selIds.add(o.id)); updateObjList(); updateSelPanel(); redraw(); return; }
+  const km = { s:'select', l:'line', r:'rect', c:'circle', a:'arc', p:'polyline', t:'text', m:'measure' };
+  if (km[e.key.toLowerCase()]) setTool(km[e.key.toLowerCase()]);
+}
+
+// ==================== Tool ====================
+function setTool(t) {
+  tool = t; drawing = false; drawStart = null; drawPts = []; firstPt = null;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  let btn = document.getElementById('tool-' + t); if (btn) btn.classList.add('active');
+  const names = { select:'選択', line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', text:'テキスト', measure:'計測' };
+  document.getElementById('st-tool').textContent = 'ツール: ' + (names[t] || t);
+  redraw();
+}
+
+// ==================== Props ====================
+function updateProps() {
+  pStroke = document.getElementById('p-stroke').value;
+  pFill = document.getElementById('p-fill').value;
+  pFillNone = document.getElementById('p-fill-none').checked;
+  pLW = Math.max(0.1, parseFloat(document.getElementById('p-lw').value) || 0.5);
+  pDash = document.getElementById('p-dash').value;
+  for (let id of selIds) {
+    let obj = objects.find(o => o.id === id); if (!obj) continue;
+    obj.stroke = pStroke; obj.fill = pFill; obj.fillNone = pFillNone; obj.lw = pLW; obj.dash = pDash;
+  }
+  if (selIds.size) saveHist();
+  redraw();
+}
+
+// ==================== Status ====================
+function updateStatus() {
+  let sn = snapW || mouseW;
+  document.getElementById('st-x').textContent = sn.x.toFixed(1);
+  document.getElementById('st-y').textContent = sn.y.toFixed(1);
+  if (firstPt || (drawing && drawStart)) {
+    let ref = firstPt || drawStart;
+    document.getElementById('st-dx').textContent = (sn.x - ref.x).toFixed(1) + ' mm';
+    document.getElementById('st-dy').textContent = (sn.y - ref.y).toFixed(1) + ' mm';
+    document.getElementById('st-dist').textContent = vdist(ref, sn).toFixed(1) + ' mm';
+  } else {
+    document.getElementById('st-dx').textContent = '—';
+    document.getElementById('st-dy').textContent = '—';
+    document.getElementById('st-dist').textContent = '—';
+  }
+  let pct = Math.round(vscale * 100);
+  document.getElementById('st-zoom').textContent = pct;
+  document.getElementById('zoom-label').textContent = pct + '%';
+}
+function updateCountStatus() { document.getElementById('st-count').textContent = objects.length; }
+
+// ==================== Sel panel ====================
+function updateSelPanel() {
+  let info = document.getElementById('sel-info');
+  let detail = document.getElementById('sel-detail');
+  if (!selIds.size) { info.textContent = 'なし'; detail.textContent = ''; return; }
+  info.textContent = `${selIds.size}個選択`;
+  if (selIds.size === 1) {
+    let obj = objects.find(o => o.id === [...selIds][0]);
+    if (!obj) { detail.textContent = ''; return; }
+    let s = '';
+    switch (obj.type) {
+      case 'line': {
+        let d = vdist({x:obj.x1,y:obj.y1},{x:obj.x2,y:obj.y2});
+        let ang = Math.atan2(obj.y2-obj.y1, obj.x2-obj.x1)*180/Math.PI;
+        s = `種類: 直線\nX1:${obj.x1.toFixed(1)} Y1:${obj.y1.toFixed(1)}\nX2:${obj.x2.toFixed(1)} Y2:${obj.y2.toFixed(1)}\n長さ: ${d.toFixed(1)} mm\n角度: ${ang.toFixed(1)}°`; break;
+      }
+      case 'rect':
+        s = `種類: 矩形\nX:${obj.x.toFixed(1)} Y:${obj.y.toFixed(1)}\nW:${obj.w.toFixed(1)} H:${obj.h.toFixed(1)} mm\n面積:${Math.abs(obj.w*obj.h).toFixed(2)} mm²`; break;
+      case 'circle':
+        s = `種類: 円\nCX:${obj.cx.toFixed(1)} CY:${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} / ⌀${(obj.r*2).toFixed(1)} mm\n面積:${(Math.PI*obj.r*obj.r).toFixed(2)} mm²`; break;
+      case 'arc':
+        s = `種類: 円弧\nCX:${obj.cx.toFixed(1)} CY:${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} mm`; break;
+      case 'polyline':
+        s = `種類: ポリライン\n頂点数: ${obj.pts.length}\n${obj.closed?'閉じた':'開いた'}ポリライン`; break;
+      case 'text':
+        s = `種類: テキスト\n"${obj.text}"\nX:${obj.x.toFixed(1)} Y:${obj.y.toFixed(1)}`; break;
+    }
+    detail.style.whiteSpace = 'pre';
+    detail.textContent = s;
+  } else { detail.textContent = ''; }
+}
+
+// ==================== Obj list ====================
+const typeIcon = { line:'╱', rect:'▭', circle:'○', arc:'◜', polyline:'⌒', text:'T' };
+const typeName = { line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', text:'テキスト' };
+function updateObjList() {
+  let list = document.getElementById('obj-list');
+  list.innerHTML = objects.slice().reverse().map(obj =>
+    `<div class="obj-item ${selIds.has(obj.id)?'selected':''}" onclick="clickObj(${obj.id},event)">
+      <span style="color:${obj.stroke||'#00ccff'}">${typeIcon[obj.type]||'?'}</span>
+      <span>${typeName[obj.type]||obj.type} #${obj.id}</span>
+    </div>`
+  ).join('');
+  updateCountStatus();
+}
+function clickObj(id, e) {
+  if (!e.shiftKey) selIds.clear();
+  selIds.add(id); updateObjList(); updateSelPanel(); redraw();
+}
+
+// ==================== Layers ====================
+function layerOf(id) { return layers.find(l => l.id === id); }
+function updateLayerList() {
+  document.getElementById('layer-list').innerHTML = layers.map(l =>
+    `<div class="layer-item ${l.id===curLayer?'active':''}" onclick="selectLayer(${l.id})">
+      <span onclick="toggleVis(event,${l.id})" style="cursor:pointer;">${l.visible?'👁':'🚫'}</span>
+      <span style="flex:1;">${l.name}</span>
+    </div>`
+  ).join('');
+}
+function selectLayer(id) { curLayer = id; updateLayerList(); }
+function toggleVis(e, id) { e.stopPropagation(); let l=layerOf(id); if(l) l.visible=!l.visible; updateLayerList(); redraw(); }
+function addLayer() {
+  let name = prompt('レイヤー名:', `Layer ${layers.length+1}`); if (!name) return;
+  let id = Math.max(...layers.map(l=>l.id))+1;
+  layers.push({ id, name, visible: true }); curLayer = id; updateLayerList();
+}
+function delLayer() {
+  if (layers.length<=1) { alert('最低1レイヤー必要です'); return; }
+  if (!confirm(`"${layerOf(curLayer)?.name}" を削除しますか?`)) return;
+  layers = layers.filter(l=>l.id!==curLayer); curLayer=layers[0].id; updateLayerList(); redraw();
+}
+
+// ==================== Grid ====================
+function updateGrid() { gridMM = Math.max(0.1, parseFloat(document.getElementById('grid-mm').value)||10); redraw(); }
+
+// ==================== Zoom ====================
+function zoomFit() {
+  if (!objects.length) { vx=canvas.width/2; vy=canvas.height/2; vscale=1; redraw(); return; }
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for (let obj of objects) {
+    let pts = endPts(obj);
+    if (obj.type==='circle') pts=[{x:obj.cx-obj.r,y:obj.cy-obj.r},{x:obj.cx+obj.r,y:obj.cy+obj.r}];
+    for (let p of pts) { minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y); }
+  }
+  let pad=30, sw=(canvas.width-pad*2)/((maxX-minX)*BASE||1), sh=(canvas.height-pad*2)/((maxY-minY)*BASE||1);
+  vscale = Math.min(sw,sh,200);
+  vx = canvas.width/2 - ((minX+maxX)/2)*vscale*BASE;
+  vy = canvas.height/2 + ((minY+maxY)/2)*vscale*BASE;
+  redraw();
+}
+function zoom1() { vscale=1; redraw(); }
+
+// ==================== Export ====================
+function exportSVG() {
+  if (!objects.length) { alert('オブジェクトがありません'); return; }
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for (let obj of objects) {
+    let pts=endPts(obj);
+    if (obj.type==='circle') pts=[{x:obj.cx-obj.r,y:obj.cy-obj.r},{x:obj.cx+obj.r,y:obj.cy+obj.r}];
+    for (let p of pts){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
+  }
+  let pad=10, W=(maxX-minX+pad*2).toFixed(3), H=(maxY-minY+pad*2).toFixed(3);
+  let tx=x=>(x-minX+pad).toFixed(3), ty=y=>(maxY-y+pad).toFixed(3);
+  function da(obj){
+    let lw=obj.lw||0.5;
+    switch(obj.dash||'solid'){
+      case 'dashed':return `stroke-dasharray="${lw*8} ${lw*4}"`;
+      case 'dotted':return `stroke-dasharray="${lw} ${lw*3}"`;
+      case 'dashdot':return `stroke-dasharray="${lw*12} ${lw*3} ${lw*2} ${lw*3}"`;
+      default:return '';
+    }
+  }
+  function cs(obj){return `stroke="${obj.stroke||'#00ccff'}" stroke-width="${(obj.lw||0.5).toFixed(2)}" fill="${obj.fillNone?'none':(obj.fill||'none')}" ${da(obj)}`;}
+  let lines = objects.filter(o=>layerOf(o.layer)?.visible).map(obj=>{
+    switch(obj.type){
+      case 'line': return `  <line x1="${tx(obj.x1)}" y1="${ty(obj.y1)}" x2="${tx(obj.x2)}" y2="${ty(obj.y2)}" ${cs(obj)}/>`;
+      case 'rect': {let x=Math.min(obj.x,obj.x+obj.w),y=Math.min(obj.y,obj.y+obj.h),w=Math.abs(obj.w),h=Math.abs(obj.h); return `  <rect x="${tx(x)}" y="${ty(y+h)}" width="${w.toFixed(3)}" height="${h.toFixed(3)}" ${cs(obj)}/>`;}
+      case 'circle': return `  <circle cx="${tx(obj.cx)}" cy="${ty(obj.cy)}" r="${obj.r.toFixed(3)}" ${cs(obj)}/>`;
+      case 'arc': {let r=obj.r,a1=obj.a1*Math.PI/180,a2=obj.a2*Math.PI/180,x1=obj.cx+r*Math.cos(a1),y1=obj.cy+r*Math.sin(a1),x2=obj.cx+r*Math.cos(a2),y2=obj.cy+r*Math.sin(a2),lg=Math.abs(a2-a1)>Math.PI?1:0; return `  <path d="M ${tx(x1)} ${ty(y1)} A ${r.toFixed(3)} ${r.toFixed(3)} 0 ${lg} 1 ${tx(x2)} ${ty(y2)}" ${cs(obj)} fill="none"/>`;}
+      case 'polyline': {let pts=obj.pts.map(p=>`${tx(p.x)},${ty(p.y)}`).join(' '); return obj.closed?`  <polygon points="${pts}" ${cs(obj)}/>`:`  <polyline points="${pts}" ${cs(obj)} fill="none"/>`;}
+      case 'text': return `  <text x="${tx(obj.x)}" y="${ty(obj.y)}" font-size="${(obj.fs||5).toFixed(2)}" fill="${obj.stroke||'#00ccff'}">${obj.text}</text>`;
+      default: return '';
+    }
+  }).join('\n');
+  let svg=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">\n  <rect width="100%" height="100%" fill="#0d0d1a"/>\n${lines}\n</svg>`;
+  let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download='cad_export.svg'; a.click();
+}
+
+function exportPNG() {
+  let a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='cad_export.png'; a.click();
+}
+
+// ==================== Doc ====================
+function newDoc() {
+  if (objects.length && !confirm('現在の図面を破棄して新規作成しますか?')) return;
+  objects=[]; selIds.clear(); hist=[]; histIdx=-1; nextId=1;
+  updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
+}
+function clearAll() {
+  if (!confirm('全オブジェクトを削除しますか?')) return;
+  objects=[]; selIds.clear(); saveHist(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
+}
+
+// ==================== Start ====================
+init();
+</script>
+</body>
+</html>
