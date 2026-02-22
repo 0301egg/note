@@ -6,39 +6,41 @@
 <title>2D CAD ツール</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-#header { background: #16213e; border-bottom: 1px solid #0f3460; padding: 6px 12px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-#header h1 { font-size: 16px; color: #e94560; font-weight: 700; letter-spacing: 1px; }
-.header-info { font-size: 11px; color: #666; margin-left: auto; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f0f0; color: #222; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+#header { background: #e2e2e2; border-bottom: 1px solid #bbb; padding: 6px 12px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+#header h1 { font-size: 16px; color: #c0392b; font-weight: 700; letter-spacing: 1px; }
+.header-info { font-size: 11px; color: #777; margin-left: auto; }
 #main { display: flex; flex: 1; overflow: hidden; }
-#toolbar { width: 52px; background: #16213e; border-right: 1px solid #0f3460; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 4px; flex-shrink: 0; }
-.tool-btn { width: 40px; height: 40px; background: #1a1a2e; border: 1px solid #0f3460; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; transition: all 0.15s; position: relative; color: #aaa; }
-.tool-btn:hover { background: #0f3460; border-color: #e94560; color: #fff; }
-.tool-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
-.tool-sep { width: 32px; height: 1px; background: #0f3460; margin: 2px 0; }
-.tool-btn[title]:hover::after { content: attr(title); position: absolute; left: 48px; top: 50%; transform: translateY(-50%); background: #0f3460; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 1000; pointer-events: none; border: 1px solid #e94560; }
-#canvas-container { flex: 1; position: relative; overflow: hidden; background: #0d0d1a; }
+#toolbar { width: 52px; background: #e8e8e8; border-right: 1px solid #bbb; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 4px; flex-shrink: 0; }
+.tool-btn { width: 40px; height: 40px; background: #f5f5f5; border: 1px solid #bbb; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; transition: all 0.15s; position: relative; color: #555; }
+.tool-btn:hover { background: #ddd; border-color: #c0392b; color: #222; }
+.tool-btn.active { background: #c0392b; border-color: #c0392b; color: #fff; }
+.tool-sep { width: 32px; height: 1px; background: #bbb; margin: 2px 0; }
+.tool-btn[title]:hover::after { content: attr(title); position: absolute; left: 48px; top: 50%; transform: translateY(-50%); background: #fff; color: #222; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 1000; pointer-events: none; border: 1px solid #c0392b; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+#canvas-container { flex: 1; position: relative; overflow: hidden; background: #d8d8d8; }
 #canvas { display: block; cursor: crosshair; }
-#panel { width: 220px; background: #16213e; border-left: 1px solid #0f3460; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
-.psec { padding: 10px; border-bottom: 1px solid #0f3460; }
-.ptitle { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #e94560; margin-bottom: 8px; font-weight: 600; }
+#panel { width: 220px; background: #e8e8e8; border-left: 1px solid #bbb; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+.psec { padding: 10px; border-bottom: 1px solid #bbb; }
+.ptitle { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #c0392b; margin-bottom: 8px; font-weight: 600; }
 .prow { display: flex; align-items: center; margin-bottom: 6px; gap: 6px; }
-.plabel { font-size: 11px; color: #888; width: 56px; flex-shrink: 0; }
-.pinput { flex: 1; background: #1a1a2e; border: 1px solid #0f3460; color: #e0e0e0; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
-.pinput:focus { outline: none; border-color: #e94560; }
-.punit { font-size: 11px; color: #666; width: 18px; }
-input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; }
-.layer-item { display: flex; align-items: center; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; gap: 6px; }
-.layer-item:hover { background: #1a1a2e; }
-.layer-item.active { background: #0f3460; }
-.obj-item { display: flex; align-items: center; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 4px; }
-.obj-item:hover { background: #1a1a2e; }
-.obj-item.selected { background: #0f3460; color: #e94560; }
-#statusbar { height: 24px; background: #16213e; border-top: 1px solid #0f3460; display: flex; align-items: center; padding: 0 12px; gap: 20px; font-size: 11px; color: #888; flex-shrink: 0; }
-#statusbar .val { color: #e0e0e0; font-family: monospace; }
-.btn { background: #0f3460; border: 1px solid #555; color: #e0e0e0; padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.15s; }
-.btn:hover { background: #e94560; border-color: #e94560; color: #fff; }
+.plabel { font-size: 11px; color: #666; width: 56px; flex-shrink: 0; }
+.pinput { flex: 1; background: #fff; border: 1px solid #bbb; color: #222; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+.pinput:focus { outline: none; border-color: #c0392b; }
+.punit { font-size: 11px; color: #888; width: 18px; }
+input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; border-radius: 4px; border: 1px solid #bbb; background: #fff; }
+.layer-item { display: flex; align-items: center; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; gap: 6px; color: #333; }
+.layer-item:hover { background: #ddd; }
+.layer-item.active { background: #c8c8c8; font-weight: 600; }
+.obj-item { display: flex; align-items: center; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 4px; color: #333; }
+.obj-item:hover { background: #ddd; }
+.obj-item.selected { background: #c8c8c8; color: #c0392b; }
+#statusbar { height: 24px; background: #e2e2e2; border-top: 1px solid #bbb; display: flex; align-items: center; padding: 0 12px; gap: 20px; font-size: 11px; color: #777; flex-shrink: 0; }
+#statusbar .val { color: #222; font-family: monospace; }
+.btn { background: #ddd; border: 1px solid #bbb; color: #333; padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.15s; }
+.btn:hover { background: #c0392b; border-color: #c0392b; color: #fff; }
 .btn-row { display: flex; gap: 5px; flex-wrap: wrap; }
+#sel-info { font-size:11px; color:#777; }
+#sel-detail { font-size:11px; color:#444; margin-top:4px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -46,6 +48,7 @@ input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; 
   <h1>2D CAD</h1>
   <div style="display:flex;gap:6px;align-items:center;">
     <button class="btn" onclick="newDoc()">新規</button>
+    <button class="btn" onclick="printDoc()">印刷（実寸）</button>
     <button class="btn" onclick="exportSVG()">SVG出力</button>
     <button class="btn" onclick="exportPNG()">PNG出力</button>
     <button class="btn" onclick="clearAll()">全削除</button>
@@ -74,8 +77,8 @@ input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; 
   <div id="panel">
     <div class="psec">
       <div class="ptitle">プロパティ</div>
-      <div class="prow"><span class="plabel">線の色</span><input type="color" id="p-stroke" value="#00ccff" onchange="updateProps()"></div>
-      <div class="prow"><span class="plabel">塗り色</span><input type="color" id="p-fill" value="#1a3a5a" onchange="updateProps()"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="checkbox" id="p-fill-none" checked onchange="updateProps()">なし</label></div>
+      <div class="prow"><span class="plabel">線の色</span><input type="color" id="p-stroke" value="#000000" onchange="updateProps()"></div>
+      <div class="prow"><span class="plabel">塗り色</span><input type="color" id="p-fill" value="#e8f0e8" onchange="updateProps()"><label style="font-size:11px;color:#666;display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="checkbox" id="p-fill-none" checked onchange="updateProps()">なし</label></div>
       <div class="prow"><span class="plabel">線幅</span><input type="number" class="pinput" id="p-lw" value="0.5" min="0.1" max="20" step="0.1" onchange="updateProps()"><span class="punit">mm</span></div>
       <div class="prow"><span class="plabel">線種</span>
         <select class="pinput" id="p-dash" onchange="updateProps()" style="padding:2px 4px;">
@@ -88,20 +91,20 @@ input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; 
     </div>
     <div class="psec">
       <div class="ptitle">選択情報</div>
-      <div id="sel-info" style="font-size:11px;color:#666;">なし</div>
-      <div id="sel-detail" style="font-size:11px;color:#aaa;margin-top:4px;line-height:1.6;"></div>
+      <div id="sel-info">なし</div>
+      <div id="sel-detail"></div>
     </div>
     <div class="psec">
       <div class="ptitle">グリッド / スナップ</div>
       <div class="prow"><span class="plabel">グリッド</span><input type="number" class="pinput" id="grid-mm" value="10" min="0.1" max="500" step="0.1" onchange="updateGrid()"><span class="punit">mm</span></div>
-      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-grid" checked>グリッドスナップ</label></div>
-      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-end" checked>端点スナップ</label></div>
-      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-mid" checked>中点スナップ</label></div>
-      <div class="prow"><label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="show-grid" checked onchange="redraw()">グリッド表示</label></div>
+      <div class="prow"><label style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-grid" checked>グリッドスナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-end" checked>端点スナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="snap-mid" checked>中点スナップ</label></div>
+      <div class="prow"><label style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="show-grid" checked onchange="redraw()">グリッド表示</label></div>
     </div>
     <div class="psec">
       <div class="ptitle">ビュー</div>
-      <div class="prow"><span class="plabel">ズーム</span><span id="zoom-label" style="font-size:12px;font-family:monospace;color:#e0e0e0;">100%</span></div>
+      <div class="prow"><span class="plabel">ズーム</span><span id="zoom-label" style="font-size:12px;font-family:monospace;color:#222;">100%</span></div>
       <div class="btn-row" style="margin-top:4px;">
         <button class="btn" onclick="zoomFit()">全体表示</button>
         <button class="btn" onclick="zoom1()">1:1</button>
@@ -128,20 +131,20 @@ input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; 
   <span>ΔY: <span class="val" id="st-dy">—</span></span>
   <span>距離: <span class="val" id="st-dist">—</span></span>
   <span>ズーム: <span class="val" id="st-zoom">100</span>%</span>
-  <span>オブジェクト数: <span class="val" id="st-count">0</span></span>
-  <span id="st-tool" style="color:#e94560;">ツール: 選択</span>
+  <span>図形数: <span class="val" id="st-count">0</span></span>
+  <span id="st-tool" style="color:#c0392b;">ツール: 選択</span>
 </div>
 <script>
-// ==================== State ====================
+// ==================== 状態 ====================
 const PX_PER_MM = 3.7795275591;
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 let container = document.getElementById('canvas-container');
 
-let vx = 0, vy = 0, vscale = 1.0; // viewport: origin px, scale factor
+let vx = 0, vy = 0, vscale = 1.0; // ビューポート: 原点px・倍率
 let BASE = PX_PER_MM;
 
-let objects = [], layers = [{ id: 1, name: 'Layer 1', visible: true }];
+let objects = [], layers = [{ id: 1, name: 'レイヤー 1', visible: true }];
 let curLayer = 1, selIds = new Set();
 let hist = [], histIdx = -1, nextId = 1;
 
@@ -152,10 +155,10 @@ let panning = false, panStart = null, panV0 = null;
 let selecting = false, selBox = null;
 let moving = false, moveStart = null, moveSnap = null;
 
-let pStroke = '#00ccff', pFill = '#1a3a5a', pFillNone = true, pLW = 0.5, pDash = 'solid';
+let pStroke = '#000000', pFill = '#e8f0e8', pFillNone = true, pLW = 0.5, pDash = 'solid';
 let gridMM = 10;
 
-// ==================== Init ====================
+// ==================== 初期化 ====================
 function init() {
   resize();
   window.addEventListener('resize', resize);
@@ -178,13 +181,13 @@ function resize() {
   redraw();
 }
 
-// ==================== Coords ====================
+// ==================== 座標変換 ====================
 function s2w(px, py) { return { x: (px - vx) / (vscale * BASE), y: -(py - vy) / (vscale * BASE) }; }
 function w2s(wx, wy) { return { x: vx + wx * vscale * BASE, y: vy - wy * vscale * BASE }; }
 function mm2px(mm) { return mm * vscale * BASE; }
 function px2mm(px) { return px / (vscale * BASE); }
 
-// ==================== Snap ====================
+// ==================== スナップ ====================
 function doSnap(wpos, excludeId) {
   let best = { x: wpos.x, y: wpos.y, type: 'free' };
   let thr = px2mm(9);
@@ -243,10 +246,11 @@ function midPts(obj) {
 }
 function vdist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 
-// ==================== Draw ====================
+// ==================== 描画 ====================
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#0d0d1a';
+  // 用紙エリア（白）
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (document.getElementById('show-grid')?.checked) drawGrid();
   drawAxes();
@@ -267,16 +271,16 @@ function drawGrid() {
   let sub = g / 5;
   ctx.save();
   if (mm2px(sub) >= 3) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
     ctx.lineWidth = 0.5;
     drawGridLines(sub, minW, maxW);
   }
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
   ctx.lineWidth = 0.5;
   drawGridLines(g, minW, maxW);
-  // labels
+  // 目盛りラベル
   if (mm2px(g) > 50) {
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.font = '9px monospace';
     let sx = Math.floor(minW.x / g) * g;
     for (let x = sx; x <= maxW.x; x += g) {
@@ -307,9 +311,9 @@ function drawAxes() {
   let o = w2s(0, 0);
   ctx.save();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgba(255,60,60,0.4)';
+  ctx.strokeStyle = 'rgba(200,50,50,0.5)';
   ctx.beginPath(); ctx.moveTo(o.x, 0); ctx.lineTo(o.x, canvas.height); ctx.stroke();
-  ctx.strokeStyle = 'rgba(60,255,60,0.4)';
+  ctx.strokeStyle = 'rgba(30,160,30,0.5)';
   ctx.beginPath(); ctx.moveTo(0, o.y); ctx.lineTo(canvas.width, o.y); ctx.stroke();
   ctx.restore();
 }
@@ -326,7 +330,7 @@ function dashArr(dash, lw) {
 
 function applyStyle(obj, sel) {
   ctx.lineWidth = Math.max(mm2px(obj.lw || 0.5), 0.5);
-  ctx.strokeStyle = sel ? '#ffdd00' : (obj.stroke || '#00ccff');
+  ctx.strokeStyle = sel ? '#c0392b' : (obj.stroke || '#000000');
   ctx.fillStyle = obj.fillNone ? 'transparent' : (obj.fill || 'transparent');
   ctx.setLineDash(dashArr(obj.dash || 'solid', obj.lw || 0.5));
 }
@@ -339,7 +343,7 @@ function drawObj(obj, sel) {
       let a = w2s(obj.x1, obj.y1), b = w2s(obj.x2, obj.y2);
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       if (sel) {
-        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        ctx.setLineDash([]); ctx.fillStyle = '#c0392b'; ctx.font = '11px monospace';
         let d = vdist({ x: obj.x1, y: obj.y1 }, { x: obj.x2, y: obj.y2 });
         let m = w2s((obj.x1 + obj.x2) / 2, (obj.y1 + obj.y2) / 2);
         ctx.fillText(d.toFixed(1) + ' mm', m.x + 4, m.y - 4);
@@ -352,7 +356,7 @@ function drawObj(obj, sel) {
       ctx.beginPath(); ctx.rect(s.x, s.y - ph, pw, ph);
       if (!obj.fillNone) ctx.fill(); ctx.stroke();
       if (sel) {
-        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        ctx.setLineDash([]); ctx.fillStyle = '#c0392b'; ctx.font = '11px monospace';
         ctx.fillText(`${Math.abs(obj.w).toFixed(1)} x ${Math.abs(obj.h).toFixed(1)} mm`, s.x + 2, s.y - ph - 4);
       }
       break;
@@ -362,7 +366,7 @@ function drawObj(obj, sel) {
       ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
       if (!obj.fillNone) ctx.fill(); ctx.stroke();
       if (sel) {
-        ctx.setLineDash([]); ctx.fillStyle = '#ffdd00'; ctx.font = '11px monospace';
+        ctx.setLineDash([]); ctx.fillStyle = '#c0392b'; ctx.font = '11px monospace';
         ctx.fillText(`R${obj.r.toFixed(1)} / ⌀${(obj.r*2).toFixed(1)} mm`, c.x + r + 4, c.y);
       }
       break;
@@ -386,7 +390,7 @@ function drawObj(obj, sel) {
       let s = w2s(obj.x, obj.y);
       ctx.setLineDash([]);
       ctx.font = `${mm2px(obj.fs || 5)}px sans-serif`;
-      ctx.fillStyle = sel ? '#ffdd00' : (obj.stroke || '#00ccff');
+      ctx.fillStyle = sel ? '#c0392b' : (obj.stroke || '#000000');
       ctx.fillText(obj.text, s.x, s.y);
       break;
     }
@@ -396,7 +400,7 @@ function drawObj(obj, sel) {
 }
 
 function drawHandles(obj) {
-  ctx.save(); ctx.fillStyle = '#ffdd00'; ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.save(); ctx.fillStyle = '#c0392b'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
   for (let p of endPts(obj)) {
     let s = w2s(p.x, p.y);
     ctx.beginPath(); ctx.arc(s.x, s.y, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -409,13 +413,13 @@ function drawPreview() {
   let mp = snapW || mouseW;
   ctx.save();
   ctx.strokeStyle = pStroke; ctx.lineWidth = Math.max(mm2px(pLW), 0.5);
-  ctx.setLineDash(dashArr(pDash, pLW)); ctx.globalAlpha = 0.75;
+  ctx.setLineDash(dashArr(pDash, pLW)); ctx.globalAlpha = 0.7;
   switch (tool) {
     case 'line':
       if (drawStart) {
         let s = w2s(drawStart.x, drawStart.y), e = w2s(mp.x, mp.y);
         ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
-        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.fillStyle = '#333'; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
         let d = vdist(drawStart, mp);
         ctx.fillText(d.toFixed(1) + ' mm', e.x + 8, e.y - 4);
       }
@@ -425,7 +429,7 @@ function drawPreview() {
         let s = w2s(drawStart.x, drawStart.y);
         let pw = mm2px(mp.x - drawStart.x), ph = mm2px(mp.y - drawStart.y);
         ctx.strokeRect(s.x, s.y - ph, pw, ph);
-        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.fillStyle = '#333'; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
         ctx.fillText(`${Math.abs(mp.x-drawStart.x).toFixed(1)} x ${Math.abs(mp.y-drawStart.y).toFixed(1)} mm`, s.x+2, s.y - ph - 4);
       }
       break;
@@ -433,15 +437,14 @@ function drawPreview() {
       if (drawStart) {
         let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, mp));
         ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.stroke();
-        ctx.setLineDash([]); ctx.fillStyle = pStroke; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.fillStyle = '#333'; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
         ctx.fillText(`R${vdist(drawStart, mp).toFixed(1)} mm`, c.x + r + 4, c.y);
       }
       break;
     case 'arc':
       if (drawStart && drawPts.length === 0) {
-        // show center
         let c = w2s(drawStart.x, drawStart.y);
-        ctx.setLineDash([]); ctx.fillStyle = '#e94560'; ctx.beginPath(); ctx.arc(c.x, c.y, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.setLineDash([]); ctx.fillStyle = '#c0392b'; ctx.beginPath(); ctx.arc(c.x, c.y, 3, 0, Math.PI * 2); ctx.fill();
       } else if (drawStart && drawPts.length === 1) {
         let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, drawPts[0]));
         ctx.setLineDash([3,3]); ctx.globalAlpha = 0.2;
@@ -449,7 +452,7 @@ function drawPreview() {
         let pe = w2s(drawPts[0].x, drawPts[0].y);
         ctx.globalAlpha = 0.7; ctx.setLineDash([]);
         ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(pe.x, pe.y); ctx.stroke();
-        ctx.fillStyle = pStroke; ctx.globalAlpha = 1; ctx.font = '11px monospace';
+        ctx.fillStyle = '#333'; ctx.globalAlpha = 1; ctx.font = '11px monospace';
         ctx.fillText('終点クリック', c.x + r + 4, c.y - 4);
       } else if (drawStart && drawPts.length === 2) {
         let c = w2s(drawStart.x, drawStart.y), r = mm2px(vdist(drawStart, drawPts[0]));
@@ -464,9 +467,8 @@ function drawPreview() {
         let p0 = w2s(drawPts[0].x, drawPts[0].y); ctx.moveTo(p0.x, p0.y);
         for (let i = 1; i < drawPts.length; i++) { let p = w2s(drawPts[i].x, drawPts[i].y); ctx.lineTo(p.x, p.y); }
         let e = w2s(mp.x, mp.y); ctx.lineTo(e.x, e.y); ctx.stroke();
-        // close hint
         if (drawPts.length >= 3 && vdist(mp, drawPts[0]) < px2mm(12)) {
-          ctx.setLineDash([]); ctx.fillStyle = '#00ff88'; ctx.font = '11px monospace';
+          ctx.setLineDash([]); ctx.fillStyle = '#27ae60'; ctx.font = '11px monospace';
           ctx.fillText('クリックで閉じる', e.x + 6, e.y - 4);
         }
       }
@@ -474,9 +476,9 @@ function drawPreview() {
     case 'measure':
       if (drawStart) {
         let s = w2s(drawStart.x, drawStart.y), e = w2s(mp.x, mp.y);
-        ctx.strokeStyle = '#ffff00'; ctx.setLineDash([4,3]);
+        ctx.strokeStyle = '#e67e22'; ctx.setLineDash([4,3]);
         ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
-        ctx.setLineDash([]); ctx.fillStyle = '#ffff00'; ctx.font = '13px monospace'; ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.fillStyle = '#e67e22'; ctx.font = '13px monospace'; ctx.globalAlpha = 1;
         let d = vdist(drawStart, mp);
         ctx.fillText(d.toFixed(1) + ' mm', (s.x+e.x)/2+6, (s.y+e.y)/2-4);
       }
@@ -490,8 +492,8 @@ function drawSelBox() {
   let x = Math.min(s.x, e.x), y = Math.min(s.y, e.y), w = Math.abs(s.x-e.x), h = Math.abs(s.y-e.y);
   let crossSel = selBox.x1 > selBox.x2;
   ctx.save();
-  ctx.strokeStyle = crossSel ? '#ffaa00' : 'rgba(0,200,255,0.9)';
-  ctx.fillStyle = crossSel ? 'rgba(255,170,0,0.05)' : 'rgba(0,200,255,0.05)';
+  ctx.strokeStyle = crossSel ? '#e67e22' : 'rgba(0,100,200,0.85)';
+  ctx.fillStyle = crossSel ? 'rgba(230,126,34,0.07)' : 'rgba(0,100,200,0.07)';
   ctx.lineWidth = 1; ctx.setLineDash([4,3]);
   ctx.fillRect(x,y,w,h); ctx.strokeRect(x,y,w,h);
   ctx.restore();
@@ -503,19 +505,19 @@ function drawSnapIndicator() {
   ctx.save();
   switch (snapW.type) {
     case 'end':
-      ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 1.5;
       ctx.strokeRect(s.x-5, s.y-5, 10, 10); break;
     case 'mid':
-      ctx.strokeStyle = '#ffaa00'; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(s.x-5,s.y+5); ctx.lineTo(s.x,s.y-5); ctx.lineTo(s.x+5,s.y+5); ctx.closePath(); ctx.stroke(); break;
     case 'grid':
-      ctx.strokeStyle = '#4466ff'; ctx.lineWidth = 1;
+      ctx.strokeStyle = '#3355cc'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(s.x-4,s.y); ctx.lineTo(s.x+4,s.y); ctx.moveTo(s.x,s.y-4); ctx.lineTo(s.x,s.y+4); ctx.stroke(); break;
   }
   ctx.restore();
 }
 
-// ==================== Mouse ====================
+// ==================== マウス ====================
 function getPos(e) { let r = canvas.getBoundingClientRect(); return { px: e.clientX - r.left, py: e.clientY - r.top }; }
 
 function onMD(e) {
@@ -604,7 +606,7 @@ function onWheel(e) {
   redraw();
 }
 
-// ==================== Tool handlers ====================
+// ==================== ツール操作 ====================
 function doSelectDown(px, py, w, sn) {
   let picked = pickObj(w);
   if (picked) {
@@ -624,7 +626,7 @@ function doLineDown(sn) {
   if (!drawing) { drawing = true; drawStart = { ...sn }; firstPt = { ...sn }; }
   else {
     addObj({ id: nextId++, type: 'line', layer: curLayer, x1: drawStart.x, y1: drawStart.y, x2: sn.x, y2: sn.y, stroke: pStroke, lw: pLW, dash: pDash });
-    drawStart = { ...sn }; // chain
+    drawStart = { ...sn };
   }
 }
 
@@ -675,12 +677,12 @@ function finishPoly(closed) {
 }
 
 function doTextDown(sn) {
-  let text = prompt('テキスト入力:', '');
+  let text = prompt('テキストを入力:', '');
   if (!text || !text.trim()) return;
   addObj({ id: nextId++, type: 'text', layer: curLayer, x: sn.x, y: sn.y, text: text.trim(), fs: 5, stroke: pStroke });
 }
 
-// ==================== Pick / Hit ====================
+// ==================== ヒットテスト ====================
 function pickObj(w) {
   let thr = px2mm(7);
   for (let i = objects.length - 1; i >= 0; i--) {
@@ -738,7 +740,7 @@ function applyMove(obj, snap_o, dx, dy) {
   }
 }
 
-// ==================== Objects ====================
+// ==================== オブジェクト管理 ====================
 function addObj(obj) {
   objects.push(obj);
   saveHist(); updateObjList(); updateCountStatus(); redraw();
@@ -749,7 +751,7 @@ function deleteSelected() {
   selIds.clear(); saveHist(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
 }
 
-// ==================== History ====================
+// ==================== 履歴 ====================
 function saveHist() {
   hist = hist.slice(0, histIdx + 1);
   hist.push(JSON.stringify(objects));
@@ -768,7 +770,7 @@ function redo() {
   selIds.clear(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
 }
 
-// ==================== Keyboard ====================
+// ==================== キーボード ====================
 function onKey(e) {
   if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
   if (e.key === 'Delete' || e.key === 'Backspace') { deleteSelected(); return; }
@@ -784,7 +786,7 @@ function onKey(e) {
   if (km[e.key.toLowerCase()]) setTool(km[e.key.toLowerCase()]);
 }
 
-// ==================== Tool ====================
+// ==================== ツール切替 ====================
 function setTool(t) {
   tool = t; drawing = false; drawStart = null; drawPts = []; firstPt = null;
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -794,7 +796,7 @@ function setTool(t) {
   redraw();
 }
 
-// ==================== Props ====================
+// ==================== プロパティ ====================
 function updateProps() {
   pStroke = document.getElementById('p-stroke').value;
   pFill = document.getElementById('p-fill').value;
@@ -809,7 +811,7 @@ function updateProps() {
   redraw();
 }
 
-// ==================== Status ====================
+// ==================== ステータス ====================
 function updateStatus() {
   let sn = snapW || mouseW;
   document.getElementById('st-x').textContent = sn.x.toFixed(1);
@@ -830,12 +832,12 @@ function updateStatus() {
 }
 function updateCountStatus() { document.getElementById('st-count').textContent = objects.length; }
 
-// ==================== Sel panel ====================
+// ==================== 選択パネル ====================
 function updateSelPanel() {
   let info = document.getElementById('sel-info');
   let detail = document.getElementById('sel-detail');
   if (!selIds.size) { info.textContent = 'なし'; detail.textContent = ''; return; }
-  info.textContent = `${selIds.size}個選択`;
+  info.textContent = `${selIds.size}個選択中`;
   if (selIds.size === 1) {
     let obj = objects.find(o => o.id === [...selIds][0]);
     if (!obj) { detail.textContent = ''; return; }
@@ -847,11 +849,11 @@ function updateSelPanel() {
         s = `種類: 直線\nX1:${obj.x1.toFixed(1)} Y1:${obj.y1.toFixed(1)}\nX2:${obj.x2.toFixed(1)} Y2:${obj.y2.toFixed(1)}\n長さ: ${d.toFixed(1)} mm\n角度: ${ang.toFixed(1)}°`; break;
       }
       case 'rect':
-        s = `種類: 矩形\nX:${obj.x.toFixed(1)} Y:${obj.y.toFixed(1)}\nW:${obj.w.toFixed(1)} H:${obj.h.toFixed(1)} mm\n面積:${Math.abs(obj.w*obj.h).toFixed(2)} mm²`; break;
+        s = `種類: 矩形\nX:${obj.x.toFixed(1)} Y:${obj.y.toFixed(1)}\n幅:${obj.w.toFixed(1)} 高:${obj.h.toFixed(1)} mm\n面積:${Math.abs(obj.w*obj.h).toFixed(2)} mm²`; break;
       case 'circle':
-        s = `種類: 円\nCX:${obj.cx.toFixed(1)} CY:${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} / ⌀${(obj.r*2).toFixed(1)} mm\n面積:${(Math.PI*obj.r*obj.r).toFixed(2)} mm²`; break;
+        s = `種類: 円\n中心:${obj.cx.toFixed(1)}, ${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} / ⌀${(obj.r*2).toFixed(1)} mm\n面積:${(Math.PI*obj.r*obj.r).toFixed(2)} mm²`; break;
       case 'arc':
-        s = `種類: 円弧\nCX:${obj.cx.toFixed(1)} CY:${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} mm`; break;
+        s = `種類: 円弧\n中心:${obj.cx.toFixed(1)}, ${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} mm`; break;
       case 'polyline':
         s = `種類: ポリライン\n頂点数: ${obj.pts.length}\n${obj.closed?'閉じた':'開いた'}ポリライン`; break;
       case 'text':
@@ -862,14 +864,14 @@ function updateSelPanel() {
   } else { detail.textContent = ''; }
 }
 
-// ==================== Obj list ====================
+// ==================== オブジェクト一覧 ====================
 const typeIcon = { line:'╱', rect:'▭', circle:'○', arc:'◜', polyline:'⌒', text:'T' };
 const typeName = { line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', text:'テキスト' };
 function updateObjList() {
   let list = document.getElementById('obj-list');
   list.innerHTML = objects.slice().reverse().map(obj =>
     `<div class="obj-item ${selIds.has(obj.id)?'selected':''}" onclick="clickObj(${obj.id},event)">
-      <span style="color:${obj.stroke||'#00ccff'}">${typeIcon[obj.type]||'?'}</span>
+      <span style="color:${obj.stroke||'#000'}">${typeIcon[obj.type]||'?'}</span>
       <span>${typeName[obj.type]||obj.type} #${obj.id}</span>
     </div>`
   ).join('');
@@ -880,7 +882,7 @@ function clickObj(id, e) {
   selIds.add(id); updateObjList(); updateSelPanel(); redraw();
 }
 
-// ==================== Layers ====================
+// ==================== レイヤー ====================
 function layerOf(id) { return layers.find(l => l.id === id); }
 function updateLayerList() {
   document.getElementById('layer-list').innerHTML = layers.map(l =>
@@ -893,20 +895,20 @@ function updateLayerList() {
 function selectLayer(id) { curLayer = id; updateLayerList(); }
 function toggleVis(e, id) { e.stopPropagation(); let l=layerOf(id); if(l) l.visible=!l.visible; updateLayerList(); redraw(); }
 function addLayer() {
-  let name = prompt('レイヤー名:', `Layer ${layers.length+1}`); if (!name) return;
+  let name = prompt('レイヤー名:', `レイヤー ${layers.length+1}`); if (!name) return;
   let id = Math.max(...layers.map(l=>l.id))+1;
   layers.push({ id, name, visible: true }); curLayer = id; updateLayerList();
 }
 function delLayer() {
-  if (layers.length<=1) { alert('最低1レイヤー必要です'); return; }
+  if (layers.length<=1) { alert('最低1レイヤーが必要です'); return; }
   if (!confirm(`"${layerOf(curLayer)?.name}" を削除しますか?`)) return;
   layers = layers.filter(l=>l.id!==curLayer); curLayer=layers[0].id; updateLayerList(); redraw();
 }
 
-// ==================== Grid ====================
+// ==================== グリッド ====================
 function updateGrid() { gridMM = Math.max(0.1, parseFloat(document.getElementById('grid-mm').value)||10); redraw(); }
 
-// ==================== Zoom ====================
+// ==================== ズーム ====================
 function zoomFit() {
   if (!objects.length) { vx=canvas.width/2; vy=canvas.height/2; vscale=1; redraw(); return; }
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -923,16 +925,18 @@ function zoomFit() {
 }
 function zoom1() { vscale=1; redraw(); }
 
-// ==================== Export ====================
-function exportSVG() {
-  if (!objects.length) { alert('オブジェクトがありません'); return; }
+// ==================== SVG生成（共通） ====================
+function buildSVG(whiteBg) {
+  if (!objects.length) return null;
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   for (let obj of objects) {
     let pts=endPts(obj);
     if (obj.type==='circle') pts=[{x:obj.cx-obj.r,y:obj.cy-obj.r},{x:obj.cx+obj.r,y:obj.cy+obj.r}];
     for (let p of pts){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
   }
-  let pad=10, W=(maxX-minX+pad*2).toFixed(3), H=(maxY-minY+pad*2).toFixed(3);
+  let pad=10;
+  // SVGのwidth/heightをmm単位で指定→ブラウザが印刷時に実寸で出力
+  let W=+(maxX-minX+pad*2).toFixed(3), H=+(maxY-minY+pad*2).toFixed(3);
   let tx=x=>(x-minX+pad).toFixed(3), ty=y=>(maxY-y+pad).toFixed(3);
   function da(obj){
     let lw=obj.lw||0.5;
@@ -943,7 +947,7 @@ function exportSVG() {
       default:return '';
     }
   }
-  function cs(obj){return `stroke="${obj.stroke||'#00ccff'}" stroke-width="${(obj.lw||0.5).toFixed(2)}" fill="${obj.fillNone?'none':(obj.fill||'none')}" ${da(obj)}`;}
+  function cs(obj){return `stroke="${obj.stroke||'#000000'}" stroke-width="${(obj.lw||0.5).toFixed(2)}" fill="${obj.fillNone?'none':(obj.fill||'none')}" ${da(obj)}`;}
   let lines = objects.filter(o=>layerOf(o.layer)?.visible).map(obj=>{
     switch(obj.type){
       case 'line': return `  <line x1="${tx(obj.x1)}" y1="${ty(obj.y1)}" x2="${tx(obj.x2)}" y2="${ty(obj.y2)}" ${cs(obj)}/>`;
@@ -951,30 +955,60 @@ function exportSVG() {
       case 'circle': return `  <circle cx="${tx(obj.cx)}" cy="${ty(obj.cy)}" r="${obj.r.toFixed(3)}" ${cs(obj)}/>`;
       case 'arc': {let r=obj.r,a1=obj.a1*Math.PI/180,a2=obj.a2*Math.PI/180,x1=obj.cx+r*Math.cos(a1),y1=obj.cy+r*Math.sin(a1),x2=obj.cx+r*Math.cos(a2),y2=obj.cy+r*Math.sin(a2),lg=Math.abs(a2-a1)>Math.PI?1:0; return `  <path d="M ${tx(x1)} ${ty(y1)} A ${r.toFixed(3)} ${r.toFixed(3)} 0 ${lg} 1 ${tx(x2)} ${ty(y2)}" ${cs(obj)} fill="none"/>`;}
       case 'polyline': {let pts=obj.pts.map(p=>`${tx(p.x)},${ty(p.y)}`).join(' '); return obj.closed?`  <polygon points="${pts}" ${cs(obj)}/>`:`  <polyline points="${pts}" ${cs(obj)} fill="none"/>`;}
-      case 'text': return `  <text x="${tx(obj.x)}" y="${ty(obj.y)}" font-size="${(obj.fs||5).toFixed(2)}" fill="${obj.stroke||'#00ccff'}">${obj.text}</text>`;
+      case 'text': return `  <text x="${tx(obj.x)}" y="${ty(obj.y)}" font-size="${(obj.fs||5).toFixed(2)}" fill="${obj.stroke||'#000000'}">${obj.text}</text>`;
       default: return '';
     }
   }).join('\n');
-  let svg=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">\n  <rect width="100%" height="100%" fill="#0d0d1a"/>\n${lines}\n</svg>`;
-  let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download='cad_export.svg'; a.click();
+  let bg = whiteBg ? '<rect width="100%" height="100%" fill="white"/>' : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">\n  ${bg}\n${lines}\n</svg>`;
 }
 
+// ==================== 印刷（実寸mm） ====================
+function printDoc() {
+  if (!objects.length) { alert('印刷する図形がありません'); return; }
+  let svg = buildSVG(true);
+  let win = window.open('', '_blank', 'width=800,height=600');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>印刷</title>
+<style>
+  * { margin:0; padding:0; }
+  body { background: white; }
+  /* SVGはmm単位で指定されているのでブラウザが実寸で印刷する */
+  img { display: block; }
+  @media print {
+    body { margin: 0; }
+    @page { margin: 10mm; size: auto; }
+  }
+</style></head><body>
+${svg}
+<script>window.onload=function(){ window.print(); };<\/script>
+</body></html>`);
+  win.document.close();
+}
+
+// ==================== SVG出力 ====================
+function exportSVG() {
+  if (!objects.length) { alert('図形がありません'); return; }
+  let svg = buildSVG(true);
+  let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})); a.download='図面.svg'; a.click();
+}
+
+// ==================== PNG出力 ====================
 function exportPNG() {
-  let a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='cad_export.png'; a.click();
+  let a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='図面.png'; a.click();
 }
 
-// ==================== Doc ====================
+// ==================== 図面操作 ====================
 function newDoc() {
   if (objects.length && !confirm('現在の図面を破棄して新規作成しますか?')) return;
   objects=[]; selIds.clear(); hist=[]; histIdx=-1; nextId=1;
   updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
 }
 function clearAll() {
-  if (!confirm('全オブジェクトを削除しますか?')) return;
+  if (!confirm('全図形を削除しますか?')) return;
   objects=[]; selIds.clear(); saveHist(); updateObjList(); updateSelPanel(); updateCountStatus(); redraw();
 }
 
-// ==================== Start ====================
+// ==================== 起動 ====================
 init();
 </script>
 </body>
