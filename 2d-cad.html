@@ -64,6 +64,7 @@ input[type="color"] { width: 32px; height: 24px; padding: 1px; cursor: pointer; 
     <button class="tool-btn" id="tool-circle" title="円 (C)" onclick="setTool('circle')">○</button>
     <button class="tool-btn" id="tool-arc" title="円弧 (A)" onclick="setTool('arc')">◜</button>
     <button class="tool-btn" id="tool-polyline" title="ポリライン (P)" onclick="setTool('polyline')">⌒</button>
+    <button class="tool-btn" id="tool-spline" title="スプライン曲線 (B)" onclick="setTool('spline')">∿</button>
     <button class="tool-btn" id="tool-text" title="テキスト (T)" onclick="setTool('text')">T</button>
     <div class="tool-sep"></div>
     <button class="tool-btn" id="tool-measure" title="計測 (M)" onclick="setTool('measure')">📐</button>
@@ -231,6 +232,7 @@ function endPts(obj) {
       { x: obj.cx, y: obj.cy + obj.r }, { x: obj.cx, y: obj.cy - obj.r }
     ];
     case 'polyline': return obj.pts.map(p => ({ ...p }));
+    case 'spline': return obj.pts.map(p => ({ ...p }));
     default: return [];
   }
 }
@@ -245,6 +247,64 @@ function midPts(obj) {
   }
 }
 function vdist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+// ==================== Catmull-Rom スプライン ====================
+// ワールド座標の点列をCanvasにCatmull-Rom曲線で描画
+function strokeCatmullRom(pts_w, closed) {
+  if (pts_w.length < 2) return;
+  let sp = pts_w.map(p => w2s(p.x, p.y));
+  // 端点を拡張してCatmull-Romが端まで滑らかになるよう処理
+  let ext;
+  if (closed && sp.length >= 3) {
+    ext = [sp[sp.length - 1], ...sp, sp[0], sp[1]];
+  } else {
+    // 両端を鏡像で延長
+    let first = { x: 2*sp[0].x - sp[1].x, y: 2*sp[0].y - sp[1].y };
+    let last  = { x: 2*sp[sp.length-1].x - sp[sp.length-2].x, y: 2*sp[sp.length-1].y - sp[sp.length-2].y };
+    ext = [first, ...sp, last];
+  }
+  ctx.moveTo(sp[0].x, sp[0].y);
+  let count = closed ? sp.length : sp.length - 1;
+  for (let i = 0; i < count; i++) {
+    let p0 = ext[i], p1 = ext[i+1], p2 = ext[i+2], p3 = ext[i+3];
+    // Catmull-Rom → 3次ベジェ変換 (alpha=0.5相当の均等版)
+    let cp1x = p1.x + (p2.x - p0.x) / 6;
+    let cp1y = p1.y + (p2.y - p0.y) / 6;
+    let cp2x = p2.x - (p3.x - p1.x) / 6;
+    let cp2y = p2.y - (p3.y - p1.y) / 6;
+    let ex = closed ? sp[(i+1) % sp.length].x : sp[Math.min(i+1, sp.length-1)].x;
+    let ey = closed ? sp[(i+1) % sp.length].y : sp[Math.min(i+1, sp.length-1)].y;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, ex, ey);
+  }
+  if (closed) ctx.closePath();
+}
+
+// Catmull-Rom → SVGパス文字列（mm座標系）
+function catmullRomToSVGPath(pts_w, closed, tx, ty) {
+  if (pts_w.length < 2) return '';
+  let sp = pts_w; // ワールド（mm）座標のまま変換
+  let ext;
+  if (closed && sp.length >= 3) {
+    ext = [sp[sp.length-1], ...sp, sp[0], sp[1]];
+  } else {
+    let first = { x: 2*sp[0].x - sp[1].x, y: 2*sp[0].y - sp[1].y };
+    let last  = { x: 2*sp[sp.length-1].x - sp[sp.length-2].x, y: 2*sp[sp.length-1].y - sp[sp.length-2].y };
+    ext = [first, ...sp, last];
+  }
+  let d = `M ${tx(sp[0].x)} ${ty(sp[0].y)}`;
+  let count = closed ? sp.length : sp.length - 1;
+  for (let i = 0; i < count; i++) {
+    let p0 = ext[i], p1 = ext[i+1], p2 = ext[i+2], p3 = ext[i+3];
+    let cp1x = +(p1.x + (p2.x - p0.x) / 6).toFixed(3);
+    let cp1y = +(p1.y - (p2.y - p0.y) / 6).toFixed(3); // y軸反転（SVGは下向き）
+    let cp2x = +(p2.x - (p3.x - p1.x) / 6).toFixed(3);
+    let cp2y = +(p2.y - (p3.y - p1.y) / 6).toFixed(3);
+    let ei = closed ? (i+1) % sp.length : Math.min(i+1, sp.length-1);
+    d += ` C ${tx(p1.x+(p2.x-p0.x)/6)} ${ty(p1.y+(p2.y-p0.y)/6)} ${tx(p2.x-(p3.x-p1.x)/6)} ${ty(p2.y-(p3.y-p1.y)/6)} ${tx(sp[ei].x)} ${ty(sp[ei].y)}`;
+  }
+  if (closed) d += ' Z';
+  return d;
+}
 
 // ==================== 描画 ====================
 function redraw() {
@@ -386,6 +446,25 @@ function drawObj(obj, sel) {
       if (!obj.fillNone && obj.closed) ctx.fill(); ctx.stroke();
       break;
     }
+    case 'spline': {
+      if (obj.pts.length < 2) break;
+      ctx.beginPath();
+      strokeCatmullRom(obj.pts, obj.closed);
+      if (!obj.fillNone && obj.closed) ctx.fill(); ctx.stroke();
+      // 制御点を薄く表示（選択時）
+      if (sel) {
+        ctx.save();
+        ctx.setLineDash([2, 3]);
+        ctx.strokeStyle = 'rgba(192,57,43,0.4)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        let p0s = w2s(obj.pts[0].x, obj.pts[0].y); ctx.moveTo(p0s.x, p0s.y);
+        for (let i = 1; i < obj.pts.length; i++) { let ps = w2s(obj.pts[i].x, obj.pts[i].y); ctx.lineTo(ps.x, ps.y); }
+        ctx.stroke();
+        ctx.restore();
+      }
+      break;
+    }
     case 'text': {
       let s = w2s(obj.x, obj.y);
       ctx.setLineDash([]);
@@ -473,6 +552,41 @@ function drawPreview() {
         }
       }
       break;
+    case 'spline':
+      if (drawPts.length > 0) {
+        let allPts = [...drawPts, mp];
+        // 補助線（薄い直線）
+        ctx.save();
+        ctx.globalAlpha = 0.25; ctx.setLineDash([2,3]);
+        ctx.beginPath();
+        let sp0 = w2s(drawPts[0].x, drawPts[0].y); ctx.moveTo(sp0.x, sp0.y);
+        for (let i = 1; i < drawPts.length; i++) { let sp = w2s(drawPts[i].x, drawPts[i].y); ctx.lineTo(sp.x, sp.y); }
+        let spe = w2s(mp.x, mp.y); ctx.lineTo(spe.x, spe.y); ctx.stroke();
+        ctx.restore();
+        // 曲線プレビュー
+        if (allPts.length >= 2) {
+          ctx.beginPath();
+          ctx.globalAlpha = 0.7; ctx.setLineDash(dashArr(pDash, pLW));
+          strokeCatmullRom(allPts, false); ctx.stroke();
+        }
+        // 制御点マーカー
+        ctx.save(); ctx.globalAlpha = 0.6; ctx.setLineDash([]);
+        ctx.fillStyle = pStroke;
+        for (let pt of drawPts) {
+          let ps = w2s(pt.x, pt.y);
+          ctx.beginPath(); ctx.arc(ps.x, ps.y, 3, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+        let se = w2s(mp.x, mp.y);
+        if (drawPts.length >= 3 && vdist(mp, drawPts[0]) < px2mm(12)) {
+          ctx.setLineDash([]); ctx.fillStyle = '#27ae60'; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+          ctx.fillText('クリックで閉じる', se.x + 6, se.y - 4);
+        } else {
+          ctx.setLineDash([]); ctx.fillStyle = '#555'; ctx.font = '11px monospace'; ctx.globalAlpha = 1;
+          ctx.fillText(`点数: ${drawPts.length}  Enter/右クリックで確定`, se.x + 6, se.y - 4);
+        }
+      }
+      break;
     case 'measure':
       if (drawStart) {
         let s = w2s(drawStart.x, drawStart.y), e = w2s(mp.x, mp.y);
@@ -532,6 +646,7 @@ function onMD(e) {
   }
   if (e.button === 2) {
     if (tool === 'polyline' && drawPts.length >= 2) { finishPoly(false); return; }
+    if (tool === 'spline' && drawPts.length >= 2) { finishSpline(false); return; }
     if (drawing) { drawing = false; drawStart = null; drawPts = []; firstPt = null; redraw(); return; }
     if (!e.shiftKey) { selIds.clear(); updateObjList(); updateSelPanel(); redraw(); }
     return;
@@ -545,6 +660,7 @@ function onMD(e) {
     case 'circle': doCircleDown(sn); break;
     case 'arc': doArcDown(sn); break;
     case 'polyline': doPolyDown(sn); break;
+    case 'spline': doSplineDown(sn); break;
     case 'text': doTextDown(sn); break;
     case 'measure':
       if (!drawing) { drawing = true; drawStart = { ...sn }; }
@@ -595,6 +711,7 @@ function onMU(e) {
 
 function onDblClick(e) {
   if (tool === 'polyline' && drawPts.length >= 2) finishPoly(false);
+  if (tool === 'spline' && drawPts.length >= 2) finishSpline(false);
 }
 
 function onWheel(e) {
@@ -676,6 +793,20 @@ function finishPoly(closed) {
   drawing = false; drawPts = []; firstPt = null;
 }
 
+function doSplineDown(sn) {
+  if (!drawing) { drawing = true; drawPts = [{ ...sn }]; firstPt = { ...sn }; }
+  else {
+    if (drawPts.length >= 3 && vdist(sn, drawPts[0]) < px2mm(12)) { finishSpline(true); return; }
+    drawPts.push({ ...sn });
+  }
+}
+
+function finishSpline(closed) {
+  if (drawPts.length < 2) { drawing = false; drawPts = []; firstPt = null; return; }
+  addObj({ id: nextId++, type: 'spline', layer: curLayer, pts: drawPts.map(p => ({ ...p })), closed, stroke: pStroke, fill: pFill, fillNone: pFillNone, lw: pLW, dash: pDash });
+  drawing = false; drawPts = []; firstPt = null;
+}
+
 function doTextDown(sn) {
   let text = prompt('テキストを入力:', '');
   if (!text || !text.trim()) return;
@@ -707,6 +838,38 @@ function hitTest(obj, p, thr) {
     case 'polyline': {
       for (let i = 0; i < obj.pts.length - 1; i++) if (distSeg(p, obj.pts[i], obj.pts[i+1]) < thr) return true;
       if (obj.closed && obj.pts.length >= 3) return distSeg(p, obj.pts[obj.pts.length-1], obj.pts[0]) < thr;
+      return false;
+    }
+    case 'spline': {
+      // 各セグメントを複数サンプルで近似してヒット判定
+      if (obj.pts.length < 2) return false;
+      let pts = obj.pts;
+      let ext;
+      if (obj.closed && pts.length >= 3) {
+        ext = [pts[pts.length-1], ...pts, pts[0], pts[1]];
+      } else {
+        let first = { x: 2*pts[0].x - pts[1].x, y: 2*pts[0].y - pts[1].y };
+        let last  = { x: 2*pts[pts.length-1].x - pts[pts.length-2].x, y: 2*pts[pts.length-1].y - pts[pts.length-2].y };
+        ext = [first, ...pts, last];
+      }
+      let count = obj.closed ? pts.length : pts.length - 1;
+      for (let i = 0; i < count; i++) {
+        let p0=ext[i], p1=ext[i+1], p2=ext[i+2], p3=ext[i+3];
+        let cp1x=p1.x+(p2.x-p0.x)/6, cp1y=p1.y+(p2.y-p0.y)/6;
+        let cp2x=p2.x-(p3.x-p1.x)/6, cp2y=p2.y-(p3.y-p1.y)/6;
+        let ei = obj.closed ? (i+1) % pts.length : Math.min(i+1, pts.length-1);
+        let ex=pts[ei].x, ey=pts[ei].y;
+        // 20サンプルで近似
+        let prev = p1;
+        for (let j = 1; j <= 20; j++) {
+          let t = j / 20;
+          let mt = 1-t;
+          let nx = mt*mt*mt*p1.x + 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*ex;
+          let ny = mt*mt*mt*p1.y + 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*ey;
+          if (distSeg(p, prev, {x:nx, y:ny}) < thr) return true;
+          prev = {x:nx, y:ny};
+        }
+      }
       return false;
     }
     case 'text': return vdist(p, { x: obj.x, y: obj.y }) < thr * 5;
@@ -779,10 +942,11 @@ function onKey(e) {
     selIds.clear(); updateObjList(); updateSelPanel(); redraw(); return;
   }
   if (e.key === 'Enter' && tool === 'polyline' && drawPts.length >= 2) { finishPoly(false); return; }
+  if (e.key === 'Enter' && tool === 'spline' && drawPts.length >= 2) { finishSpline(false); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === 'a') { e.preventDefault(); objects.forEach(o => selIds.add(o.id)); updateObjList(); updateSelPanel(); redraw(); return; }
-  const km = { s:'select', l:'line', r:'rect', c:'circle', a:'arc', p:'polyline', t:'text', m:'measure' };
+  const km = { s:'select', l:'line', r:'rect', c:'circle', a:'arc', p:'polyline', b:'spline', t:'text', m:'measure' };
   if (km[e.key.toLowerCase()]) setTool(km[e.key.toLowerCase()]);
 }
 
@@ -791,7 +955,7 @@ function setTool(t) {
   tool = t; drawing = false; drawStart = null; drawPts = []; firstPt = null;
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
   let btn = document.getElementById('tool-' + t); if (btn) btn.classList.add('active');
-  const names = { select:'選択', line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', text:'テキスト', measure:'計測' };
+  const names = { select:'選択', line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', spline:'スプライン', text:'テキスト', measure:'計測' };
   document.getElementById('st-tool').textContent = 'ツール: ' + (names[t] || t);
   redraw();
 }
@@ -856,6 +1020,8 @@ function updateSelPanel() {
         s = `種類: 円弧\n中心:${obj.cx.toFixed(1)}, ${obj.cy.toFixed(1)}\nR:${obj.r.toFixed(1)} mm`; break;
       case 'polyline':
         s = `種類: ポリライン\n頂点数: ${obj.pts.length}\n${obj.closed?'閉じた':'開いた'}ポリライン`; break;
+      case 'spline':
+        s = `種類: スプライン曲線\n制御点数: ${obj.pts.length}\n${obj.closed?'閉じた':'開いた'}スプライン`; break;
       case 'text':
         s = `種類: テキスト\n"${obj.text}"\nX:${obj.x.toFixed(1)} Y:${obj.y.toFixed(1)}`; break;
     }
@@ -865,8 +1031,8 @@ function updateSelPanel() {
 }
 
 // ==================== オブジェクト一覧 ====================
-const typeIcon = { line:'╱', rect:'▭', circle:'○', arc:'◜', polyline:'⌒', text:'T' };
-const typeName = { line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', text:'テキスト' };
+const typeIcon = { line:'╱', rect:'▭', circle:'○', arc:'◜', polyline:'⌒', spline:'∿', text:'T' };
+const typeName = { line:'直線', rect:'矩形', circle:'円', arc:'円弧', polyline:'ポリライン', spline:'スプライン', text:'テキスト' };
 function updateObjList() {
   let list = document.getElementById('obj-list');
   list.innerHTML = objects.slice().reverse().map(obj =>
@@ -955,6 +1121,11 @@ function buildSVG(whiteBg) {
       case 'circle': return `  <circle cx="${tx(obj.cx)}" cy="${ty(obj.cy)}" r="${obj.r.toFixed(3)}" ${cs(obj)}/>`;
       case 'arc': {let r=obj.r,a1=obj.a1*Math.PI/180,a2=obj.a2*Math.PI/180,x1=obj.cx+r*Math.cos(a1),y1=obj.cy+r*Math.sin(a1),x2=obj.cx+r*Math.cos(a2),y2=obj.cy+r*Math.sin(a2),lg=Math.abs(a2-a1)>Math.PI?1:0; return `  <path d="M ${tx(x1)} ${ty(y1)} A ${r.toFixed(3)} ${r.toFixed(3)} 0 ${lg} 1 ${tx(x2)} ${ty(y2)}" ${cs(obj)} fill="none"/>`;}
       case 'polyline': {let pts=obj.pts.map(p=>`${tx(p.x)},${ty(p.y)}`).join(' '); return obj.closed?`  <polygon points="${pts}" ${cs(obj)}/>`:`  <polyline points="${pts}" ${cs(obj)} fill="none"/>`;}
+      case 'spline': {
+        if (obj.pts.length < 2) return '';
+        let d = catmullRomToSVGPath(obj.pts, obj.closed, tx, ty);
+        return `  <path d="${d}" ${cs(obj)} ${obj.fillNone||!obj.closed?'fill="none"':''}/>`;
+      }
       case 'text': return `  <text x="${tx(obj.x)}" y="${ty(obj.y)}" font-size="${(obj.fs||5).toFixed(2)}" fill="${obj.stroke||'#000000'}">${obj.text}</text>`;
       default: return '';
     }
