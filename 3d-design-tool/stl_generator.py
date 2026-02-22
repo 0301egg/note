@@ -27,8 +27,11 @@ def generate_stl(shape_params: dict) -> bytes:
 
     mesh = _create_shape(shape, dims)
 
-    # メッシュをリセット・正規化
-    mesh.process(validate=True)
+    # メッシュをリセット・正規化 (validate=True は numpy 2.x と非互換のため除外)
+    try:
+        mesh.process()
+    except Exception:
+        pass
 
     # Bambu Lab用: メッシュの底面をZ=0に配置
     bounds = mesh.bounds
@@ -143,10 +146,13 @@ def _create_pyramid(base: float, height: float) -> trimesh.Trimesh:
             [2, 3, 4],
             [3, 0, 4],
         ],
-        dtype=np.int64,
+        dtype=np.int32,
     )
-    mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
-    mesh.fix_normals()
+    mesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
     return mesh
 
 

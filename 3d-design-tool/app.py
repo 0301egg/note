@@ -9,6 +9,7 @@ import io
 import json
 import os
 import re
+import traceback
 
 import ollama
 from dotenv import load_dotenv
@@ -145,6 +146,7 @@ def generate():
     try:
         stl_bytes = generate_stl(shape_params)
     except Exception as e:
+        traceback.print_exc()  # サーバーターミナルにフルのトレースバックを出力
         return jsonify({"error": f"3Dモデルの生成に失敗しました: {str(e)}"}), 500
 
     if not stl_bytes:
