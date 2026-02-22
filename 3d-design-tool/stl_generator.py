@@ -97,7 +97,7 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         radius = float(dims.get("radius", dims.get("r", 8)))
         height = float(dims.get("height", dims.get("h", 30)))
         count = int(dims.get("count", 32))
-        return trimesh.creation.capsule(radius=radius, height=height, count=count)
+        return trimesh.creation.capsule(radius=radius, height=height, count=[count, count])
 
     # --- ピラミッド ---
     elif shape in ["pyramid", "ピラミッド"]:
