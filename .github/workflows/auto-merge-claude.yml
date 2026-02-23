@@ -1,0 +1,38 @@
+name: Auto-merge Claude branches
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create PR if not exists
+        id: create-pr
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          TITLE="Auto: ${BRANCH}"
+          EXISTING=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+          if [ -z "$EXISTING" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "$TITLE" \
+              --body "Claude Code による自動マージ"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge PR
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+          gh pr merge "$PR" --squash --admin --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
