@@ -141,9 +141,9 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/api/generate", methods=["POST"])
-def generate():
-    """テキストからSTLを生成するメインAPI"""
+@app.route("/api/preview", methods=["POST"])
+def preview():
+    """テキストを解析して3Dモデルをプレビュー用に生成する（STLファイルは作成しない）"""
     data = request.get_json()
     text = (data or {}).get("text", "").strip()
 
@@ -192,36 +192,34 @@ def generate():
     if "dimensions" not in shape_params or not isinstance(shape_params["dimensions"], dict):
         shape_params["dimensions"] = {}
 
-    # STL生成
+    # ビューワー用メッシュ生成（STLとして返却するが、ファイルとしては保存しない）
     try:
         stl_bytes = generate_stl(shape_params)
     except Exception as e:
-        traceback.print_exc()  # サーバーターミナルにフルのトレースバックを出力
+        traceback.print_exc()
         return jsonify({"error": f"3Dモデルの生成に失敗しました: {str(e)}"}), 500
 
     if not stl_bytes:
-        return jsonify({"error": "STLデータの生成に失敗しました"}), 500
+        return jsonify({"error": "3Dモデルの生成に失敗しました"}), 500
 
-    # レスポンス
     return jsonify(
         {
             "success": True,
             "shape_params": shape_params,
             "stl_base64": base64.b64encode(stl_bytes).decode("utf-8"),
-            "file_size_kb": round(len(stl_bytes) / 1024, 1),
         }
     )
 
 
-@app.route("/api/download", methods=["POST"])
-def download():
-    """STLファイルをダウンロードする"""
+@app.route("/api/export", methods=["POST"])
+def export_stl():
+    """保存済みの shape_params からSTLファイルを生成してダウンロードさせる"""
     data = request.get_json()
-    stl_base64 = (data or {}).get("stl_base64", "")
+    shape_params = (data or {}).get("shape_params")
     filename = (data or {}).get("filename", "model.stl")
 
-    if not stl_base64:
-        return jsonify({"error": "STLデータがありません"}), 400
+    if not shape_params or "shape" not in shape_params:
+        return jsonify({"error": "形状パラメータがありません"}), 400
 
     # ファイル名のサニタイズ
     filename = re.sub(r"[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF._-]", "_", filename)
@@ -229,9 +227,10 @@ def download():
         filename += ".stl"
 
     try:
-        stl_bytes = base64.b64decode(stl_base64)
-    except Exception:
-        return jsonify({"error": "STLデータのデコードに失敗しました"}), 400
+        stl_bytes = generate_stl(shape_params)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"STLの生成に失敗しました: {str(e)}"}), 500
 
     return send_file(
         io.BytesIO(stl_bytes),

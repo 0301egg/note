@@ -171,7 +171,8 @@
       color: white;
       display: none;
     }
-    .btn-success:hover { filter: brightness(1.1); }
+    .btn-success:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-success:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
 
     .btn-print {
       background: var(--bg);
@@ -180,6 +181,15 @@
       display: none;
     }
     .btn-print:hover { border-color: var(--text-dim); color: var(--text); }
+
+    /* STL生成ステータス（ダウンロードボタン近傍） */
+    .stl-status {
+      font-size: 0.78rem;
+      text-align: center;
+      display: none;
+    }
+    .stl-status.loading { display: block; color: var(--text-dim); }
+    .stl-status.error { display: block; color: var(--accent); }
 
     /* ステータス */
     .status {
@@ -422,8 +432,8 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" id="generateBtn" onclick="handleGenerate()">
-      STLを生成する
+    <button class="btn btn-primary" id="previewBtn" onclick="handlePreview()">
+      3Dモデルを生成
     </button>
 
     <div class="status" id="status"></div>
@@ -434,9 +444,11 @@
       <div class="print-note" id="printNote"></div>
     </div>
 
-    <button class="btn btn-success" id="downloadBtn" onclick="handleDownload()">
-      ダウンロード（STL）
+    <button class="btn btn-success" id="exportBtn" onclick="handleExport()">
+      STLファイルをダウンロード
     </button>
+
+    <div class="stl-status" id="stlStatus"></div>
 
     <button class="btn btn-print" id="printBtn" onclick="handlePrint()">
       実寸で印刷する
@@ -458,7 +470,7 @@
 
     <div class="viewer-placeholder" id="placeholder">
       <div class="placeholder-icon">📦</div>
-      <div class="placeholder-text">テキストを入力してSTLを生成してください</div>
+      <div class="placeholder-text">テキストを入力して3Dモデルをプレビュー</div>
     </div>
 
     <div class="viewer-overlay">
@@ -685,39 +697,45 @@ document.querySelectorAll(".chip").forEach((chip) => {
   });
 });
 
-// Ctrl+Enter でも生成
+// Ctrl+Enter でプレビュー生成
 document.getElementById("textInput").addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.key === "Enter") {
     e.preventDefault();
-    window.handleGenerate();
+    window.handlePreview();
   }
 });
 
-let currentSTLBase64 = null;
+// 現在のモデルの shape_params（STL生成に使用）
+let currentShapeParams = null;
 
-window.handleGenerate = async function () {
+// ── プレビュー生成 ──────────────────────────────
+window.handlePreview = async function () {
   const text = document.getElementById("textInput").value.trim();
   if (!text) {
     alert("テキストを入力してください");
     return;
   }
 
-  const btn = document.getElementById("generateBtn");
+  const btn = document.getElementById("previewBtn");
   const status = document.getElementById("status");
   const infoPanel = document.getElementById("infoPanel");
-  const downloadBtn = document.getElementById("downloadBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const stlStatus = document.getElementById("stlStatus");
   const printBtn = document.getElementById("printBtn");
 
+  // リセット
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>生成中...';
   status.className = "status loading";
-  status.innerHTML = '<span class="spinner"></span>AIがテキストを解析してSTLを生成中...';
+  status.innerHTML = '<span class="spinner"></span>AIがテキストを解析して3Dモデルを生成中...';
   infoPanel.style.display = "none";
-  downloadBtn.style.display = "none";
+  exportBtn.style.display = "none";
+  stlStatus.className = "stl-status";
   printBtn.style.display = "none";
+  currentShapeParams = null;
 
   try {
-    const res = await fetch("/api/generate", {
+    const res = await fetch("/api/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -729,27 +747,27 @@ window.handleGenerate = async function () {
       throw new Error(data.error || "生成に失敗しました");
     }
 
-    currentSTLBase64 = data.stl_base64;
+    // ビューワーにロード
     window.loadSTLFromBase64(data.stl_base64);
 
+    // shape_params を保存（STLエクスポートで使用）
+    currentShapeParams = data.shape_params;
+
+    // モデル情報パネル
     const params = data.shape_params;
     const dims = params.dimensions || {};
     const rows = [
       ["形状", shapeLabel(params.shape)],
       ["説明", params.description || "-"],
       ...Object.entries(dims).map(([k, v]) => [dimLabel(k), `${v} mm`]),
-      ["ファイルサイズ", `${data.file_size_kb} KB`],
     ];
 
-    const infoRows = document.getElementById("infoRows");
-    infoRows.innerHTML = rows
-      .map(
-        ([k, v]) => `
-      <div class="info-row">
-        <span class="info-key">${escHtml(k)}</span>
-        <span class="info-val">${escHtml(String(v))}</span>
-      </div>`
-      )
+    document.getElementById("infoRows").innerHTML = rows
+      .map(([k, v]) => `
+        <div class="info-row">
+          <span class="info-key">${escHtml(k)}</span>
+          <span class="info-val">${escHtml(String(v))}</span>
+        </div>`)
       .join("");
 
     const printNote = document.getElementById("printNote");
@@ -761,44 +779,63 @@ window.handleGenerate = async function () {
     }
 
     infoPanel.style.display = "block";
-    downloadBtn.style.display = "block";
+    exportBtn.style.display = "block";
     printBtn.style.display = "block";
 
     status.className = "status success";
-    status.textContent = "✓ 3Dモデルの生成が完了しました。";
+    status.textContent = "✓ 3Dモデルのプレビューが完了しました。STLが必要な場合はダウンロードボタンを押してください。";
   } catch (err) {
     status.className = "status error";
     status.textContent = "✕ エラー: " + err.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = "STLを生成する";
+    btn.textContent = "3Dモデルを生成";
   }
 };
 
-window.handleDownload = function () {
-  if (!currentSTLBase64) return;
+// ── STLエクスポート ────────────────────────────
+window.handleExport = async function () {
+  if (!currentShapeParams) return;
+
+  const exportBtn = document.getElementById("exportBtn");
+  const stlStatus = document.getElementById("stlStatus");
 
   const rawText = document.getElementById("textInput").value.trim();
   const safeText = rawText.slice(0, 30).replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, "_");
   const filename = (safeText || "model") + ".stl";
 
-  fetch("/api/download", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ stl_base64: currentSTLBase64, filename }),
-  })
-    .then((res) => res.blob())
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    })
-    .catch((err) => alert("ダウンロードに失敗しました: " + err.message));
+  exportBtn.disabled = true;
+  exportBtn.innerHTML = '<span class="spinner"></span>STLを生成中...';
+  stlStatus.className = "stl-status";
+
+  try {
+    const res = await fetch("/api/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shape_params: currentShapeParams, filename }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "STLの生成に失敗しました");
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    stlStatus.className = "stl-status error";
+    stlStatus.textContent = "✕ " + err.message;
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = "STLファイルをダウンロード";
+  }
 };
 
 // ── ユーティリティ ──
