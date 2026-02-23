@@ -8,17 +8,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #21262d;
-      --border: #30363d;
-      --accent: #e94560;
-      --accent-dim: #c73652;
-      --success: #3fb950;
-      --warning: #d29922;
-      --text: #c9d1d9;
-      --text-dim: #8b949e;
-      --blue: #58a6ff;
+      --bg: #ffffff;
+      --surface: #f7f7f7;
+      --surface2: #eeeeee;
+      --border: #dddddd;
+      --accent: #d94040;
+      --accent-dim: #b83030;
+      --success: #2a9d4e;
+      --warning: #c47c00;
+      --text: #222222;
+      --text-dim: #666666;
     }
 
     body {
@@ -34,7 +33,7 @@
 
     /* ── ヘッダー ── */
     header {
-      background: var(--surface);
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
       padding: 12px 20px;
       display: flex;
@@ -43,9 +42,9 @@
       flex-shrink: 0;
     }
     header .logo {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--text);
       white-space: nowrap;
     }
     header .subtitle {
@@ -77,8 +76,8 @@
 
     /* ── サイドバー ── */
     .sidebar {
-      width: 340px;
-      min-width: 300px;
+      width: 320px;
+      min-width: 280px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
@@ -91,8 +90,7 @@
     .section-label {
       font-size: 0.7rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       color: var(--text-dim);
       margin-bottom: 6px;
     }
@@ -101,10 +99,10 @@
     textarea {
       width: 100%;
       min-height: 110px;
-      background: var(--surface2);
+      background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       padding: 10px 12px;
       font-size: 0.9rem;
       resize: vertical;
@@ -134,7 +132,7 @@
     /* 例文チップ */
     .examples-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip {
-      background: var(--surface2);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 4px 10px;
@@ -152,10 +150,10 @@
     /* ボタン */
     .btn {
       width: 100%;
-      padding: 11px;
+      padding: 10px;
       border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
@@ -170,15 +168,33 @@
 
     .btn-success {
       background: var(--success);
-      color: #0d1117;
+      color: white;
       display: none;
     }
-    .btn-success:hover { filter: brightness(1.1); }
+    .btn-success:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-success:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; }
+
+    .btn-print {
+      background: var(--bg);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      display: none;
+    }
+    .btn-print:hover { border-color: var(--text-dim); color: var(--text); }
+
+    /* STL生成ステータス（ダウンロードボタン近傍） */
+    .stl-status {
+      font-size: 0.78rem;
+      text-align: center;
+      display: none;
+    }
+    .stl-status.loading { display: block; color: var(--text-dim); }
+    .stl-status.error { display: block; color: var(--accent); }
 
     /* ステータス */
     .status {
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 0.82rem;
       line-height: 1.5;
       display: none;
@@ -191,14 +207,14 @@
     }
     .status.success {
       display: block;
-      background: rgba(63, 185, 80, 0.1);
-      border: 1px solid rgba(63, 185, 80, 0.3);
+      background: rgba(42, 157, 78, 0.08);
+      border: 1px solid rgba(42, 157, 78, 0.3);
       color: var(--success);
     }
     .status.error {
       display: block;
-      background: rgba(233, 69, 96, 0.1);
-      border: 1px solid rgba(233, 69, 96, 0.3);
+      background: rgba(217, 64, 64, 0.08);
+      border: 1px solid rgba(217, 64, 64, 0.3);
       color: var(--accent);
     }
     @keyframes pulse {
@@ -208,19 +224,18 @@
 
     /* モデル情報パネル */
     .info-panel {
-      background: var(--surface2);
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       padding: 12px;
       font-size: 0.82rem;
       display: none;
     }
     .info-panel h3 {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
-      text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--accent);
+      color: var(--text-dim);
       margin-bottom: 8px;
     }
     .info-row {
@@ -237,7 +252,7 @@
     .print-note {
       margin-top: 8px;
       padding: 6px 10px;
-      background: rgba(210, 153, 34, 0.1);
+      background: rgba(196, 124, 0, 0.08);
       border-left: 3px solid var(--warning);
       border-radius: 4px;
       font-size: 0.78rem;
@@ -260,6 +275,7 @@
       flex: 1;
       position: relative;
       overflow: hidden;
+      background: #f5f5f5;
     }
     #viewer-canvas {
       display: block;
@@ -278,7 +294,7 @@
       pointer-events: none;
     }
     .overlay-badge {
-      background: rgba(13, 17, 23, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 5px 10px;
@@ -300,12 +316,12 @@
     }
     .placeholder-icon {
       font-size: 4rem;
-      opacity: 0.15;
+      opacity: 0.2;
     }
     .placeholder-text {
       font-size: 0.85rem;
       color: var(--text-dim);
-      opacity: 0.5;
+      opacity: 0.6;
     }
 
     /* スピナー */
@@ -321,6 +337,54 @@
       margin-right: 6px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 印刷スタイル ── */
+    .print-info { display: none; }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 15mm;
+      }
+
+      body {
+        height: auto;
+        overflow: visible;
+        background: white;
+      }
+
+      header .badges { display: none; }
+      .sidebar { display: none; }
+
+      .layout {
+        display: block;
+        overflow: visible;
+      }
+
+      .viewer-wrap {
+        width: var(--print-width, 100mm);
+        height: var(--print-height, 100mm);
+        overflow: visible;
+        background: white;
+      }
+
+      #viewer-canvas {
+        width: var(--print-width, 100mm) !important;
+        height: var(--print-height, 100mm) !important;
+      }
+
+      .viewer-overlay { display: none; }
+      .viewer-placeholder { display: none; }
+
+      .print-info {
+        display: block !important;
+        margin-top: 6mm;
+        font-size: 9pt;
+        color: #444;
+        border-top: 0.5pt solid #ccc;
+        padding-top: 3mm;
+      }
+    }
   </style>
 </head>
 <body>
@@ -328,12 +392,11 @@
 <header>
   <div>
     <div class="logo">3Dデザインツール</div>
-    <div class="subtitle">テキスト記述から3Dモデル（STL）を生成・プレビュー</div>
+    <div class="subtitle">テキスト記述から3DモデルのSTLファイルを生成</div>
   </div>
   <div class="badges">
     <span class="badge green">Bambu Lab mini 対応</span>
-    <span class="badge">Claude AI 搭載</span>
-    <span class="badge">Three.js プレビュー</span>
+    <span class="badge">Ollama AI 搭載</span>
   </div>
 </header>
 
@@ -369,8 +432,8 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" id="generateBtn" onclick="handleGenerate()">
-      STLを生成する
+    <button class="btn btn-primary" id="previewBtn" onclick="handlePreview()">
+      3Dモデルを生成
     </button>
 
     <div class="status" id="status"></div>
@@ -381,16 +444,22 @@
       <div class="print-note" id="printNote"></div>
     </div>
 
-    <button class="btn btn-success" id="downloadBtn" onclick="handleDownload()">
-      ⬇ STLファイルをダウンロード
+    <button class="btn btn-success" id="exportBtn" onclick="handleExport()">
+      STLファイルをダウンロード
+    </button>
+
+    <div class="stl-status" id="stlStatus"></div>
+
+    <button class="btn btn-print" id="printBtn" onclick="handlePrint()">
+      実寸で印刷する
     </button>
 
     <div class="sidebar-footer">
-      <strong>操作方法（3Dビュー）</strong><br>
-      ドラッグ: 回転 ／ スクロール: ズーム ／ 右ドラッグ: パン<br><br>
+      <strong>3Dビュー操作</strong><br>
+      ドラッグ: 回転 ／ スクロール: ズーム ／ 右ドラッグ: 移動<br><br>
       <strong>Bambu Lab mini 最大造形サイズ</strong><br>
       180 × 180 × 180 mm<br><br>
-      生成された .stl ファイルを Bambu Studio に読み込んでスライスしてください。
+      生成した .stl ファイルを Bambu Studio で開いてスライスしてください。
     </div>
 
   </aside>
@@ -401,13 +470,16 @@
 
     <div class="viewer-placeholder" id="placeholder">
       <div class="placeholder-icon">📦</div>
-      <div class="placeholder-text">左のフォームにテキストを入力してSTLを生成してください</div>
+      <div class="placeholder-text">テキストを入力して3Dモデルをプレビュー</div>
     </div>
 
     <div class="viewer-overlay">
       <div class="overlay-badge" id="modelSize" style="display:none"></div>
-      <div class="overlay-badge">マウス操作で視点変更可</div>
+      <div class="overlay-badge">マウスで視点変更</div>
     </div>
+
+    <!-- 印刷時のみ表示する寸法情報 -->
+    <div class="print-info" id="printInfo"></div>
   </div>
 
 </div>
@@ -431,16 +503,13 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 // Three.js 初期化
 // ────────────────────────────────────────
 const canvas = document.getElementById("viewer-canvas");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1117);
-scene.fog = new THREE.Fog(0x0d1117, 600, 1200);
+scene.background = new THREE.Color(0xf5f5f5);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
 camera.position.set(120, 90, 120);
@@ -452,9 +521,9 @@ controls.minDistance = 5;
 controls.maxDistance = 2000;
 
 // ── ライト ──
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
 dirLight.position.set(150, 200, 100);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.set(2048, 2048);
@@ -466,23 +535,19 @@ dirLight.shadow.camera.top = 200;
 dirLight.shadow.camera.bottom = -200;
 scene.add(dirLight);
 
-const fillLight = new THREE.DirectionalLight(0x4488ff, 0.4);
+const fillLight = new THREE.DirectionalLight(0x8888ff, 0.2);
 fillLight.position.set(-100, 50, -100);
 scene.add(fillLight);
 
-const rimLight = new THREE.DirectionalLight(0xff4422, 0.2);
-rimLight.position.set(0, -100, -150);
-scene.add(rimLight);
-
 // ── グリッド ──
-const grid = new THREE.GridHelper(400, 40, 0x1a2040, 0x161b22);
+const grid = new THREE.GridHelper(400, 40, 0xcccccc, 0xe0e0e0);
 grid.receiveShadow = true;
 scene.add(grid);
 
 // ── 影受けプレーン ──
 const shadowPlane = new THREE.Mesh(
   new THREE.PlaneGeometry(600, 600),
-  new THREE.ShadowMaterial({ opacity: 0.3 })
+  new THREE.ShadowMaterial({ opacity: 0.1 })
 );
 shadowPlane.rotation.x = -Math.PI / 2;
 shadowPlane.position.y = -0.1;
@@ -513,9 +578,9 @@ animate();
 // ────────────────────────────────────────
 const loader = new STLLoader();
 let currentMesh = null;
+let modelSizeMm = null; // { x, y, z } mm単位
 
 window.loadSTLFromBase64 = function (base64Data) {
-  // base64 → ArrayBuffer
   const binary = atob(base64Data);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -523,7 +588,6 @@ window.loadSTLFromBase64 = function (base64Data) {
   const geometry = loader.parse(bytes.buffer);
   geometry.computeVertexNormals();
 
-  // 前のモデルを削除
   if (currentMesh) {
     scene.remove(currentMesh);
     currentMesh.geometry.dispose();
@@ -531,11 +595,10 @@ window.loadSTLFromBase64 = function (base64Data) {
     currentMesh = null;
   }
 
-  // マテリアル
   const material = new THREE.MeshStandardMaterial({
-    color: 0xe94560,
-    roughness: 0.35,
-    metalness: 0.15,
+    color: 0xd94040,
+    roughness: 0.4,
+    metalness: 0.1,
     side: THREE.DoubleSide,
   });
 
@@ -543,7 +606,6 @@ window.loadSTLFromBase64 = function (base64Data) {
   currentMesh.castShadow = true;
   currentMesh.receiveShadow = true;
 
-  // バウンディングボックス計算・底面をY=0に
   geometry.computeBoundingBox();
   const bbox = geometry.boundingBox;
   const center = new THREE.Vector3();
@@ -551,27 +613,77 @@ window.loadSTLFromBase64 = function (base64Data) {
   const size = new THREE.Vector3();
   bbox.getSize(size);
 
+  // STLの単位はmm → そのままmm寸法として記録
+  modelSizeMm = { x: size.x, y: size.y, z: size.z };
+
   currentMesh.position.set(-center.x, -bbox.min.y, -center.z);
   scene.add(currentMesh);
 
-  // グリッドを底面付近に
   grid.position.y = 0;
 
-  // カメラを適切な距離に
   const maxDim = Math.max(size.x, size.y, size.z);
   const dist = maxDim * 2.2;
   camera.position.set(dist, dist * 0.7, dist);
   controls.target.set(0, size.y / 2, 0);
   controls.update();
 
-  // プレースホルダー非表示
   document.getElementById("placeholder").style.display = "none";
 
-  // モデルサイズ表示
   const sizeEl = document.getElementById("modelSize");
   sizeEl.style.display = "block";
   sizeEl.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`;
 };
+
+// ────────────────────────────────────────
+// 印刷処理（実寸・真上から）
+// ────────────────────────────────────────
+window.handlePrint = function () {
+  window.print();
+};
+
+window.addEventListener("beforeprint", () => {
+  if (!currentMesh || !modelSizeMm) return;
+
+  const { x: w, z: d, y: h } = modelSizeMm; // 幅・奥行き・高さ (mm)
+
+  // CSS変数でcanvasの印刷サイズを実寸指定
+  document.documentElement.style.setProperty("--print-width", `${w}mm`);
+  document.documentElement.style.setProperty("--print-height", `${d}mm`);
+
+  // 印刷情報テキスト（実寸表記）
+  document.getElementById("printInfo").textContent =
+    `実寸・真上から表示 ― 幅 ${w.toFixed(1)} mm × 奥行き ${d.toFixed(1)} mm × 高さ ${h.toFixed(1)} mm`;
+
+  // 直交投影カメラで真上から描画（1mm = 1mmスケール）
+  const PX_PER_MM = 96 / 25.4; // 96 dpi 基準
+  const pw = Math.round(w * PX_PER_MM);
+  const ph = Math.round(d * PX_PER_MM);
+
+  renderer.setPixelRatio(1);
+  renderer.setSize(pw, ph);
+
+  scene.background = new THREE.Color(0xffffff);
+  grid.visible = false;
+
+  const orthoCamera = new THREE.OrthographicCamera(
+    -w / 2, w / 2,
+    d / 2, -d / 2,
+    -1000, 1000
+  );
+  orthoCamera.position.set(0, 500, 0);
+  orthoCamera.lookAt(0, 0, 0);
+  orthoCamera.up.set(0, 0, -1);
+
+  renderer.render(scene, orthoCamera);
+});
+
+window.addEventListener("afterprint", () => {
+  // 通常表示に戻す
+  scene.background = new THREE.Color(0xf5f5f5);
+  grid.visible = true;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  resize();
+});
 
 // ────────────────────────────────────────
 // UI ロジック
@@ -585,38 +697,45 @@ document.querySelectorAll(".chip").forEach((chip) => {
   });
 });
 
-// Ctrl+Enter でも生成
+// Ctrl+Enter でプレビュー生成
 document.getElementById("textInput").addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.key === "Enter") {
     e.preventDefault();
-    window.handleGenerate();
+    window.handlePreview();
   }
 });
 
-let currentSTLBase64 = null;
+// 現在のモデルの shape_params（STL生成に使用）
 let currentShapeParams = null;
 
-window.handleGenerate = async function () {
+// ── プレビュー生成 ──────────────────────────────
+window.handlePreview = async function () {
   const text = document.getElementById("textInput").value.trim();
   if (!text) {
     alert("テキストを入力してください");
     return;
   }
 
-  const btn = document.getElementById("generateBtn");
+  const btn = document.getElementById("previewBtn");
   const status = document.getElementById("status");
   const infoPanel = document.getElementById("infoPanel");
-  const downloadBtn = document.getElementById("downloadBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const stlStatus = document.getElementById("stlStatus");
+  const printBtn = document.getElementById("printBtn");
 
+  // リセット
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>生成中...';
   status.className = "status loading";
-  status.innerHTML = '<span class="spinner"></span>Claude AIがテキストを解析してSTLを生成中...';
+  status.innerHTML = '<span class="spinner"></span>AIがテキストを解析して3Dモデルを生成中...';
   infoPanel.style.display = "none";
-  downloadBtn.style.display = "none";
+  exportBtn.style.display = "none";
+  stlStatus.className = "stl-status";
+  printBtn.style.display = "none";
+  currentShapeParams = null;
 
   try {
-    const res = await fetch("/api/generate", {
+    const res = await fetch("/api/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -628,31 +747,27 @@ window.handleGenerate = async function () {
       throw new Error(data.error || "生成に失敗しました");
     }
 
-    currentSTLBase64 = data.stl_base64;
-    currentShapeParams = data.shape_params;
-
-    // 3Dプレビューに読み込む
+    // ビューワーにロード
     window.loadSTLFromBase64(data.stl_base64);
 
-    // モデル情報表示
+    // shape_params を保存（STLエクスポートで使用）
+    currentShapeParams = data.shape_params;
+
+    // モデル情報パネル
     const params = data.shape_params;
     const dims = params.dimensions || {};
     const rows = [
       ["形状", shapeLabel(params.shape)],
       ["説明", params.description || "-"],
       ...Object.entries(dims).map(([k, v]) => [dimLabel(k), `${v} mm`]),
-      ["ファイルサイズ", `${data.file_size_kb} KB`],
     ];
 
-    const infoRows = document.getElementById("infoRows");
-    infoRows.innerHTML = rows
-      .map(
-        ([k, v]) => `
-      <div class="info-row">
-        <span class="info-key">${escHtml(k)}</span>
-        <span class="info-val">${escHtml(String(v))}</span>
-      </div>`
-      )
+    document.getElementById("infoRows").innerHTML = rows
+      .map(([k, v]) => `
+        <div class="info-row">
+          <span class="info-key">${escHtml(k)}</span>
+          <span class="info-val">${escHtml(String(v))}</span>
+        </div>`)
       .join("");
 
     const printNote = document.getElementById("printNote");
@@ -664,43 +779,63 @@ window.handleGenerate = async function () {
     }
 
     infoPanel.style.display = "block";
-    downloadBtn.style.display = "block";
+    exportBtn.style.display = "block";
+    printBtn.style.display = "block";
 
     status.className = "status success";
-    status.textContent = "✓ 3Dモデルの生成が完了しました。左のビューワーで確認できます。";
+    status.textContent = "✓ 3Dモデルのプレビューが完了しました。STLが必要な場合はダウンロードボタンを押してください。";
   } catch (err) {
     status.className = "status error";
     status.textContent = "✕ エラー: " + err.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = "STLを生成する";
+    btn.textContent = "3Dモデルを生成";
   }
 };
 
-window.handleDownload = function () {
-  if (!currentSTLBase64) return;
+// ── STLエクスポート ────────────────────────────
+window.handleExport = async function () {
+  if (!currentShapeParams) return;
+
+  const exportBtn = document.getElementById("exportBtn");
+  const stlStatus = document.getElementById("stlStatus");
 
   const rawText = document.getElementById("textInput").value.trim();
   const safeText = rawText.slice(0, 30).replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g, "_");
   const filename = (safeText || "model") + ".stl";
 
-  fetch("/api/download", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ stl_base64: currentSTLBase64, filename }),
-  })
-    .then((res) => res.blob())
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    })
-    .catch((err) => alert("ダウンロードに失敗しました: " + err.message));
+  exportBtn.disabled = true;
+  exportBtn.innerHTML = '<span class="spinner"></span>STLを生成中...';
+  stlStatus.className = "stl-status";
+
+  try {
+    const res = await fetch("/api/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shape_params: currentShapeParams, filename }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "STLの生成に失敗しました");
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    stlStatus.className = "stl-status error";
+    stlStatus.textContent = "✕ " + err.message;
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = "STLファイルをダウンロード";
+  }
 };
 
 // ── ユーティリティ ──
@@ -713,16 +848,16 @@ function escHtml(s) {
 
 function shapeLabel(shape) {
   const map = {
-    box: "直方体 (Box)",
-    cube: "立方体 (Cube)",
-    sphere: "球体 (Sphere)",
-    cylinder: "円柱 (Cylinder)",
-    cone: "円錐 (Cone)",
-    torus: "トーラス (Torus)",
-    capsule: "カプセル (Capsule)",
-    pyramid: "ピラミッド (Pyramid)",
-    pipe: "中空円柱 (Pipe)",
-    hexagonal_prism: "六角柱 (Hex Prism)",
+    box: "直方体",
+    cube: "立方体",
+    sphere: "球体",
+    cylinder: "円柱",
+    cone: "円錐",
+    torus: "トーラス",
+    capsule: "カプセル",
+    pyramid: "ピラミッド",
+    pipe: "中空円柱",
+    hexagonal_prism: "六角柱",
   };
   return map[shape] || shape;
 }

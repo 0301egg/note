@@ -1,5 +1,5 @@
 """
-3Dデザインツール - Flask + Claude API バックエンド
+3Dデザインツール - Flask + Ollama バックエンド
 テキストから3DモデルのSTLファイルを生成する
 Bambu Lab mini 対応
 """
@@ -9,8 +9,9 @@ import io
 import json
 import os
 import re
+import traceback
 
-import anthropic
+import ollama
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request, send_file
 
@@ -19,43 +20,92 @@ from stl_generator import generate_stl, get_supported_shapes
 load_dotenv()
 
 app = Flask(__name__)
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
-# Claude API に渡すシステムプロンプト
-SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。
-ユーザーの日本語の説明から3Dオブジェクトのパラメータを正確に抽出してください。
+# LLM に渡すシステムプロンプト
+SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザーの説明を読み、最も適切な3D形状JSONを出力してください。
+必ずJSONのみを出力してください（説明文・コードブロック不要）。
 
-以下のJSON形式のみで回答してください（他のテキストは一切含めないこと）:
-{
-  "shape": "形状タイプ",
-  "dimensions": {
-    // 形状に応じたパラメータ（単位はすべてmm）
-  },
-  "description": "日本語での形状説明",
-  "print_notes": "Bambu Lab 3Dプリントの注意事項（省略可）"
-}
+=== 出力形式 ===
 
-## サポートする形状と必須パラメータ:
+【単一形状】
+{"shape":"形状名","dimensions":{パラメータ},"description":"説明"}
 
-- **box** (直方体): width (幅mm), depth (奥行きmm), height (高さmm)
-- **sphere** (球体): radius (半径mm)
-- **cylinder** (円柱): radius (半径mm), height (高さmm)
-- **cone** (円錐): radius (底面半径mm), height (高さmm)
-- **torus** (トーラス/ドーナツ): major_radius (外径mm), minor_radius (管径mm)
-- **capsule** (カプセル): radius (半径mm), height (高さmm)
-- **pyramid** (ピラミッド): base (底面一辺mm), height (高さmm)
+【複合形状】穴・突起・複数パーツがある場合は必ずこちらを使用
+{"shape":"compound","components":[{"shape":"形状名","dimensions":{...},"position":[x,y,z],"operation":"union"},...],"description":"説明"}
+  operation: "union"=合体, "subtract"=切り抜き(貫通穴など)
+  position: [x,y,z] 各コンポーネントの中心座標(mm)、Z=0が底面
+  subtract時は形状を2mm程度大きく・長くして完全に貫通させること
 
-## 寸法の推論ルール:
-- ユーザーが「cm」単位で指定した場合は自動的に「mm」に変換（例: 5cm → 50mm）
-- 寸法が未指定の場合は文脈から合理的なサイズを推測する（一般的な用途を考慮）
-- 「小さい」→ ~30mm、「中くらい」→ ~60mm、「大きい」→ ~100mm を目安とする
-- Bambu Lab mini の造形サイズは 180×180×180mm なので、その範囲内に収めること
+=== 利用可能な形状 ===
 
-## 回答形式の厳守:
-- 必ずJSON形式のみで回答する
-- コードブロック (``` ) は使わない
-- 説明文は含めない
-- JSONのみ出力する"""
+■ 基本プリミティブ
+  box             : width, depth, height
+  rounded_box     : width, depth, height, radius(角丸半径)
+  cylinder        : radius, height
+  sphere          : radius
+  hemisphere      : radius (半球・ドーム)
+  ellipsoid       : radius_x, radius_y, radius_z (楕円体)
+  cone            : radius, height
+  frustum         : bottom_radius, top_radius, height (台形円錐)
+  torus           : major_radius, minor_radius (ドーナツ)
+  capsule         : radius, height
+  pyramid         : base, height
+  pipe            : outer_radius, inner_radius, height (中空パイプ)
+  hexagonal_prism : radius, height (六角柱)
+
+■ 有機的・装飾的形状 ← 容器・インテリア系ならこちらを使う
+  vase            : height, bottom_radius, max_radius, top_radius, wall_thickness
+                    (花瓶/ボトル: 回転体、中空、くびれ付き)
+  bowl            : outer_radius, depth, wall_thickness
+                    (ボウル/皿: 丸底、中空)
+  twisted_prism   : sides(辺数3〜8), radius, height, twist_angle(ねじれ度数)
+                    (ねじれた角柱: 装飾的なオブジェクト)
+  wavy_plate      : width, depth, base_height, amplitude(波高), wave_count(波数)
+                    (波打ったプレート: コースター・壁パネルなど)
+  egg             : radius_xy(最大半径mm), height(高さmm)
+                    (卵形・中実。単体の卵形オブジェクト)
+  split_egg       : egg_radius_xy, egg_height, wall_thickness, sphere_radius(0=自動)
+                    (水平2分割の中空卵カプセル + 内部球体を3パーツ並列出力)
+                    ※「卵を半分に割る・カプセル・中に球/ボール」→ 必ず split_egg
+
+■ 機械・構造系形状
+  gear            : teeth(歯数12〜32), module(1〜3), thickness, bore_radius(軸穴)
+  spring          : coil_radius, wire_radius, num_coils, pitch
+  l_bracket       : arm1_length, arm2_length, thickness, depth (L字金具)
+  t_bracket       : top_length, stem_length, arm_width, depth (T字金具)
+  star            : points(頂点数5〜8), outer_radius, inner_radius, height
+  arrow           : total_length, shaft_width, head_width, head_length, thickness
+  cross           : arm_length, arm_width, height (十字形)
+  wedge           : radius, angle(度), height (扇形柱)
+
+=== 形状選択ルール ===
+- 花瓶・コップ・ボトル・カップ → vase
+- ボウル・皿・受け皿 → bowl
+- ねじれた柱・螺旋柱・装飾柱 → twisted_prism (sides=4〜8, twist_angle=90〜270)
+- 波板・コースター・模様付き → wavy_plate
+- 卵形のみ(中実) → egg
+- 卵 + 割れる/分割/カプセル/中に球・ボールが入る → split_egg (必須)
+  └ 日本M卵サイズ: egg_radius_xy=21.5, egg_height=55, wall_thickness=2, sphere_radius=0(自動)
+- 穴あき・溝・組み合わせ形状 → compound
+- 機械部品・ブラケット・ギア → それぞれ専用形状
+- 単純な基本形状 → box/cylinder/sphere など
+
+=== split_egg 出力例（卵Mサイズ・分割・球体入り） ===
+{"shape":"split_egg","dimensions":{"egg_radius_xy":21.5,"egg_height":55,"wall_thickness":2,"sphere_radius":0},"description":"卵Mサイズ 水平分割カプセル + 内部球体"}
+
+=== 複合形状の例 ===
+スマホスタンド:
+{"shape":"compound","components":[{"shape":"box","dimensions":{"width":80,"depth":60,"height":5},"position":[0,0,0],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":8,"height":60},"position":[0,26,5],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":40,"height":3},"position":[0,7,5],"rotation":[20,0,0],"operation":"union"}],"description":"スマホスタンド"}
+
+四隅ボルト穴プレート:
+{"shape":"compound","components":[{"shape":"rounded_box","dimensions":{"width":60,"depth":40,"height":8,"radius":3},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,-14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,-14,-2],"operation":"subtract"}],"description":"四隅ボルト穴付きプレート"}
+
+=== 寸法ルール ===
+- cm→mm変換（5cm=50mm）
+- 未指定: 小≈30mm, 中≈60mm, 大≈100mm
+- 最大サイズ: 180×180×180mm"""
 
 
 def extract_json_from_response(text: str) -> dict:
@@ -91,9 +141,9 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/api/generate", methods=["POST"])
-def generate():
-    """テキストからSTLを生成するメインAPI"""
+@app.route("/api/preview", methods=["POST"])
+def preview():
+    """テキストを解析して3Dモデルをプレビュー用に生成する（STLファイルは作成しない）"""
     data = request.get_json()
     text = (data or {}).get("text", "").strip()
 
@@ -103,32 +153,28 @@ def generate():
     if len(text) > 1000:
         return jsonify({"error": "テキストは1000文字以内で入力してください"}), 400
 
-    # Claude API でテキスト解析 (adaptive thinking + streaming)
+    # Ollama でテキスト解析
     try:
-        with client.messages.stream(
-            model="claude-opus-4-6",
-            max_tokens=2048,
-            thinking={"type": "adaptive"},
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": text}],
-        ) as stream:
-            response = stream.get_final_message()
-
-    except anthropic.AuthenticationError:
-        return jsonify({"error": "APIキーが無効です。.envファイルを確認してください"}), 401
-    except anthropic.RateLimitError:
-        return jsonify({"error": "APIレート制限に達しました。しばらく待ってから再試行してください"}), 429
-    except anthropic.APIConnectionError:
-        return jsonify({"error": "Claude APIへの接続に失敗しました"}), 503
+        client = ollama.Client(host=OLLAMA_HOST)
+        response = client.chat(
+            model=OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": text},
+            ],
+            format="json",
+            options={"temperature": 0.1},
+        )
+    except ollama.ResponseError as e:
+        if "not found" in str(e).lower():
+            return jsonify({"error": f"モデル '{OLLAMA_MODEL}' が見つかりません。'ollama pull {OLLAMA_MODEL}' を実行してください"}), 503
+        return jsonify({"error": f"Ollamaエラー: {str(e)}"}), 500
     except Exception as e:
+        if "connection" in str(e).lower() or "refused" in str(e).lower():
+            return jsonify({"error": f"Ollamaに接続できません。Ollamaが起動しているか確認してください ({OLLAMA_HOST})"}), 503
         return jsonify({"error": f"API呼び出しエラー: {str(e)}"}), 500
 
-    # レスポンスからテキストブロックを抽出
-    response_text = ""
-    for block in response.content:
-        if block.type == "text":
-            response_text = block.text
-            break
+    response_text = response.message.content
 
     if not response_text:
         return jsonify({"error": "モデルからの回答を取得できませんでした"}), 500
@@ -146,35 +192,34 @@ def generate():
     if "dimensions" not in shape_params or not isinstance(shape_params["dimensions"], dict):
         shape_params["dimensions"] = {}
 
-    # STL生成
+    # ビューワー用メッシュ生成（STLとして返却するが、ファイルとしては保存しない）
     try:
         stl_bytes = generate_stl(shape_params)
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"3Dモデルの生成に失敗しました: {str(e)}"}), 500
 
     if not stl_bytes:
-        return jsonify({"error": "STLデータの生成に失敗しました"}), 500
+        return jsonify({"error": "3Dモデルの生成に失敗しました"}), 500
 
-    # レスポンス
     return jsonify(
         {
             "success": True,
             "shape_params": shape_params,
             "stl_base64": base64.b64encode(stl_bytes).decode("utf-8"),
-            "file_size_kb": round(len(stl_bytes) / 1024, 1),
         }
     )
 
 
-@app.route("/api/download", methods=["POST"])
-def download():
-    """STLファイルをダウンロードする"""
+@app.route("/api/export", methods=["POST"])
+def export_stl():
+    """保存済みの shape_params からSTLファイルを生成してダウンロードさせる"""
     data = request.get_json()
-    stl_base64 = (data or {}).get("stl_base64", "")
+    shape_params = (data or {}).get("shape_params")
     filename = (data or {}).get("filename", "model.stl")
 
-    if not stl_base64:
-        return jsonify({"error": "STLデータがありません"}), 400
+    if not shape_params or "shape" not in shape_params:
+        return jsonify({"error": "形状パラメータがありません"}), 400
 
     # ファイル名のサニタイズ
     filename = re.sub(r"[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF._-]", "_", filename)
@@ -182,9 +227,10 @@ def download():
         filename += ".stl"
 
     try:
-        stl_bytes = base64.b64decode(stl_base64)
-    except Exception:
-        return jsonify({"error": "STLデータのデコードに失敗しました"}), 400
+        stl_bytes = generate_stl(shape_params)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"STLの生成に失敗しました: {str(e)}"}), 500
 
     return send_file(
         io.BytesIO(stl_bytes),
@@ -203,11 +249,19 @@ def shapes():
 @app.route("/api/health", methods=["GET"])
 def health():
     """ヘルスチェック"""
-    api_key_set = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    try:
+        client = ollama.Client(host=OLLAMA_HOST)
+        client.list()
+        ollama_ok = True
+    except Exception:
+        ollama_ok = False
+
     return jsonify(
         {
             "status": "ok",
-            "api_key_configured": api_key_set,
+            "ollama_connected": ollama_ok,
+            "ollama_host": OLLAMA_HOST,
+            "ollama_model": OLLAMA_MODEL,
         }
     )
 
