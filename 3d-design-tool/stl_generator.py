@@ -589,6 +589,75 @@ def _create_wedge(radius: float, angle_deg: float, height: float) -> trimesh.Tri
     return trimesh.creation.extrude_polygon(polygon, height)
 
 
+def _create_hollow_revolution(
+    r_outer: np.ndarray,
+    r_inner: np.ndarray,
+    z_vals: np.ndarray,
+    sections: int = 64,
+) -> trimesh.Trimesh:
+    """
+    中空回転体メッシュをブーリアン演算なしで直接構築する。
+    外側・内側・底面・上端リムを閉じたシェルとして生成する。
+    """
+    n = len(r_outer)
+    angles = np.linspace(0, 2 * np.pi, sections, endpoint=False)
+
+    def make_ring(r, z):
+        return np.column_stack([
+            r * np.cos(angles),
+            r * np.sin(angles),
+            np.full(sections, float(z)),
+        ])
+
+    outer_verts = np.vstack([make_ring(r, z) for r, z in zip(r_outer, z_vals)])
+    inner_verts = np.vstack([make_ring(r, z) for r, z in zip(r_inner, z_vals)])
+    bc = np.array([[0.0, 0.0, float(z_vals[0])]])   # 底面中心点
+
+    all_verts = np.vstack([outer_verts, inner_verts, bc])
+    n_ov = n * sections   # outer vertex count
+    bc_idx = 2 * n * sections
+
+    def ovi(p, s):  # outer vertex index
+        return p * sections + int(s) % sections
+
+    def ivi(p, s):  # inner vertex index
+        return n_ov + p * sections + int(s) % sections
+
+    faces = []
+
+    # 外側面 (法線: 外向き)
+    for p in range(n - 1):
+        for s in range(sections):
+            faces.append([ovi(p, s), ovi(p + 1, s), ovi(p + 1, s + 1)])
+            faces.append([ovi(p, s), ovi(p + 1, s + 1), ovi(p, s + 1)])
+
+    # 内側面 (法線: 内向き = 逆巻き)
+    for p in range(n - 1):
+        for s in range(sections):
+            faces.append([ivi(p, s), ivi(p + 1, s + 1), ivi(p + 1, s)])
+            faces.append([ivi(p, s), ivi(p, s + 1), ivi(p + 1, s + 1)])
+
+    # 底面外側ディスク: center → outer ring (下向き)
+    for s in range(sections):
+        faces.append([bc_idx, ovi(0, s + 1), ovi(0, s)])
+
+    # 底面内側フロア: center → inner ring (上向き、内側キャビティの床)
+    for s in range(sections):
+        faces.append([bc_idx, ivi(0, s), ivi(0, s + 1)])
+
+    # 上端リム: outer top ring → inner top ring (外向き)
+    for s in range(sections):
+        faces.append([ovi(n - 1, s), ovi(n - 1, s + 1), ivi(n - 1, s + 1)])
+        faces.append([ovi(n - 1, s), ivi(n - 1, s + 1), ivi(n - 1, s)])
+
+    mesh = trimesh.Trimesh(vertices=all_verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
 def _create_surface_of_revolution(
     r_profile: np.ndarray,
     z_profile: np.ndarray,
@@ -670,31 +739,15 @@ def _create_vase(
     n_profile: int = 40,
 ) -> trimesh.Trimesh:
     """
-    花瓶 / ボトル形状 (回転体)
-    外側と内側の回転体をブーリアン差分で中空化する。
+    花瓶 / ボトル形状 (中空回転体)
+    ブーリアン演算不要・直接メッシュ構築。
     """
     t = np.linspace(0, 1, n_profile)
     z = height * t
-
     r_outer = _vase_profile(t, bottom_radius, max_radius, top_radius)
-    outer_mesh = _create_surface_of_revolution(r_outer, z, sections)
-
-    # 内側キャビティ: wall_thickness 分だけ細く、bottom_from から開始
-    r_inner = np.maximum(r_outer - wall_thickness, wall_thickness * 0.3)
-    inner_h = height - wall_thickness + 1.0   # 貫通させるため少し長く
-    t_inner = np.linspace(0, 1, n_profile)
-    z_inner = inner_h * t_inner
-    inner_mesh = _create_surface_of_revolution(r_inner, z_inner, sections)
-    inner_mesh.apply_translation([0, 0, wall_thickness])
-
-    try:
-        result = trimesh.boolean.difference([outer_mesh, inner_mesh])
-        if result is not None and len(result.vertices) > 0:
-            return result
-    except Exception:
-        pass
-
-    return outer_mesh
+    # 内側プロファイル: 壁厚分だけ内側、最小値を確保
+    r_inner = np.maximum(r_outer - wall_thickness, wall_thickness * 0.4)
+    return _create_hollow_revolution(r_outer, r_inner, z, sections)
 
 
 def _create_bowl(
@@ -705,29 +758,14 @@ def _create_bowl(
     n_profile: int = 30,
 ) -> trimesh.Trimesh:
     """
-    ボウル / 皿形状 (半球ベースの回転体)
+    ボウル / 皿形状 (中空半球型回転体)
+    ブーリアン演算不要・直接メッシュ構築。
     """
     t = np.linspace(0, 1, n_profile)
-    # 外側プロファイル: 底面から縁に向かって広がる
     r_outer = outer_radius * np.sin(t * np.pi / 2)
     z_outer = depth * (1 - np.cos(t * np.pi / 2))
-
-    outer_mesh = _create_surface_of_revolution(r_outer, z_outer, sections)
-
-    # 内側を削る
-    inner_r = np.maximum(r_outer - wall_thickness, 0.5)
-    inner_z = z_outer
-    inner_mesh = _create_surface_of_revolution(inner_r, inner_z, sections)
-    inner_mesh.apply_translation([0, 0, wall_thickness])
-
-    try:
-        result = trimesh.boolean.difference([outer_mesh, inner_mesh])
-        if result is not None and len(result.vertices) > 0:
-            return result
-    except Exception:
-        pass
-
-    return outer_mesh
+    r_inner = np.maximum(r_outer - wall_thickness, 0.5)
+    return _create_hollow_revolution(r_outer, r_inner, z_outer, sections)
 
 
 def _create_twisted_prism(
@@ -884,16 +922,11 @@ def _create_pyramid(base: float, height: float) -> trimesh.Trimesh:
 def _create_hollow_cylinder(
     outer_radius: float, inner_radius: float, height: float, sections: int = 64
 ) -> trimesh.Trimesh:
-    """中空円柱 (パイプ)"""
-    outer = trimesh.creation.cylinder(radius=outer_radius, height=height, sections=sections)
-    inner = trimesh.creation.cylinder(radius=inner_radius, height=height + 0.1, sections=sections)
-    try:
-        result = trimesh.boolean.difference([outer, inner])
-        if result is not None and len(result.vertices) > 0:
-            return result
-    except Exception:
-        pass
-    return outer
+    """中空円柱 (パイプ) - ブーリアン演算不要・直接メッシュ構築"""
+    r_outer = np.array([outer_radius, outer_radius])
+    r_inner = np.array([inner_radius, inner_radius])
+    z_vals = np.array([0.0, height])
+    return _create_hollow_revolution(r_outer, r_inner, z_vals, sections)
 
 
 def get_supported_shapes() -> list:

@@ -5,4 +5,5 @@ numpy>=1.24.0
 python-dotenv>=1.0.0
 scipy>=1.11.0
 shapely>=2.0.0
-manifold3d>=2.4.0
+# manifold3d はオプション (compound の subtract/intersect に使用)
+# C++ ビルド環境がある場合のみインストール: pip install manifold3d
