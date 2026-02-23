@@ -349,6 +349,7 @@ footer p {
 .drawings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 160px;
   gap: 0;
   border-top: 1px solid var(--border);
   border-left: 1px solid var(--border);
@@ -359,17 +360,17 @@ footer p {
   position: relative;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 3rem 1.5rem 2rem;
+  padding: 2.8rem 1.5rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 140px;
+  overflow: hidden;
 }
 
 .drawing-item svg {
   display: block;
   width: 80px;
-  height: auto;
+  height: 80px;
 }
 
 .drawing-item figcaption {
@@ -382,12 +383,15 @@ footer p {
 }
 
 @media (max-width: 480px) {
+  .drawings-grid {
+    grid-auto-rows: 130px;
+  }
   .drawing-item {
-    padding: 2.5rem 1rem 1.5rem;
-    min-height: 120px;
+    padding: 2.5rem 1rem 1rem;
   }
   .drawing-item svg {
     width: 64px;
+    height: 64px;
   }
 }
 
