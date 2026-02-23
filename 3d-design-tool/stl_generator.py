@@ -300,6 +300,39 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         height = float(dims.get("height", dims.get("h", 20)))
         return trimesh.creation.cylinder(radius=radius, height=height, sections=6)
 
+    # --- 花瓶 ---
+    elif shape in ["vase", "花瓶", "ボトル", "bottle", "jar"]:
+        height = float(dims.get("height", dims.get("h", 120)))
+        bottom_radius = float(dims.get("bottom_radius", dims.get("base_radius", 25)))
+        max_radius = float(dims.get("max_radius", dims.get("belly_radius", bottom_radius * 1.6)))
+        top_radius = float(dims.get("top_radius", dims.get("mouth_radius", bottom_radius * 0.8)))
+        wall = float(dims.get("wall_thickness", dims.get("wall", 3)))
+        return _create_vase(height, bottom_radius, max_radius, top_radius, wall)
+
+    # --- ボウル / 皿 ---
+    elif shape in ["bowl", "ボウル", "皿", "dish", "cup_open"]:
+        outer_radius = float(dims.get("outer_radius", dims.get("radius", dims.get("r", 50))))
+        depth = float(dims.get("depth", dims.get("height", outer_radius * 0.6)))
+        wall = float(dims.get("wall_thickness", dims.get("wall", 3)))
+        return _create_bowl(outer_radius, depth, wall)
+
+    # --- ねじれ柱 ---
+    elif shape in ["twisted_prism", "twisted_column", "ねじれ柱", "螺旋柱", "helix_column"]:
+        sides = int(dims.get("sides", dims.get("n_sides", 6)))
+        radius = float(dims.get("radius", dims.get("r", 15)))
+        height = float(dims.get("height", dims.get("h", 80)))
+        twist = float(dims.get("twist_angle", dims.get("twist", 120)))
+        return _create_twisted_prism(sides, radius, height, twist)
+
+    # --- 波面プレート ---
+    elif shape in ["wavy_plate", "wave_surface", "波プレート", "波板", "sine_plate"]:
+        width = float(dims.get("width", dims.get("w", 80)))
+        depth = float(dims.get("depth", dims.get("d", 80)))
+        base_h = float(dims.get("base_height", dims.get("thickness", 5)))
+        amplitude = float(dims.get("amplitude", base_h * 1.2))
+        wave_count = float(dims.get("wave_count", dims.get("waves", 3)))
+        return _create_wavy_plate(width, depth, base_h, amplitude, wave_count)
+
     # --- デフォルト: 直方体 ---
     else:
         return trimesh.creation.box(extents=[20, 20, 20])
@@ -554,6 +587,275 @@ def _create_wedge(radius: float, angle_deg: float, height: float) -> trimesh.Tri
     coords += [(radius * np.cos(a), radius * np.sin(a)) for a in angles]
     polygon = shapely_geometry.Polygon(coords)
     return trimesh.creation.extrude_polygon(polygon, height)
+
+
+def _create_surface_of_revolution(
+    r_profile: np.ndarray,
+    z_profile: np.ndarray,
+    sections: int = 64,
+) -> trimesh.Trimesh:
+    """プロファイル曲線をZ軸周りに回転させてソリッドを生成する"""
+    n = len(r_profile)
+    angles = np.linspace(0, 2 * np.pi, sections, endpoint=False)
+
+    rings = []
+    for r, z in zip(r_profile, z_profile):
+        ring = np.column_stack([
+            r * np.cos(angles),
+            r * np.sin(angles),
+            np.full(sections, float(z)),
+        ])
+        rings.append(ring)
+
+    bc = np.array([[0.0, 0.0, float(z_profile[0])]])
+    tc = np.array([[0.0, 0.0, float(z_profile[-1])]])
+    all_verts = np.vstack(rings + [bc, tc])
+    bc_idx = n * sections
+    tc_idx = n * sections + 1
+
+    faces = []
+
+    def vi(p, s):
+        return p * sections + int(s) % sections
+
+    for p in range(n - 1):
+        for s in range(sections):
+            v00, v01 = vi(p, s), vi(p, s + 1)
+            v10, v11 = vi(p + 1, s), vi(p + 1, s + 1)
+            faces.append([v00, v10, v11])
+            faces.append([v00, v11, v01])
+
+    for s in range(sections):
+        faces.append([bc_idx, vi(0, s + 1), vi(0, s)])
+
+    for s in range(sections):
+        faces.append([tc_idx, vi(n - 1, s), vi(n - 1, s + 1)])
+
+    mesh = trimesh.Trimesh(vertices=all_verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
+def _vase_profile(t: np.ndarray, r_bottom: float, r_max: float, r_top: float) -> np.ndarray:
+    """スムーズな花瓶プロファイル曲線 (smoothstep 補間)"""
+    def smoothstep(x):
+        return x * x * (3 - 2 * x)
+
+    r = np.empty_like(t)
+    for i, ti in enumerate(t):
+        if ti < 0.35:
+            s = smoothstep(ti / 0.35)
+            r[i] = r_bottom + (r_max - r_bottom) * s
+        elif ti < 0.65:
+            neck = r_bottom * 0.55 + r_max * 0.25 + r_top * 0.20
+            s = smoothstep((ti - 0.35) / 0.30)
+            r[i] = r_max + (neck - r_max) * s
+        else:
+            neck = r_bottom * 0.55 + r_max * 0.25 + r_top * 0.20
+            s = smoothstep((ti - 0.65) / 0.35)
+            r[i] = neck + (r_top - neck) * s
+    return r
+
+
+def _create_vase(
+    height: float,
+    bottom_radius: float,
+    max_radius: float,
+    top_radius: float,
+    wall_thickness: float = 3.0,
+    sections: int = 64,
+    n_profile: int = 40,
+) -> trimesh.Trimesh:
+    """
+    花瓶 / ボトル形状 (回転体)
+    外側と内側の回転体をブーリアン差分で中空化する。
+    """
+    t = np.linspace(0, 1, n_profile)
+    z = height * t
+
+    r_outer = _vase_profile(t, bottom_radius, max_radius, top_radius)
+    outer_mesh = _create_surface_of_revolution(r_outer, z, sections)
+
+    # 内側キャビティ: wall_thickness 分だけ細く、bottom_from から開始
+    r_inner = np.maximum(r_outer - wall_thickness, wall_thickness * 0.3)
+    inner_h = height - wall_thickness + 1.0   # 貫通させるため少し長く
+    t_inner = np.linspace(0, 1, n_profile)
+    z_inner = inner_h * t_inner
+    inner_mesh = _create_surface_of_revolution(r_inner, z_inner, sections)
+    inner_mesh.apply_translation([0, 0, wall_thickness])
+
+    try:
+        result = trimesh.boolean.difference([outer_mesh, inner_mesh])
+        if result is not None and len(result.vertices) > 0:
+            return result
+    except Exception:
+        pass
+
+    return outer_mesh
+
+
+def _create_bowl(
+    outer_radius: float,
+    depth: float,
+    wall_thickness: float = 3.0,
+    sections: int = 64,
+    n_profile: int = 30,
+) -> trimesh.Trimesh:
+    """
+    ボウル / 皿形状 (半球ベースの回転体)
+    """
+    t = np.linspace(0, 1, n_profile)
+    # 外側プロファイル: 底面から縁に向かって広がる
+    r_outer = outer_radius * np.sin(t * np.pi / 2)
+    z_outer = depth * (1 - np.cos(t * np.pi / 2))
+
+    outer_mesh = _create_surface_of_revolution(r_outer, z_outer, sections)
+
+    # 内側を削る
+    inner_r = np.maximum(r_outer - wall_thickness, 0.5)
+    inner_z = z_outer
+    inner_mesh = _create_surface_of_revolution(inner_r, inner_z, sections)
+    inner_mesh.apply_translation([0, 0, wall_thickness])
+
+    try:
+        result = trimesh.boolean.difference([outer_mesh, inner_mesh])
+        if result is not None and len(result.vertices) > 0:
+            return result
+    except Exception:
+        pass
+
+    return outer_mesh
+
+
+def _create_twisted_prism(
+    n_sides: int,
+    radius: float,
+    height: float,
+    twist_angle_deg: float,
+    sections: int = 48,
+) -> trimesh.Trimesh:
+    """
+    ねじれた角柱 / スパイラル柱
+    n_sides: 断面の辺数 (3=三角, 4=四角, 6=六角 など)
+    twist_angle_deg: 上端での合計ねじれ角 (度)
+    """
+    twist_rad = np.radians(twist_angle_deg)
+    base_angles = np.linspace(0, 2 * np.pi, n_sides, endpoint=False)
+
+    verts = []
+    for layer in range(sections + 1):
+        t = layer / sections
+        z = height * t
+        rot = twist_rad * t
+        for a in base_angles:
+            verts.append([radius * np.cos(a + rot), radius * np.sin(a + rot), z])
+
+    verts = np.array(verts)
+    bc_idx = len(verts)
+    tc_idx = len(verts) + 1
+    verts = np.vstack([verts, [[0, 0, 0]], [[0, 0, height]]])
+
+    faces = []
+
+    def vi(layer, side):
+        return layer * n_sides + side % n_sides
+
+    for layer in range(sections):
+        for s in range(n_sides):
+            v00, v01 = vi(layer, s), vi(layer, s + 1)
+            v10, v11 = vi(layer + 1, s), vi(layer + 1, s + 1)
+            faces.append([v00, v10, v11])
+            faces.append([v00, v11, v01])
+
+    for s in range(n_sides):
+        faces.append([bc_idx, vi(0, s + 1), vi(0, s)])
+    for s in range(n_sides):
+        faces.append([tc_idx, vi(sections, s), vi(sections, s + 1)])
+
+    mesh = trimesh.Trimesh(vertices=verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
+def _create_wavy_plate(
+    width: float,
+    depth: float,
+    base_height: float,
+    amplitude: float,
+    wave_count: float = 3.0,
+    resolution: int = 48,
+) -> trimesh.Trimesh:
+    """
+    波打った表面を持つプレート (正弦波サーフェス)
+    """
+    n = resolution
+    xs = np.linspace(0, width, n)
+    ys = np.linspace(0, depth, n)
+    X, Y = np.meshgrid(xs, ys)  # shape (n, n)
+
+    Z_top = base_height + amplitude * (
+        np.sin(2 * np.pi * wave_count * X / width) *
+        np.cos(2 * np.pi * wave_count * Y / depth)
+    )
+
+    def ti(i, j):  # top vertex index
+        return i * n + j
+
+    def bi(i, j):  # bottom vertex index
+        return n * n + i * n + j
+
+    top_verts = np.column_stack([X.ravel(), Y.ravel(), Z_top.ravel()])
+    bot_verts = np.column_stack([X.ravel(), Y.ravel(), np.zeros(n * n)])
+    all_verts = np.vstack([top_verts, bot_verts])
+
+    faces = []
+
+    # Top surface
+    for i in range(n - 1):
+        for j in range(n - 1):
+            v00, v10, v01, v11 = ti(i, j), ti(i + 1, j), ti(i, j + 1), ti(i + 1, j + 1)
+            faces.append([v00, v10, v11])
+            faces.append([v00, v11, v01])
+
+    # Bottom surface (reversed winding)
+    for i in range(n - 1):
+        for j in range(n - 1):
+            v00, v10, v01, v11 = bi(i, j), bi(i + 1, j), bi(i, j + 1), bi(i + 1, j + 1)
+            faces.append([v00, v11, v10])
+            faces.append([v00, v01, v11])
+
+    # Front wall (j=0)
+    for i in range(n - 1):
+        faces.append([ti(i, 0), bi(i, 0), bi(i + 1, 0)])
+        faces.append([ti(i, 0), bi(i + 1, 0), ti(i + 1, 0)])
+
+    # Back wall (j=n-1)
+    for i in range(n - 1):
+        faces.append([ti(i, n - 1), ti(i + 1, n - 1), bi(i + 1, n - 1)])
+        faces.append([ti(i, n - 1), bi(i + 1, n - 1), bi(i, n - 1)])
+
+    # Left wall (i=0)
+    for j in range(n - 1):
+        faces.append([ti(0, j), ti(0, j + 1), bi(0, j + 1)])
+        faces.append([ti(0, j), bi(0, j + 1), bi(0, j)])
+
+    # Right wall (i=n-1)
+    for j in range(n - 1):
+        faces.append([ti(n - 1, j), bi(n - 1, j), bi(n - 1, j + 1)])
+        faces.append([ti(n - 1, j), bi(n - 1, j + 1), ti(n - 1, j + 1)])
+
+    mesh = trimesh.Trimesh(vertices=all_verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
 
 
 def _create_pyramid(base: float, height: float) -> trimesh.Trimesh:

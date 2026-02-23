@@ -24,57 +24,77 @@ OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 # LLM に渡すシステムプロンプト
-SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザーの説明から3Dオブジェクトのパラメータを正確に抽出してください。
-JSONのみ出力してください（コードブロック・説明文は一切不要）。
+SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザーの説明を読み、最も適切な3D形状JSONを出力してください。
+必ずJSONのみを出力してください（説明文・コードブロック不要）。
 
-## 単一形状の場合:
-{"shape": "形状タイプ", "dimensions": {...}, "description": "説明"}
+=== 出力形式 ===
 
-## 複合形状の場合（複数パーツの組み合わせ）:
-{"shape": "compound", "components": [{"shape": "...", "dimensions": {...}, "position": [x,y,z], "rotation": [rx,ry,rz], "operation": "union"}, ...], "description": "説明"}
-- operation: "union"(合体), "subtract"(切り抜き), "intersect"(交差)
-- position: コンポーネント中心のXYZ座標(mm)。Z=0が底面。
-- rotation: XYZ回転角度(度)。省略時は[0,0,0]
+【単一形状】
+{"shape":"形状名","dimensions":{パラメータ},"description":"説明"}
 
-## 利用可能な形状と主要パラメータ（単位はmm）:
+【複合形状】穴・突起・複数パーツがある場合は必ずこちらを使用
+{"shape":"compound","components":[{"shape":"形状名","dimensions":{...},"position":[x,y,z],"operation":"union"},...],"description":"説明"}
+  operation: "union"=合体, "subtract"=切り抜き(貫通穴など)
+  position: [x,y,z] 各コンポーネントの中心座標(mm)、Z=0が底面
+  subtract時は形状を2mm程度大きく・長くして完全に貫通させること
 
-### 基本形状:
-- box: width, depth, height
-- rounded_box: width, depth, height, radius(角丸半径)
-- sphere: radius
-- hemisphere: radius（半球・ドーム）
-- ellipsoid: radius_x, radius_y, radius_z（楕円体）
-- cylinder: radius, height
-- cone: radius, height
-- frustum: bottom_radius, top_radius, height（切頭円錐）
-- torus: major_radius, minor_radius（ドーナツ）
-- capsule: radius, height
-- pyramid: base, height
+=== 利用可能な形状 ===
 
-### 複雑形状:
-- star: points(頂点数), outer_radius, inner_radius, height（星形柱）
-- arrow: total_length, shaft_width, head_width, head_length, thickness（矢印）
-- cross: arm_length, arm_width, height（十字形）
-- gear: teeth(歯数), module(モジュール,通常1～3), thickness, bore_radius(穴半径)
-- spring: coil_radius, wire_radius, num_coils(巻数), pitch(ピッチ)
-- l_bracket: arm1_length, arm2_length, thickness, depth（L字金具）
-- t_bracket: top_length, stem_length, arm_width, depth（T字金具）
-- pipe: outer_radius, inner_radius, height（パイプ）
-- hexagonal_prism: radius, height（六角柱）
-- wedge: radius, angle(度), height（扇形柱）
+■ 基本プリミティブ
+  box             : width, depth, height
+  rounded_box     : width, depth, height, radius(角丸半径)
+  cylinder        : radius, height
+  sphere          : radius
+  hemisphere      : radius (半球・ドーム)
+  ellipsoid       : radius_x, radius_y, radius_z (楕円体)
+  cone            : radius, height
+  frustum         : bottom_radius, top_radius, height (台形円錐)
+  torus           : major_radius, minor_radius (ドーナツ)
+  capsule         : radius, height
+  pyramid         : base, height
+  pipe            : outer_radius, inner_radius, height (中空パイプ)
+  hexagonal_prism : radius, height (六角柱)
 
-## 複合形状の例（四隅に穴あきベースプレート）:
-{"shape":"compound","components":[{"shape":"box","dimensions":{"width":50,"depth":50,"height":8},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":3,"height":12},"position":[20,20,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3,"height":12},"position":[-20,20,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3,"height":12},"position":[20,-20,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3,"height":12},"position":[-20,-20,-2],"operation":"subtract"}],"description":"四隅に取り付け穴のあるベースプレート"}
+■ 有機的・装飾的形状 ← 容器・インテリア系ならこちらを使う
+  vase            : height, bottom_radius, max_radius, top_radius, wall_thickness
+                    (花瓶/ボトル: 回転体、中空、くびれ付き)
+  bowl            : outer_radius, depth, wall_thickness
+                    (ボウル/皿: 丸底、中空)
+  twisted_prism   : sides(辺数3〜8), radius, height, twist_angle(ねじれ度数)
+                    (ねじれた角柱: 装飾的なオブジェクト)
+  wavy_plate      : width, depth, base_height, amplitude(波高), wave_count(波数)
+                    (波打ったプレート: コースター・壁パネルなど)
 
-## 複合形状の例（台座付き円柱）:
-{"shape":"compound","components":[{"shape":"cylinder","dimensions":{"radius":20,"height":5},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":8,"height":40},"position":[0,0,5],"operation":"union"}],"description":"台座付き円柱"}
+■ 機械・構造系形状
+  gear            : teeth(歯数12〜32), module(1〜3), thickness, bore_radius(軸穴)
+  spring          : coil_radius, wire_radius, num_coils, pitch
+  l_bracket       : arm1_length, arm2_length, thickness, depth (L字金具)
+  t_bracket       : top_length, stem_length, arm_width, depth (T字金具)
+  star            : points(頂点数5〜8), outer_radius, inner_radius, height
+  arrow           : total_length, shaft_width, head_width, head_length, thickness
+  cross           : arm_length, arm_width, height (十字形)
+  wedge           : radius, angle(度), height (扇形柱)
 
-## 寸法ルール:
-- cm指定はmmに変換（5cm→50mm）
-- 未指定は文脈から推測（「小さい」≈30mm、「中」≈60mm、「大きい」≈100mm）
-- Bambu Lab mini最大造形サイズ: 180×180×180mm
-- subtract操作では形状を貫通させるため、少し大きめ・長めにすること
-- 複雑なものはcompoundを積極的に使用すること"""
+=== 形状選択ルール ===
+- 花瓶・コップ・ボトル・カップ → vase
+- ボウル・皿・受け皿 → bowl
+- ねじれた柱・螺旋柱・装飾柱 → twisted_prism (sides=4〜8, twist_angle=90〜270)
+- 波板・コースター・模様付き → wavy_plate
+- 穴あき・溝・組み合わせ形状 → compound
+- 機械部品・ブラケット・ギア → それぞれ専用形状
+- 単純な基本形状 → box/cylinder/sphere など
+
+=== 複合形状の例 ===
+スマホスタンド:
+{"shape":"compound","components":[{"shape":"box","dimensions":{"width":80,"depth":60,"height":5},"position":[0,0,0],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":8,"height":60},"position":[0,26,5],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":40,"height":3},"position":[0,7,5],"rotation":[20,0,0],"operation":"union"}],"description":"スマホスタンド"}
+
+四隅ボルト穴プレート:
+{"shape":"compound","components":[{"shape":"rounded_box","dimensions":{"width":60,"depth":40,"height":8,"radius":3},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,-14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,-14,-2],"operation":"subtract"}],"description":"四隅ボルト穴付きプレート"}
+
+=== 寸法ルール ===
+- cm→mm変換（5cm=50mm）
+- 未指定: 小≈30mm, 中≈60mm, 大≈100mm
+- 最大サイズ: 180×180×180mm"""
 
 
 def extract_json_from_response(text: str) -> dict:
@@ -131,6 +151,8 @@ def generate():
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": text},
             ],
+            format="json",
+            options={"temperature": 0.1},
         )
     except ollama.ResponseError as e:
         if "not found" in str(e).lower():
