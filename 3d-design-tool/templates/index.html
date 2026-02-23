@@ -338,6 +338,78 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── 調整パネル ── */
+    .adjust-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      display: none;
+    }
+    .adjust-panel h3 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    /* 無垢/中空トグル */
+    .hollow-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hollow-label { font-size: 0.78rem; color: var(--text-dim); flex-shrink: 0; }
+    .toggle-group {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .toggle-btn {
+      border: none;
+      background: var(--bg);
+      color: var(--text-dim);
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .toggle-btn.active { background: var(--accent); color: white; }
+
+    /* スライダー */
+    .slider-row {
+      display: grid;
+      grid-template-columns: 76px 1fr 38px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .slider-row label {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .slider-row input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 4px;
+    }
+    .slider-val {
+      font-size: 0.74rem;
+      color: var(--text);
+      text-align: right;
+      white-space: nowrap;
+    }
+
     /* ── 印刷スタイル ── */
     .print-info { display: none; }
 
@@ -442,6 +514,19 @@
       <h3>生成されたモデル情報</h3>
       <div id="infoRows"></div>
       <div class="print-note" id="printNote"></div>
+    </div>
+
+    <!-- ── 調整パネル ── -->
+    <div class="adjust-panel" id="adjustPanel">
+      <h3>形状を調整</h3>
+      <div class="hollow-row">
+        <span class="hollow-label">素材</span>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="solidBtn" onclick="setHollowMode(false)">無垢</button>
+          <button class="toggle-btn"        id="hollowBtn" onclick="setHollowMode(true)">中空</button>
+        </div>
+      </div>
+      <div id="paramSliders"></div>
     </div>
 
     <button class="btn btn-success" id="exportBtn" onclick="handleExport()">
@@ -729,6 +814,7 @@ window.handlePreview = async function () {
   status.className = "status loading";
   status.innerHTML = '<span class="spinner"></span>AIがテキストを解析して3Dモデルを生成中...';
   infoPanel.style.display = "none";
+  document.getElementById("adjustPanel").style.display = "none";
   exportBtn.style.display = "none";
   stlStatus.className = "stl-status";
   printBtn.style.display = "none";
@@ -779,11 +865,12 @@ window.handlePreview = async function () {
     }
 
     infoPanel.style.display = "block";
+    buildAdjustPanel(data.shape_params);
     exportBtn.style.display = "block";
     printBtn.style.display = "block";
 
     status.className = "status success";
-    status.textContent = "✓ 3Dモデルのプレビューが完了しました。STLが必要な場合はダウンロードボタンを押してください。";
+    status.textContent = "✓ 3Dモデルのプレビューが完了しました。スライダーで形状を調整できます。";
   } catch (err) {
     status.className = "status error";
     status.textContent = "✕ エラー: " + err.message;
@@ -837,6 +924,154 @@ window.handleExport = async function () {
     exportBtn.textContent = "STLファイルをダウンロード";
   }
 };
+
+// ────────────────────────────────────────
+// 調整パネル
+// ────────────────────────────────────────
+
+// 現在の調整中パラメータ（deep copy）
+let adjustParams = null;
+let refreshTimer = null;
+
+// 中空対応形状（これ以外はトグルを無効化）
+const HOLLOW_SHAPES = new Set([
+  "box","cube","直方体","立方体","rectangular","rectangle",
+  "cylinder","円柱","シリンダー","tube",
+  "vase","花瓶","bottle","jar","bowl","ボウル","皿","dish",
+  "pipe","hollow_cylinder","パイプ",
+]);
+
+function buildAdjustPanel(shapeParams) {
+  adjustParams = JSON.parse(JSON.stringify(shapeParams));
+  const panel = document.getElementById("adjustPanel");
+  const slidersDiv = document.getElementById("paramSliders");
+  panel.style.display = "block";
+  slidersDiv.innerHTML = "";
+
+  // 無垢/中空の初期状態
+  const dims = adjustParams.dimensions || {};
+  const hasWall = "wall_thickness" in dims || "wall" in dims;
+  _syncHollowUI(hasWall);
+
+  // 中空非対応形状はトグルを淡色に
+  const shape = (adjustParams.shape || "").toLowerCase();
+  const hollowOk = HOLLOW_SHAPES.has(shape);
+  document.getElementById("hollowBtn").disabled = !hollowOk;
+  document.getElementById("hollowBtn").title = hollowOk ? "" : "この形状は中空に対応していません";
+
+  // スライダー生成（数値パラメータのみ）
+  const SKIP = new Set(["sections","subdivisions","count"]);
+  for (const [key, val] of Object.entries(dims)) {
+    if (typeof val !== "number" || SKIP.has(key)) continue;
+    _addSliderRow(slidersDiv, key, val);
+  }
+}
+
+function _addSliderRow(container, key, val) {
+  const { min, max, step } = getParamRange(key, val);
+  const display = Math.round(val * 10) / 10;
+  const row = document.createElement("div");
+  row.className = "slider-row";
+  row.id = `srow-${key}`;
+  row.innerHTML = `
+    <label title="${key}">${dimLabel(key)}</label>
+    <input type="range" min="${min}" max="${max}" step="${step}" value="${val}"
+           data-key="${key}" oninput="onSliderChange(this)">
+    <span class="slider-val" id="sv-${key}">${display}</span>`;
+  container.appendChild(row);
+}
+
+function _syncHollowUI(isHollow) {
+  document.getElementById("solidBtn").classList.toggle("active", !isHollow);
+  document.getElementById("hollowBtn").classList.toggle("active", isHollow);
+}
+
+window.setHollowMode = function (hollow) {
+  if (!adjustParams) return;
+  const dims = adjustParams.dimensions;
+  _syncHollowUI(hollow);
+
+  if (hollow) {
+    if (!("wall_thickness" in dims)) {
+      const defaultWall = 2.5;
+      dims.wall_thickness = defaultWall;
+      const slidersDiv = document.getElementById("paramSliders");
+      _addSliderRow(slidersDiv, "wall_thickness", defaultWall);
+      // 先頭に移動
+      const row = document.getElementById("srow-wall_thickness");
+      slidersDiv.prepend(row);
+    }
+  } else {
+    delete dims.wall_thickness;
+    delete dims.wall;
+    const row = document.getElementById("srow-wall_thickness");
+    if (row) row.remove();
+  }
+  scheduleRefresh();
+};
+
+window.onSliderChange = function (input) {
+  const key = input.dataset.key;
+  const val = parseFloat(input.value);
+  const display = Math.round(val * 10) / 10;
+  const span = document.getElementById("sv-" + key);
+  if (span) span.textContent = display;
+
+  if (adjustParams && adjustParams.dimensions) {
+    adjustParams.dimensions[key] = val;
+  }
+  scheduleRefresh();
+};
+
+function scheduleRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refreshPreview, 320);
+}
+
+async function refreshPreview() {
+  if (!adjustParams) return;
+  try {
+    const res = await fetch("/api/render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shape_params: adjustParams }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.loadSTLFromBase64(data.stl_base64);
+      // exportBtn 用の shape_params も更新
+      currentShapeParams = JSON.parse(JSON.stringify(adjustParams));
+    }
+  } catch (_) { /* サイレント失敗 */ }
+}
+
+function getParamRange(key, currentVal) {
+  const table = {
+    width: [1,180,1], depth: [1,180,1], height: [1,180,1],
+    radius: [1,90,0.5], radius_x: [1,90,0.5], radius_y: [1,90,0.5], radius_z: [1,90,0.5],
+    outer_radius: [1,90,0.5], inner_radius: [0.5,85,0.5],
+    bottom_radius: [1,90,0.5], top_radius: [1,90,0.5], max_radius: [1,90,0.5],
+    major_radius: [1,90,0.5], minor_radius: [0.5,45,0.5],
+    base: [1,180,1], wall_thickness: [0.5,20,0.5], wall: [0.5,20,0.5],
+    arm1_length: [1,120,1], arm2_length: [1,120,1], arm_length: [1,120,1],
+    arm_width: [1,60,0.5], top_length: [1,120,1], stem_length: [1,120,1],
+    thickness: [0.5,30,0.5], twist_angle: [0,360,5], angle: [10,360,5],
+    amplitude: [0,30,0.5], wave_count: [1,10,1],
+    coil_radius: [1,60,0.5], wire_radius: [0.5,20,0.5],
+    num_coils: [1,20,1], pitch: [0.5,30,0.5],
+    sides: [3,12,1], points: [3,12,1],
+    teeth: [6,48,1], module: [0.5,5,0.25], bore_radius: [0,30,0.5],
+    egg_radius_xy: [5,60,0.5], egg_height: [5,120,1],
+    radius_xy: [5,90,0.5], sphere_radius: [1,60,0.5],
+  };
+  const entry = table[key];
+  if (entry) return { min: entry[0], max: entry[1], step: entry[2] };
+  // フォールバック: 現在値の 10% 〜 300%
+  const lo = Math.max(0.5, Math.round(currentVal * 0.1 * 10) / 10);
+  const hi = Math.max(50, Math.round(currentVal * 3));
+  const st = currentVal > 20 ? 1 : 0.5;
+  return { min: lo, max: hi, step: st };
+}
 
 // ── ユーティリティ ──
 function escHtml(s) {

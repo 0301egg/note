@@ -139,6 +139,9 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         width = float(dims.get("width", dims.get("w", 20)))
         depth = float(dims.get("depth", dims.get("d", 20)))
         height = float(dims.get("height", dims.get("h", 20)))
+        wall = float(dims.get("wall_thickness", dims.get("wall", 0)))
+        if wall > 0:
+            return _create_hollow_box(width, depth, height, wall)
         return trimesh.creation.box(extents=[width, depth, height])
 
     # --- 角丸直方体 ---
@@ -192,6 +195,10 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         radius = float(dims.get("radius", dims.get("r", 10)))
         height = float(dims.get("height", dims.get("h", 20)))
         sections = int(dims.get("sections", 64))
+        wall = float(dims.get("wall_thickness", dims.get("wall", 0)))
+        if wall > 0:
+            inner_r = max(radius - wall, 0.5)
+            return _create_hollow_cylinder(radius, inner_r, height, sections)
         return trimesh.creation.cylinder(radius=radius, height=height, sections=sections)
 
     # --- 円錐 ---
@@ -1155,6 +1162,64 @@ def _create_pyramid(base: float, height: float) -> trimesh.Trimesh:
         [2, 3, 4], [3, 0, 4],
     ], dtype=np.int32)
     mesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
+def _create_hollow_box(
+    width: float, depth: float, height: float, wall_thickness: float
+) -> trimesh.Trimesh:
+    """
+    上部開口の中空直方体（容器形状）。
+    外側面 + 底面 + 内側面 + フロア + 上端リムを直接構築する。
+    """
+    wt = min(float(wall_thickness), min(width, depth) * 0.45, height * 0.9)
+    ox, oy = width / 2.0, depth / 2.0   # 外側半幅
+    ix, iy = ox - wt, oy - wt           # 内側半幅
+    z0, zf, zh = 0.0, wt, float(height)
+
+    v = np.array([
+        # 外側底面 (z=0): 0-3
+        [-ox, -oy, z0], [ ox, -oy, z0], [ ox,  oy, z0], [-ox,  oy, z0],
+        # 内側フロア (z=wt): 4-7
+        [-ix, -iy, zf], [ ix, -iy, zf], [ ix,  iy, zf], [-ix,  iy, zf],
+        # 外側上端 (z=height): 8-11
+        [-ox, -oy, zh], [ ox, -oy, zh], [ ox,  oy, zh], [-ox,  oy, zh],
+        # 内側上端 (z=height): 12-15
+        [-ix, -iy, zh], [ ix, -iy, zh], [ ix,  iy, zh], [-ix,  iy, zh],
+    ], dtype=np.float64)
+
+    f = [
+        # 外底面 (法線: -z)
+        [0, 2, 1], [0, 3, 2],
+        # 外側壁 (法線: 外向き)
+        [0, 1, 9], [0, 9, 8],    # 前
+        [1, 2, 10], [1, 10, 9],  # 右
+        [2, 3, 11], [2, 11, 10], # 後
+        [3, 0, 8], [3, 8, 11],   # 左
+        # 底面遷移 (外底 → 内フロア の斜め面)
+        [0, 1, 5], [0, 5, 4],
+        [1, 2, 6], [1, 6, 5],
+        [2, 3, 7], [2, 7, 6],
+        [3, 0, 4], [3, 4, 7],
+        # 内フロア (法線: +z)
+        [4, 5, 6], [4, 6, 7],
+        # 内側壁 (法線: 内向き = 逆巻き)
+        [5, 4, 12], [5, 12, 13], # 前
+        [6, 5, 13], [6, 13, 14], # 右
+        [7, 6, 14], [7, 14, 15], # 後
+        [4, 7, 15], [4, 15, 12], # 左
+        # 上端リム (法線: +z)
+        [8, 9, 13], [8, 13, 12],
+        [9, 10, 14], [9, 14, 13],
+        [10, 11, 15], [10, 15, 14],
+        [11, 8, 12], [11, 12, 15],
+    ]
+
+    mesh = trimesh.Trimesh(vertices=v, faces=np.array(f, dtype=np.int32))
     try:
         mesh.fix_normals()
     except Exception:

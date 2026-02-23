@@ -240,6 +240,30 @@ def export_stl():
     )
 
 
+@app.route("/api/render", methods=["POST"])
+def render_shape():
+    """shape_params から直接3Dモデルを生成（LLMなし・リアルタイム調整用）"""
+    data = request.get_json()
+    shape_params = (data or {}).get("shape_params")
+
+    if not shape_params or "shape" not in shape_params:
+        return jsonify({"error": "形状パラメータがありません"}), 400
+
+    if "dimensions" not in shape_params or not isinstance(shape_params.get("dimensions"), dict):
+        shape_params["dimensions"] = {}
+
+    try:
+        stl_bytes = generate_stl(shape_params)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"3Dモデルの生成に失敗しました: {str(e)}"}), 500
+
+    return jsonify({
+        "success": True,
+        "stl_base64": base64.b64encode(stl_bytes).decode("utf-8"),
+    })
+
+
 @app.route("/api/shapes", methods=["GET"])
 def shapes():
     """サポートする形状の一覧を返す"""
