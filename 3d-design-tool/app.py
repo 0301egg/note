@@ -23,101 +23,63 @@ app = Flask(__name__)
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
-# LLM に渡すシステムプロンプト
-SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザーの説明を読み、最も適切な3D形状JSONを出力してください。
-必ずJSONのみを出力してください（説明文・コードブロック不要）。
+# ── LLM システムプロンプト ──
+# 短く・密度高く → LLM推論速度と精度の両方を改善
+SYSTEM_PROMPT = """3DモデルAI。入力から最適な形状JSONのみ出力（説明・コードブロック不要）。
 
-=== 出力形式 ===
+【出力形式】
+単一: {"shape":"形状名","dimensions":{...},"description":"説明"}
+複合: {"shape":"compound","components":[{"shape":"名前","dimensions":{...},"position":[x,y,z],"operation":"union|subtract"}],"description":"説明"}
+※subtract時は形状を2mm大きく・長くして完全に貫通させること
 
-【単一形状】
-{"shape":"形状名","dimensions":{パラメータ},"description":"説明"}
+【形状リスト（単位:mm）】
+box: width,depth,height | rounded_box: width,depth,height,radius
+cylinder: radius,height | sphere: radius | hemisphere: radius
+ellipsoid: radius_x,radius_y,radius_z | cone: radius,height
+frustum: bottom_radius,top_radius,height | torus: major_radius,minor_radius
+capsule: radius,height | pyramid: base,height
+pipe: outer_radius,inner_radius,height | hexagonal_prism: radius,height
+vase: height,bottom_radius,max_radius,top_radius,wall_thickness
+bowl: outer_radius,depth,wall_thickness
+egg: radius_xy,height
+split_egg: egg_radius_xy,egg_height,wall_thickness,sphere_radius
+twisted_prism: sides,radius,height,twist_angle
+wavy_plate: width,depth,base_height,amplitude,wave_count
+gear: teeth,module,thickness,bore_radius | spring: coil_radius,wire_radius,num_coils,pitch
+l_bracket: arm1_length,arm2_length,thickness,depth | t_bracket: top_length,stem_length,arm_width,depth
+star: points,outer_radius,inner_radius,height | arrow: total_length,shaft_width,head_width,head_length,thickness
+cross: arm_length,arm_width,height | wedge: radius,angle,height
+※box/cylinderにwall_thickness追加→上部開口の中空容器
 
-【複合形状】穴・突起・複数パーツがある場合は必ずこちらを使用
-{"shape":"compound","components":[{"shape":"形状名","dimensions":{...},"position":[x,y,z],"operation":"union"},...],"description":"説明"}
-  operation: "union"=合体, "subtract"=切り抜き(貫通穴など)
-  position: [x,y,z] 各コンポーネントの中心座標(mm)、Z=0が底面
-  subtract時は形状を2mm程度大きく・長くして完全に貫通させること
+【必須ルール】
+・直径→半径に変換（直径60mm→radius=30、直径5cm→radius=25）
+・cm→mm変換（5cm=50mm）
+・未指定サイズ: 小30mm 中60mm 大100mm、最大180mm
+・花瓶/ボトル/コップ→vase（wall_thickness必須）
+・ボウル/皿/器→bowl（wall_thickness必須）
+・入れ物/容器/箱→box+wall_thickness または cylinder+wall_thickness
+・卵(中実)→egg / 卵+割れる+球体→split_egg(M卵: egg_radius_xy=21.5,egg_height=55,wall_thickness=2)
+・穴あき/複数パーツ/組み合わせ→compound
 
-=== 利用可能な形状 ===
+【出力例】
+直径5cmの円柱形の花瓶(高さ8cm):
+{"shape":"vase","dimensions":{"height":80,"bottom_radius":22,"max_radius":35,"top_radius":15,"wall_thickness":3},"description":"円柱形花瓶"}
 
-■ 基本プリミティブ
-  box             : width, depth, height
-  rounded_box     : width, depth, height, radius(角丸半径)
-  cylinder        : radius, height
-  sphere          : radius
-  hemisphere      : radius (半球・ドーム)
-  ellipsoid       : radius_x, radius_y, radius_z (楕円体)
-  cone            : radius, height
-  frustum         : bottom_radius, top_radius, height (台形円錐)
-  torus           : major_radius, minor_radius (ドーナツ)
-  capsule         : radius, height
-  pyramid         : base, height
-  pipe            : outer_radius, inner_radius, height (中空パイプ)
-  hexagonal_prism : radius, height (六角柱)
-
-■ 有機的・装飾的形状 ← 容器・インテリア系ならこちらを使う
-  vase            : height, bottom_radius, max_radius, top_radius, wall_thickness
-                    (花瓶/ボトル: 回転体、中空、くびれ付き)
-  bowl            : outer_radius, depth, wall_thickness
-                    (ボウル/皿: 丸底、中空)
-  twisted_prism   : sides(辺数3〜8), radius, height, twist_angle(ねじれ度数)
-                    (ねじれた角柱: 装飾的なオブジェクト)
-  wavy_plate      : width, depth, base_height, amplitude(波高), wave_count(波数)
-                    (波打ったプレート: コースター・壁パネルなど)
-  egg             : radius_xy(最大半径mm), height(高さmm)
-                    (卵形・中実。単体の卵形オブジェクト)
-  split_egg       : egg_radius_xy, egg_height, wall_thickness, sphere_radius(0=自動)
-                    (水平2分割の中空卵カプセル + 内部球体を3パーツ並列出力)
-                    ※「卵を半分に割る・カプセル・中に球/ボール」→ 必ず split_egg
-
-■ 機械・構造系形状
-  gear            : teeth(歯数12〜32), module(1〜3), thickness, bore_radius(軸穴)
-  spring          : coil_radius, wire_radius, num_coils, pitch
-  l_bracket       : arm1_length, arm2_length, thickness, depth (L字金具)
-  t_bracket       : top_length, stem_length, arm_width, depth (T字金具)
-  star            : points(頂点数5〜8), outer_radius, inner_radius, height
-  arrow           : total_length, shaft_width, head_width, head_length, thickness
-  cross           : arm_length, arm_width, height (十字形)
-  wedge           : radius, angle(度), height (扇形柱)
-
-=== 形状選択ルール ===
-- 花瓶・コップ・ボトル・カップ → vase
-- ボウル・皿・受け皿 → bowl
-- ねじれた柱・螺旋柱・装飾柱 → twisted_prism (sides=4〜8, twist_angle=90〜270)
-- 波板・コースター・模様付き → wavy_plate
-- 卵形のみ(中実) → egg
-- 卵 + 割れる/分割/カプセル/中に球・ボールが入る → split_egg (必須)
-  └ 日本M卵サイズ: egg_radius_xy=21.5, egg_height=55, wall_thickness=2, sphere_radius=0(自動)
-- 穴あき・溝・組み合わせ形状 → compound
-- 機械部品・ブラケット・ギア → それぞれ専用形状
-- 単純な基本形状 → box/cylinder/sphere など
-
-=== split_egg 出力例（卵Mサイズ・分割・球体入り） ===
-{"shape":"split_egg","dimensions":{"egg_radius_xy":21.5,"egg_height":55,"wall_thickness":2,"sphere_radius":0},"description":"卵Mサイズ 水平分割カプセル + 内部球体"}
-
-=== 複合形状の例 ===
-スマホスタンド:
-{"shape":"compound","components":[{"shape":"box","dimensions":{"width":80,"depth":60,"height":5},"position":[0,0,0],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":8,"height":60},"position":[0,26,5],"operation":"union"},{"shape":"box","dimensions":{"width":80,"depth":40,"height":3},"position":[0,7,5],"rotation":[20,0,0],"operation":"union"}],"description":"スマホスタンド"}
-
-四隅ボルト穴プレート:
-{"shape":"compound","components":[{"shape":"rounded_box","dimensions":{"width":60,"depth":40,"height":8,"radius":3},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[22,-14,-2],"operation":"subtract"},{"shape":"cylinder","dimensions":{"radius":3.5,"height":12},"position":[-22,-14,-2],"operation":"subtract"}],"description":"四隅ボルト穴付きプレート"}
-
-=== 寸法ルール ===
-- cm→mm変換（5cm=50mm）
-- 未指定: 小≈30mm, 中≈60mm, 大≈100mm
-- 最大サイズ: 180×180×180mm"""
+中央に丸穴のプレート(100×60×8mm、穴の直径20mm):
+{"shape":"compound","components":[{"shape":"box","dimensions":{"width":100,"depth":60,"height":8},"position":[0,0,0],"operation":"union"},{"shape":"cylinder","dimensions":{"radius":10,"height":12},"position":[0,0,-2],"operation":"subtract"}],"description":"穴あきプレート"}"""
 
 
 def extract_json_from_response(text: str) -> dict:
-    """LLMレスポンスからJSONを安全に抽出する"""
-    # まず直接パースを試みる
+    """LLMレスポンスからJSONを安全に抽出する（複数フォールバック付き）"""
     text = text.strip()
+
+    # 1. 直接パース
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # コードブロックからJSONを抽出
+    # 2. コードブロック内を抽出
     code_block = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
     if code_block:
         try:
@@ -125,15 +87,72 @@ def extract_json_from_response(text: str) -> dict:
         except json.JSONDecodeError:
             pass
 
-    # テキスト中の最初のJSONオブジェクトを抽出
-    json_match = re.search(r"\{[\s\S]*\}", text)
-    if json_match:
-        try:
-            return json.loads(json_match.group())
-        except json.JSONDecodeError:
-            pass
+    # 3. 最初の {...} ブロックを抽出（ネスト対応）
+    depth = start = 0
+    in_string = escaped = False
+    for i, ch in enumerate(text):
+        if escaped:
+            escaped = False; continue
+        if ch == "\\" and in_string:
+            escaped = True; continue
+        if ch == '"':
+            in_string = not in_string; continue
+        if in_string:
+            continue
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(text[start:i + 1])
+                except json.JSONDecodeError:
+                    pass
 
     raise ValueError(f"JSONの抽出に失敗しました。レスポンス: {text[:200]}")
+
+
+# パラメータの物理的上限（プリンタ最大サイズ）
+_MAX_DIM = 180.0
+_RADIUS_KEYS = {
+    "radius", "radius_x", "radius_y", "radius_z",
+    "outer_radius", "inner_radius", "bottom_radius", "top_radius", "max_radius",
+    "major_radius", "minor_radius", "coil_radius", "wire_radius", "bore_radius",
+    "egg_radius_xy", "radius_xy", "sphere_radius",
+}
+_LENGTH_KEYS = {
+    "width", "depth", "height", "base", "arm1_length", "arm2_length",
+    "arm_length", "top_length", "stem_length", "thickness", "pitch",
+    "arm_width", "egg_height",
+}
+
+
+def sanitize_dimensions(dims: dict) -> dict:
+    """
+    LLMが出力したパラメータの自動補正:
+    ・半径が 90mm 超 → 最大 90mm にクランプ（直径を半径と誤った場合への対処）
+    ・全長が 180mm 超 → クランプ
+    ・負値 → 絶対値
+    """
+    out = {}
+    for k, v in dims.items():
+        if not isinstance(v, (int, float)):
+            out[k] = v
+            continue
+        v = float(v)
+        if v < 0:
+            v = abs(v)
+        if k in _RADIUS_KEYS:
+            # 半径が 90mm 超は「直径を半径に誤った」可能性が高い → ÷2
+            if v > 90:
+                v = v / 2.0
+            v = min(v, 90.0)
+        elif k in _LENGTH_KEYS:
+            v = min(v, _MAX_DIM)
+        out[k] = round(v, 2)
+    return out
 
 
 @app.route("/")
@@ -163,7 +182,10 @@ def preview():
                 {"role": "user", "content": text},
             ],
             format="json",
-            options={"temperature": 0.1},
+            options={
+                "temperature": 0.1,
+                "num_predict": 500,   # 出力トークン上限（暴走防止・速度改善）
+            },
         )
     except ollama.ResponseError as e:
         if "not found" in str(e).lower():
@@ -191,6 +213,9 @@ def preview():
 
     if "dimensions" not in shape_params or not isinstance(shape_params["dimensions"], dict):
         shape_params["dimensions"] = {}
+
+    # パラメータ自動補正（範囲オーバー・直径誤記など）
+    shape_params["dimensions"] = sanitize_dimensions(shape_params["dimensions"])
 
     # ビューワー用メッシュ生成（STLとして返却するが、ファイルとしては保存しない）
     try:
