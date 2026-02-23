@@ -64,6 +64,11 @@ SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザ�
                     (ねじれた角柱: 装飾的なオブジェクト)
   wavy_plate      : width, depth, base_height, amplitude(波高), wave_count(波数)
                     (波打ったプレート: コースター・壁パネルなど)
+  egg             : radius_xy(最大半径mm), height(高さmm)
+                    (卵形・中実。単体の卵形オブジェクト)
+  split_egg       : egg_radius_xy, egg_height, wall_thickness, sphere_radius(0=自動)
+                    (水平2分割の中空卵カプセル + 内部球体を3パーツ並列出力)
+                    ※「卵を半分に割る・カプセル・中に球/ボール」→ 必ず split_egg
 
 ■ 機械・構造系形状
   gear            : teeth(歯数12〜32), module(1〜3), thickness, bore_radius(軸穴)
@@ -80,9 +85,15 @@ SYSTEM_PROMPT = """あなたは3Dモデル設計の専門家です。ユーザ�
 - ボウル・皿・受け皿 → bowl
 - ねじれた柱・螺旋柱・装飾柱 → twisted_prism (sides=4〜8, twist_angle=90〜270)
 - 波板・コースター・模様付き → wavy_plate
+- 卵形のみ(中実) → egg
+- 卵 + 割れる/分割/カプセル/中に球・ボールが入る → split_egg (必須)
+  └ 日本M卵サイズ: egg_radius_xy=21.5, egg_height=55, wall_thickness=2, sphere_radius=0(自動)
 - 穴あき・溝・組み合わせ形状 → compound
 - 機械部品・ブラケット・ギア → それぞれ専用形状
 - 単純な基本形状 → box/cylinder/sphere など
+
+=== split_egg 出力例（卵Mサイズ・分割・球体入り） ===
+{"shape":"split_egg","dimensions":{"egg_radius_xy":21.5,"egg_height":55,"wall_thickness":2,"sphere_radius":0},"description":"卵Mサイズ 水平分割カプセル + 内部球体"}
 
 === 複合形状の例 ===
 スマホスタンド:

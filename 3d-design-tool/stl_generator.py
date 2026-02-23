@@ -162,7 +162,7 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         return _create_hemisphere(radius, subdivisions)
 
     # --- 楕円体 ---
-    elif shape in ["ellipsoid", "楕円体", "oval", "egg"]:
+    elif shape in ["ellipsoid", "楕円体", "oval"]:
         rx = float(dims.get("radius_x", dims.get("rx", 15)))
         ry = float(dims.get("radius_y", dims.get("ry", 10)))
         rz = float(dims.get("radius_z", dims.get("rz", 8)))
@@ -170,6 +170,22 @@ def _create_shape(shape: str, dims: dict) -> trimesh.Trimesh:
         sphere = trimesh.creation.icosphere(subdivisions=subdivisions, radius=1.0)
         sphere.vertices *= np.array([rx, ry, rz])
         return sphere
+
+    # --- 卵形 (中実) ---
+    elif shape in ["egg", "卵", "エッグ"]:
+        r_xy = float(dims.get("radius_xy", dims.get("radius", 21.5)))
+        h = float(dims.get("height", 55.0))
+        sections = int(dims.get("sections", 64))
+        return _create_egg(r_xy, h, sections)
+
+    # --- 分割卵カプセル + 球体 ---
+    elif shape in ["split_egg", "egg_capsule", "分割卵", "卵カプセル", "割れ卵"]:
+        r_xy = float(dims.get("egg_radius_xy", dims.get("radius_xy", dims.get("radius", 21.5))))
+        h = float(dims.get("egg_height", dims.get("height", 55.0)))
+        wall = float(dims.get("wall_thickness", dims.get("wall", 2.0)))
+        s_r = float(dims.get("sphere_radius", dims.get("sphere_r", 0.0)))
+        sections = int(dims.get("sections", 64))
+        return _create_split_egg(r_xy, h, wall, s_r, sections)
 
     # --- 円柱 ---
     elif shape in ["cylinder", "円柱", "シリンダー", "tube"]:
@@ -658,6 +674,233 @@ def _create_hollow_revolution(
     return mesh
 
 
+def _egg_profile(
+    n: int = 61,
+    radius_xy: float = 21.5,
+    height: float = 55.0,
+) -> tuple:
+    """
+    卵形回転プロファイルを生成する。
+    上端がやや尖り、下端がやや丸い非対称形状。
+    戻り値: (r_array, z_array) 長さ n
+    """
+    t = np.linspace(0, np.pi, n)
+    # 上端を細くする非対称係数: t=0(下端)で最大、t=π(上端)で最小
+    asym = 1.0 - 0.18 * np.cos(t)
+    r = radius_xy * np.sin(t) * asym
+    z = height * (1.0 - np.cos(t)) / 2.0
+    return r, z
+
+
+def _create_egg_shell_half(
+    r_outer: np.ndarray,
+    r_inner: np.ndarray,
+    z_vals: np.ndarray,
+    sections: int = 64,
+    tip_at_start: bool = True,
+) -> trimesh.Trimesh:
+    """
+    卵の半分シェル（中空）を直接メッシュ構築する。
+
+    tip_at_start=True : z_vals[0] 側が先端（丸い頂点）、z_vals[-1] が赤道（平面）
+    tip_at_start=False: z_vals[0] が赤道（平面）、z_vals[-1] 側が先端
+
+    先端 (r≈0) の縮退リングをスキップし、単一頂点に置き換える。
+    赤道側は外壁・内壁を繋ぐ平坦なリム面で閉じる。
+    """
+    if tip_at_start:
+        tip_z = float(z_vals[0])
+        r_out = r_outer[1:]        # 先端縮退リングを省く
+        r_in = r_inner[1:]
+        z = z_vals[1:]
+    else:
+        tip_z = float(z_vals[-1])
+        r_out = r_outer[:-1]       # 末尾縮退リングを省く
+        r_in = r_inner[:-1]
+        z = z_vals[:-1]
+
+    n = len(r_out)
+    angles = np.linspace(0, 2 * np.pi, sections, endpoint=False)
+
+    def make_ring(r, zv):
+        return np.column_stack([
+            r * np.cos(angles),
+            r * np.sin(angles),
+            np.full(sections, float(zv)),
+        ])
+
+    outer_verts = np.vstack([make_ring(r, zv) for r, zv in zip(r_out, z)])
+    inner_verts = np.vstack([make_ring(r, zv) for r, zv in zip(r_in, z)])
+    tip = np.array([[0.0, 0.0, tip_z]])
+
+    all_verts = np.vstack([outer_verts, inner_verts, tip])
+    n_ov = n * sections
+    tip_idx = 2 * n * sections
+
+    def ovi(p, s):
+        return p * sections + int(s) % sections
+
+    def ivi(p, s):
+        return n_ov + p * sections + int(s) % sections
+
+    faces = []
+
+    # 外側面
+    for p in range(n - 1):
+        for s in range(sections):
+            faces.append([ovi(p, s), ovi(p + 1, s), ovi(p + 1, s + 1)])
+            faces.append([ovi(p, s), ovi(p + 1, s + 1), ovi(p, s + 1)])
+
+    # 内側面（逆巻き）
+    for p in range(n - 1):
+        for s in range(sections):
+            faces.append([ivi(p, s), ivi(p + 1, s + 1), ivi(p + 1, s)])
+            faces.append([ivi(p, s), ivi(p, s + 1), ivi(p + 1, s + 1)])
+
+    if tip_at_start:
+        # 先端が z_vals[0] 側 → 先端ファン + 赤道リム（末尾）
+        for s in range(sections):
+            faces.append([tip_idx, ovi(0, s + 1), ovi(0, s)])   # 外底ファン（下向き）
+        for s in range(sections):
+            faces.append([tip_idx, ivi(0, s), ivi(0, s + 1)])   # 内底ファン（上向き）
+        # 赤道リム（末尾）: 外→内 平坦環
+        for s in range(sections):
+            faces.append([ovi(n - 1, s), ovi(n - 1, s + 1), ivi(n - 1, s + 1)])
+            faces.append([ovi(n - 1, s), ivi(n - 1, s + 1), ivi(n - 1, s)])
+    else:
+        # 赤道が z_vals[0] 側 → 赤道リム（先頭）+ 先端ファン（末尾）
+        # 赤道リム: 外→内 平坦環（下向き）
+        for s in range(sections):
+            faces.append([ovi(0, s), ivi(0, s + 1), ivi(0, s)])
+            faces.append([ovi(0, s), ovi(0, s + 1), ivi(0, s + 1)])
+        # 先端ファン（末尾）
+        for s in range(sections):
+            faces.append([tip_idx, ovi(n - 1, s), ovi(n - 1, s + 1)])   # 外頂ファン
+        for s in range(sections):
+            faces.append([tip_idx, ivi(n - 1, s + 1), ivi(n - 1, s)])   # 内頂ファン
+
+    mesh = trimesh.Trimesh(vertices=all_verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
+def _create_egg(
+    radius_xy: float = 21.5,
+    height: float = 55.0,
+    sections: int = 64,
+    n_profile: int = 61,
+) -> trimesh.Trimesh:
+    """
+    卵形状（中実）。
+    先端・末端は単一頂点ファンで閉じる。
+    """
+    r, z = _egg_profile(n_profile, radius_xy, height)
+    # 先端・末端の縮退リングを除き、単一頂点として追加
+    r_mid = r[1:-1]
+    z_mid = z[1:-1]
+    n = len(r_mid)
+    angles = np.linspace(0, 2 * np.pi, sections, endpoint=False)
+
+    def make_ring(rv, zv):
+        return np.column_stack([rv * np.cos(angles), rv * np.sin(angles), np.full(sections, float(zv))])
+
+    ring_verts = np.vstack([make_ring(rv, zv) for rv, zv in zip(r_mid, z_mid)])
+    bot_tip = np.array([[0.0, 0.0, float(z[0])]])
+    top_tip = np.array([[0.0, 0.0, float(z[-1])]])
+    all_verts = np.vstack([ring_verts, bot_tip, top_tip])
+    bot_idx = n * sections
+    top_idx = n * sections + 1
+
+    def vi(p, s):
+        return p * sections + int(s) % sections
+
+    faces = []
+    for s in range(sections):
+        faces.append([bot_idx, vi(0, s + 1), vi(0, s)])
+    for p in range(n - 1):
+        for s in range(sections):
+            faces.append([vi(p, s), vi(p + 1, s), vi(p + 1, s + 1)])
+            faces.append([vi(p, s), vi(p + 1, s + 1), vi(p, s + 1)])
+    for s in range(sections):
+        faces.append([top_idx, vi(n - 1, s), vi(n - 1, s + 1)])
+
+    mesh = trimesh.Trimesh(vertices=all_verts, faces=np.array(faces, dtype=np.int32))
+    try:
+        mesh.fix_normals()
+    except Exception:
+        pass
+    return mesh
+
+
+def _create_split_egg(
+    egg_radius_xy: float = 21.5,
+    egg_height: float = 55.0,
+    wall_thickness: float = 2.0,
+    sphere_radius: float = 0.0,
+    sections: int = 64,
+    n_profile: int = 61,
+) -> trimesh.Trimesh:
+    """
+    水平分割可能な中空卵カプセル + 内部球体。
+
+    3 パーツを印刷向きに横並び配置して出力:
+      左  : 下半分シェル（丸底が下）
+      中央: 内部球体
+      右  : 上半分シェル（赤道=平面 が下）
+
+    egg_radius_xy : 卵の最大半径 (mm)  ← M卵≈21.5
+    egg_height    : 卵全体の高さ (mm)  ← M卵≈55
+    wall_thickness: 殻の厚さ (mm)
+    sphere_radius : 内部球体の半径 (mm) 0=自動計算
+    """
+    r_outer, z_full = _egg_profile(n_profile, egg_radius_xy, egg_height)
+    r_inner = np.maximum(r_outer - wall_thickness, 0.5)
+
+    mid = n_profile // 2  # 赤道インデックス（赤道 z ≈ egg_height/2）
+
+    # ── 下半分シェル ──
+    # プロファイル: index 0(下先端) → mid(赤道)
+    # 先端が z_vals[0]=0 → tip_at_start=True
+    bottom_half = _create_egg_shell_half(
+        r_outer[:mid + 1], r_inner[:mid + 1], z_full[:mid + 1],
+        sections=sections, tip_at_start=True,
+    )
+
+    # ── 上半分シェル ──
+    # プロファイル: mid(赤道) → n-1(上先端)
+    # 印刷向き: 赤道(平面)を下にするため、z をローカル座標に変換
+    #   z_local = z_full[mid:] - z_full[mid]  → 0(赤道) 〜 egg_height/2(先端)
+    # 赤道が z_vals[0] 側 → tip_at_start=False
+    z_top_local = z_full[mid:] - z_full[mid]
+    top_half = _create_egg_shell_half(
+        r_outer[mid:], r_inner[mid:], z_top_local,
+        sections=sections, tip_at_start=False,
+    )
+
+    # ── 内部球体 ──
+    if sphere_radius <= 0:
+        inner_r_eq = max(egg_radius_xy - wall_thickness - 0.5, 3.0)
+        sphere_radius = round(inner_r_eq * 0.82, 1)
+    sphere_radius = float(sphere_radius)
+    sphere = trimesh.creation.icosphere(subdivisions=4, radius=sphere_radius)
+    sphere.apply_translation([0.0, 0.0, sphere_radius])  # 球底をZ=0に
+
+    # ── レイアウト（横並び、印刷用） ──
+    gap = 6.0
+    w = egg_radius_xy
+    # 下半分: 左へ
+    bottom_half.apply_translation([-(w + gap + sphere_radius), 0.0, 0.0])
+    # 上半分: 右へ（赤道が下なのでそのまま）
+    top_half.apply_translation([w + gap + sphere_radius, 0.0, 0.0])
+    # 球体: 中央（すでに Z=sphere_radius）
+
+    result = trimesh.util.concatenate([bottom_half, top_half, sphere])
+    return result
+
+
 def _create_surface_of_revolution(
     r_profile: np.ndarray,
     z_profile: np.ndarray,
@@ -1057,6 +1300,23 @@ def get_supported_shapes() -> list:
             "label": "扇形柱 (Wedge/Sector)",
             "params": ["radius (mm)", "angle (度)", "height (mm)"],
             "example": "半径20mm、角度90°、高さ10mmの扇形",
+        },
+        {
+            "name": "egg",
+            "label": "卵形 (Egg)",
+            "params": ["radius_xy (mm)", "height (mm)"],
+            "example": "卵Mサイズ (radius_xy=21.5, height=55)",
+        },
+        {
+            "name": "split_egg",
+            "label": "分割卵カプセル + 球体 (Split Egg)",
+            "params": [
+                "egg_radius_xy (mm)",
+                "egg_height (mm)",
+                "wall_thickness (mm)",
+                "sphere_radius (mm, 0=自動)",
+            ],
+            "example": "卵Mサイズ・水平2分割・中に球体入り (egg_radius_xy=21.5, egg_height=55, wall_thickness=2)",
         },
         {
             "name": "compound",
