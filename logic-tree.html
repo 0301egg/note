@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logic Tree — note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── toolbar ── */
+    .lt-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .lt-toolbar-title {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      flex: 1;
+    }
+
+    .lt-btn {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--text-light);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .lt-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .lt-btn.danger:hover {
+      color: #c0392b;
+      border-color: #c0392b;
+    }
+
+    /* ── canvas ── */
+    .lt-canvas-wrap {
+      width: 100%;
+      overflow: auto;
+      min-height: calc(100vh - 160px);
+      background: var(--bg);
+    }
+
+    #lt-canvas {
+      display: block;
+      cursor: default;
+    }
+
+    /* ── node overlay (HTML input) ── */
+    .lt-input-overlay {
+      position: fixed;
+      display: none;
+      z-index: 100;
+    }
+
+    .lt-input-overlay textarea {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--accent);
+      outline: none;
+      resize: none;
+      padding: 0.4rem 0.5rem;
+      line-height: 1.5;
+      width: 160px;
+    }
+
+    /* ── hint ── */
+    .lt-hint {
+      padding: 0.5rem 2rem;
+      font-size: 0.72rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <h1><a href="index.html">note</a></h1>
+  </header>
+
+  <nav>
+    <a href="about.html">About</a>
+    <a href="interest.html">Interest</a>
+    <a href="philosophy.html">Philosophy</a>
+    <a href="archive.html">Archive</a>
+    <a href="selection.html">Selection</a>
+  </nav>
+
+  <div class="lt-toolbar">
+    <span class="lt-toolbar-title">Logic Tree</span>
+    <button class="lt-btn" id="btn-export">Export PNG</button>
+    <button class="lt-btn danger" id="btn-clear">Clear</button>
+  </div>
+
+  <div class="lt-canvas-wrap" id="canvas-wrap">
+    <canvas id="lt-canvas"></canvas>
+  </div>
+
+  <div class="lt-input-overlay" id="input-overlay">
+    <textarea id="node-input" rows="2"></textarea>
+  </div>
+
+  <div class="lt-hint">
+    クリック: ノード選択 &nbsp;|&nbsp; ダブルクリック: テキスト編集 &nbsp;|&nbsp;
+    選択中に Tab: 子ノード追加 &nbsp;|&nbsp; Delete / Backspace: ノード削除 &nbsp;|&nbsp;
+    ドラッグ: 移動 &nbsp;|&nbsp; 空白ダブルクリック: ノード追加
+  </div>
+
+  <script>
+  (() => {
+    const canvas = document.getElementById('lt-canvas');
+    const ctx = canvas.getContext('2d');
+    const wrap = document.getElementById('canvas-wrap');
+    const overlay = document.getElementById('input-overlay');
+    const nodeInput = document.getElementById('node-input');
+
+    // ── constants ──
+    const NODE_W = 160;
+    const NODE_H = 52;
+    const H_GAP = 80;   // horizontal gap between levels
+    const V_GAP = 18;   // vertical gap between siblings
+
+    // ── state ──
+    let nodes = [];
+    let edges = [];
+    let selected = null;
+    let dragging = null;
+    let dragOffset = { x: 0, y: 0 };
+    let editingNode = null;
+    let canvasW = 0, canvasH = 0;
+
+    // ── init ──
+    function init() {
+      resize();
+      const root = addNode(null, 100, canvasH / 2, 'Goal');
+      selected = root;
+      render();
+    }
+
+    function resize() {
+      canvasW = wrap.clientWidth || window.innerWidth;
+      canvasH = Math.max(wrap.clientHeight || 600, 600);
+      canvas.width = canvasW;
+      canvas.height = canvasH;
+    }
+
+    // ── node management ──
+    let _id = 0;
+    function addNode(parentId, x, y, text = 'New') {
+      const node = { id: _id++, parentId, x, y, text, w: NODE_W, h: NODE_H };
+      nodes.push(node);
+      if (parentId !== null) edges.push({ from: parentId, to: node.id });
+      return node;
+    }
+
+    function deleteNode(node) {
+      if (!node) return;
+      // collect subtree
+      const toDelete = collectSubtree(node.id);
+      nodes = nodes.filter(n => !toDelete.has(n.id));
+      edges = edges.filter(e => !toDelete.has(e.from) && !toDelete.has(e.to));
+      if (selected && toDelete.has(selected.id)) selected = null;
+    }
+
+    function collectSubtree(id) {
+      const set = new Set([id]);
+      let added = true;
+      while (added) {
+        added = false;
+        for (const e of edges) {
+          if (set.has(e.from) && !set.has(e.to)) {
+            set.add(e.to);
+            added = true;
+          }
+        }
+      }
+      return set;
+    }
+
+    function childrenOf(id) {
+      return edges.filter(e => e.from === id).map(e => nodes.find(n => n.id === e.to)).filter(Boolean);
+    }
+
+    function addChildNode(parent) {
+      if (!parent) return;
+      const children = childrenOf(parent.id);
+      const x = parent.x + NODE_W + H_GAP;
+      const y = children.length > 0
+        ? children[children.length - 1].y + NODE_H + V_GAP
+        : parent.y;
+      const child = addNode(parent.id, x, y, 'New');
+      selected = child;
+      autoExpand(child);
+      return child;
+    }
+
+    function autoExpand(node) {
+      const needed = node.x + node.w + 80;
+      if (needed > canvas.width) {
+        canvas.width = needed + 200;
+        canvasW = canvas.width;
+      }
+      const neededH = node.y + node.h + 80;
+      if (neededH > canvas.height) {
+        canvas.height = neededH + 200;
+        canvasH = canvas.height;
+      }
+    }
+
+    // ── hit test ──
+    function nodeAt(x, y) {
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        if (x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h) return n;
+      }
+      return null;
+    }
+
+    // ── render ──
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // edges
+      ctx.strokeStyle = '#dcdcdc';
+      ctx.lineWidth = 1;
+      for (const e of edges) {
+        const from = nodes.find(n => n.id === e.from);
+        const to = nodes.find(n => n.id === e.to);
+        if (!from || !to) continue;
+        const fx = from.x + from.w;
+        const fy = from.y + from.h / 2;
+        const tx = to.x;
+        const ty = to.y + to.h / 2;
+        const mx = (fx + tx) / 2;
+        ctx.beginPath();
+        ctx.moveTo(fx, fy);
+        ctx.bezierCurveTo(mx, fy, mx, ty, tx, ty);
+        ctx.stroke();
+      }
+
+      // nodes
+      for (const n of nodes) {
+        const isSelected = selected && selected.id === n.id;
+        const isRoot = n.parentId === null;
+
+        // box
+        ctx.fillStyle = isRoot ? '#2c2c2c' : '#fff';
+        ctx.strokeStyle = isSelected ? '#888888' : '#dcdcdc';
+        ctx.lineWidth = isSelected ? 1.5 : 1;
+        roundRect(ctx, n.x, n.y, n.w, n.h, 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // text
+        ctx.fillStyle = isRoot ? '#faf9f7' : '#2c2c2c';
+        ctx.font = `300 12px 'Noto Sans JP', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        wrapText(ctx, n.text, n.x + n.w / 2, n.y + n.h / 2, n.w - 16, 16);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, cx, cy, maxW, lineH) {
+      const lines = [];
+      for (const paragraph of text.split('\n')) {
+        const words = paragraph.split('');
+        let line = '';
+        for (const ch of words) {
+          const test = line + ch;
+          if (ctx.measureText(test).width > maxW && line) {
+            lines.push(line);
+            line = ch;
+          } else {
+            line = test;
+          }
+        }
+        if (line) lines.push(line);
+      }
+      const totalH = lines.length * lineH;
+      const startY = cy - totalH / 2 + lineH / 2;
+      lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineH));
+    }
+
+    // ── editing ──
+    function startEdit(node) {
+      editingNode = node;
+      const rect = canvas.getBoundingClientRect();
+      overlay.style.display = 'block';
+      overlay.style.left = (rect.left + node.x) + 'px';
+      overlay.style.top = (rect.top + node.y) + 'px';
+      nodeInput.style.width = node.w + 'px';
+      nodeInput.style.height = node.h + 'px';
+      nodeInput.value = node.text;
+      nodeInput.focus();
+      nodeInput.select();
+    }
+
+    function commitEdit() {
+      if (!editingNode) return;
+      editingNode.text = nodeInput.value.trim() || editingNode.text;
+      editingNode = null;
+      overlay.style.display = 'none';
+      render();
+    }
+
+    nodeInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitEdit(); }
+      if (e.key === 'Escape') { editingNode = null; overlay.style.display = 'none'; render(); }
+    });
+    nodeInput.addEventListener('blur', commitEdit);
+
+    // ── mouse events ──
+    canvas.addEventListener('mousedown', e => {
+      if (editingNode) return;
+      const { x, y } = canvasPos(e);
+      const node = nodeAt(x, y);
+      if (node) {
+        selected = node;
+        dragging = node;
+        dragOffset = { x: x - node.x, y: y - node.y };
+      } else {
+        selected = null;
+      }
+      render();
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const { x, y } = canvasPos(e);
+      dragging.x = x - dragOffset.x;
+      dragging.y = y - dragOffset.y;
+      render();
+    });
+
+    canvas.addEventListener('mouseup', () => { dragging = null; });
+
+    canvas.addEventListener('dblclick', e => {
+      const { x, y } = canvasPos(e);
+      const node = nodeAt(x, y);
+      if (node) {
+        startEdit(node);
+      } else {
+        const n = addNode(null, x - NODE_W / 2, y - NODE_H / 2, 'New');
+        selected = n;
+        render();
+        startEdit(n);
+      }
+    });
+
+    // ── keyboard ──
+    document.addEventListener('keydown', e => {
+      if (editingNode) return;
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (selected) {
+          const child = addChildNode(selected);
+          render();
+          if (child) startEdit(child);
+        }
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
+        if (selected.parentId === null && childrenOf(selected.id).length === 0) {
+          // allow deleting lone root? keep at least one node? — delete it
+        }
+        deleteNode(selected);
+        render();
+      }
+    });
+
+    // ── buttons ──
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      if (!confirm('すべてのノードを削除しますか？')) return;
+      nodes = []; edges = []; selected = null; _id = 0;
+      const root = addNode(null, 100, canvasH / 2, 'Goal');
+      selected = root;
+      render();
+    });
+
+    document.getElementById('btn-export').addEventListener('click', () => {
+      commitEdit();
+      const link = document.createElement('a');
+      link.download = 'logic-tree.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // ── helpers ──
+    function canvasPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    window.addEventListener('resize', () => { resize(); render(); });
+
+    init();
+  })();
+  </script>
+
+</body>
+</html>
