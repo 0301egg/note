@@ -1,9 +1,0 @@
-ollama>=0.3.0
-flask>=3.0.0
-trimesh>=4.0.0
-numpy>=1.24.0
-python-dotenv>=1.0.0
-scipy>=1.11.0
-shapely>=2.0.0
-# manifold3d はオプション (compound の subtract/intersect に使用)
-# C++ ビルド環境がある場合のみインストール: pip install manifold3d
