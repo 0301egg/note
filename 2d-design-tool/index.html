@@ -41,7 +41,32 @@
       gap: 3px;
       flex-shrink: 0;
       user-select: none;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
+    #toolbar::-webkit-scrollbar { height: 3px; }
+    #toolbar::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* ── Draw-tool dropdown ── */
+    .tb-draw-wrap { position: relative; flex-shrink: 0; }
+    #btn-draw-tool { padding-right: 16px; position: relative; }
+    #btn-draw-tool::after { content: '▾'; font-size: 9px; opacity: 0.6; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); }
+    .tb-draw-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+      padding: 5px;
+      z-index: 200;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 120px;
+    }
+    .tb-draw-panel.open { display: flex; }
+    .tb-draw-panel .tb-btn { text-align: left; width: 100%; padding: 0 10px; }
     .tb-btn {
       height: 26px;
       padding: 0 9px;
@@ -60,7 +85,7 @@
     .tb-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
     .tb-btn.primary { border-color: var(--border); }
     .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; flex-shrink: 0; }
-    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 3px; }
+    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
 
     /* ── Main ── */
     #main { flex: 1; display: flex; overflow: hidden; }
@@ -256,10 +281,19 @@
 <!-- Toolbar -->
 <div id="toolbar">
   <button class="tb-btn active" data-tool="select" title="選択 (V)">選択</button>
-  <button class="tb-btn" data-tool="rect"    title="四角形 (R)">□ 四角</button>
-  <button class="tb-btn" data-tool="ellipse" title="真円 (E)">○ 真円</button>
-  <button class="tb-btn" data-tool="line"    title="直線 (L)">／ 直線</button>
-  <button class="tb-btn" data-tool="text"    title="テキスト (T)">T テキスト</button>
+  <div class="tb-sep"></div>
+  <div class="tb-draw-wrap">
+    <button class="tb-btn primary" id="btn-draw-tool" title="図形描画ツール">図形の描画</button>
+    <div class="tb-draw-panel" id="draw-panel">
+      <button class="tb-btn" data-tool="rect"     title="四角形 (R)">□ 四角形</button>
+      <button class="tb-btn" data-tool="ellipse"  title="真円 (E)">○ 真円</button>
+      <button class="tb-btn" data-tool="triangle" title="三角形 (3)">△ 三角形</button>
+      <button class="tb-btn" data-tool="pentagon" title="五角形 (5)">⬠ 五角形</button>
+      <button class="tb-btn" data-tool="line"     title="直線 (L)">／ 直線</button>
+      <button class="tb-btn" data-tool="path"     title="流線形 (F)">〜 流線形</button>
+      <button class="tb-btn" data-tool="text"     title="テキスト (T)">T テキスト</button>
+    </div>
+  </div>
   <div class="tb-sep"></div>
   <button class="tb-btn primary active" id="btn-grid" title="グリッド表示切替 (G)">⊞ グリッド</button>
   <div class="tb-sep"></div>
@@ -292,8 +326,11 @@
       <div class="kbd-stitle">ツール切り替え</div>
       <div class="kbd-row"><div class="kbd-keys"><kbd>V</kbd></div><span class="kbd-desc">選択ツール</span></div>
       <div class="kbd-row"><div class="kbd-keys"><kbd>R</kbd></div><span class="kbd-desc">四角形ツール</span></div>
-      <div class="kbd-row"><div class="kbd-keys"><kbd>E</kbd></div><span class="kbd-desc">楕円ツール</span></div>
+      <div class="kbd-row"><div class="kbd-keys"><kbd>E</kbd></div><span class="kbd-desc">真円ツール</span></div>
+      <div class="kbd-row"><div class="kbd-keys"><kbd>3</kbd></div><span class="kbd-desc">三角形ツール</span></div>
+      <div class="kbd-row"><div class="kbd-keys"><kbd>5</kbd></div><span class="kbd-desc">五角形ツール</span></div>
       <div class="kbd-row"><div class="kbd-keys"><kbd>L</kbd></div><span class="kbd-desc">直線ツール</span></div>
+      <div class="kbd-row"><div class="kbd-keys"><kbd>F</kbd></div><span class="kbd-desc">流線形ツール（ドラッグで描画）</span></div>
       <div class="kbd-row"><div class="kbd-keys"><kbd>T</kbd></div><span class="kbd-desc">テキストツール</span></div>
     </div>
     <div class="kbd-section">
@@ -378,7 +415,7 @@
   <span id="st-pos">—</span>
   <span id="st-size">—</span>
   <span id="st-zoom">ズーム: 100%</span>
-  <span style="margin-left:auto;color:#ccc;">V=選択 R=四角 E=楕円 L=直線 T=文字 | Ctrl+C/V=コピペ Ctrl+D=複製 Ctrl+A=全選択 | ↑↓←→=移動(Shift=1mm) | Shift+ドラッグ=軸拘束 | Ctrl+G=グループ Ctrl+Z=Undo Del=削除</span>
+  <span style="margin-left:auto;color:#ccc;">V=選択 R=四角 E=楕円 3=三角 5=五角 L=直線 F=流線 T=文字 | Ctrl+C/V=コピペ Ctrl+D=複製 Ctrl+A=全選択 | ↑↓←→=移動 | Ctrl+G=グループ Ctrl+Z=Undo Del=削除</span>
 </div>
 
 <script>
@@ -427,6 +464,7 @@ const S = {
   // drawing
   isDraw: false,
   drawP0: null,
+  pathPts: [],    // accumulated points for freehand path tool
   // drag (move)
   isDrag: false,
   dragP0: null,
@@ -454,9 +492,41 @@ function sn(v) { return Math.round(v / SNAP) * SNAP; }
 function fmt(v) { return (+v.toFixed(1)).toString(); }
 function fmt2(v) { return (isNaN(v) || !isFinite(v)) ? '—' : v.toFixed(3); }
 
+// ── Polygon / Path helpers ─────────────────────────────────────────
+// Returns SVG polygon points string for regular n-gon inscribed in bounding box, starting from top
+function polyPoints(x, y, w, h, n) {
+  const cx = x + w / 2, cy = y + h / 2;
+  const rx = w / 2, ry = h / 2;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    pts.push(`${cx + rx * Math.cos(angle)},${cy + ry * Math.sin(angle)}`);
+  }
+  return pts.join(' ');
+}
+
+// Convert points array to smooth SVG path using Catmull-Rom → cubic Bézier
+function smoothPath(pts) {
+  if (!pts || pts.length < 2) return '';
+  if (pts.length === 2) return `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y}`;
+  let d = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
+
 // ── Geometry ───────────────────────────────────────────────────────
 function bbox(shape) {
-  if (shape.type === 'rect' || shape.type === 'ellipse')
+  if (shape.type === 'rect' || shape.type === 'ellipse' || shape.type === 'polygon')
     return { x: shape.x, y: shape.y, w: shape.w, h: shape.h };
   if (shape.type === 'line') {
     const x = Math.min(shape.x1, shape.x2), y = Math.min(shape.y1, shape.y2);
@@ -464,6 +534,12 @@ function bbox(shape) {
   }
   if (shape.type === 'text')
     return { x: shape.x, y: shape.y - shape.fs * 0.8, w: shape.text.length * shape.fs * 0.55, h: shape.fs };
+  if (shape.type === 'path') {
+    if (!shape.pts || !shape.pts.length) return { x: 0, y: 0, w: 0, h: 0 };
+    const xs = shape.pts.map(p => p.x), ys = shape.pts.map(p => p.y);
+    const x = Math.min(...xs), y = Math.min(...ys);
+    return { x, y, w: Math.max(Math.max(...xs) - x, 0.1), h: Math.max(Math.max(...ys) - y, 0.1) };
+  }
   return { x: 0, y: 0, w: 0, h: 0 };
 }
 
@@ -550,8 +626,14 @@ function makeShapeEl(s) {
   } else if (s.type === 'ellipse') {
     const hitFill = (s.fill === 'none' || !s.fill) ? 'transparent' : s.fill;
     e = el('ellipse', { cx: s.x + s.w/2, cy: s.y + s.h/2, rx: s.w/2, ry: s.h/2, ...common, fill: hitFill });
+  } else if (s.type === 'polygon') {
+    const hitFill = (s.fill === 'none' || !s.fill) ? 'transparent' : s.fill;
+    e = el('polygon', { points: polyPoints(s.x, s.y, s.w, s.h, s.sides), ...common, fill: hitFill });
   } else if (s.type === 'line') {
     e = el('line', { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2, stroke: s.stroke, 'stroke-width': s.sw });
+  } else if (s.type === 'path') {
+    const hitFill = (s.fill === 'none' || !s.fill) ? 'transparent' : s.fill;
+    e = el('path', { d: smoothPath(s.pts), ...common, fill: hitFill });
   } else if (s.type === 'text') {
     e = el('text', { x: s.x, y: s.y, 'font-size': s.fs, fill: s.fill,
       'font-family': 'sans-serif', 'font-weight': '300' });
@@ -672,11 +754,23 @@ function goldenCheck(w, h) {
 function startDraw(p) {
   S.isDraw = true;
   S.drawP0 = { x: sn(p.x), y: sn(p.y) };
+  S.pathPts = [{ x: p.x, y: p.y }];
   layerPreview.innerHTML = '';
 }
 
 function updateDraw(p) {
   if (!S.isDraw) return;
+  // Freehand path: accumulate points
+  if (S.tool === 'path') {
+    const last = S.pathPts[S.pathPts.length - 1];
+    const dist = Math.hypot(p.x - last.x, p.y - last.y);
+    if (dist > 0.3) S.pathPts.push({ x: p.x, y: p.y });
+    layerPreview.innerHTML = '';
+    if (S.pathPts.length >= 2) {
+      el('path', { d: smoothPath(S.pathPts), fill: 'none', stroke: '#2563eb', 'stroke-width': 0.4 }, layerPreview);
+    }
+    return;
+  }
   const x0 = S.drawP0.x, y0 = S.drawP0.y;
   const x1 = sn(p.x),     y1 = sn(p.y);
   const minX = Math.min(x0,x1), minY = Math.min(y0,y1);
@@ -684,7 +778,9 @@ function updateDraw(p) {
   layerPreview.innerHTML = '';
   const previewAttr = { fill:'rgba(37,99,235,0.07)', stroke:'#2563eb', 'stroke-width': 0.3, 'stroke-dasharray':'2,1.2' };
   let e;
-  if (S.tool === 'rect')    e = el('rect',    { x:minX, y:minY, width:w, height:h, ...previewAttr });
+  if (S.tool === 'rect')     e = el('rect',    { x:minX, y:minY, width:w, height:h, ...previewAttr });
+  if (S.tool === 'triangle') e = el('polygon', { points: polyPoints(minX, minY, w, h, 3), ...previewAttr });
+  if (S.tool === 'pentagon') e = el('polygon', { points: polyPoints(minX, minY, w, h, 5), ...previewAttr });
   if (S.tool === 'ellipse') {
     // 真円：ドラッグ距離の短い方を直径として、始点を基準に描画
     const side = Math.min(w, h);
@@ -692,13 +788,14 @@ function updateDraw(p) {
     const ey = y1 >= y0 ? y0 : y0 - side;
     e = el('ellipse', { cx: ex+side/2, cy: ey+side/2, rx: side/2, ry: side/2, ...previewAttr });
   }
-  if (S.tool === 'line')    e = el('line',    { x1:x0, y1:y0, x2:x1, y2:y1, stroke:'#2563eb', 'stroke-width':0.4 });
+  if (S.tool === 'line')     e = el('line',    { x1:x0, y1:y0, x2:x1, y2:y1, stroke:'#2563eb', 'stroke-width':0.4 });
   if (e) layerPreview.appendChild(e);
   // Dimension + golden ratio indicator during draw
   const dispW = S.tool === 'ellipse' ? Math.min(w,h) : w;
   const dispH = S.tool === 'ellipse' ? Math.min(w,h) : h;
-  if (dispW > 0 && S.tool !== 'line') {
-    const gld = S.tool !== 'ellipse' ? goldenCheck(dispW, dispH) : null;
+  const showDim = S.tool !== 'line' && (dispW > 0 || dispH > 0);
+  if (showDim) {
+    const gld = (S.tool === 'rect' || S.tool === 'triangle' || S.tool === 'pentagon') ? goldenCheck(dispW, dispH) : null;
     const z = zoom();
     const t = el('text', {
       x: minX + w/2, y: minY - 2/z,
@@ -717,6 +814,22 @@ function endDraw(p) {
   if (!S.isDraw) return;
   S.isDraw = false;
   layerPreview.innerHTML = '';
+
+  // Freehand path: save accumulated points
+  if (S.tool === 'path') {
+    const last = S.pathPts[S.pathPts.length - 1];
+    if (Math.hypot(p.x - last.x, p.y - last.y) > 0.3) S.pathPts.push({ x: p.x, y: p.y });
+    if (S.pathPts.length >= 2) {
+      saveHistory();
+      const def = { fill:'none', stroke:'#2c2c2c', sw:0.5, partNum:null, notes:'', groupId:null };
+      const s = { ...def, id:uid(), type:'path', pts: S.pathPts.map(pt => ({x:sn(pt.x), y:sn(pt.y)})) };
+      S.shapes.push(s); S.selected = [s.id]; renderAll(); updatePanel();
+      setTool('select');
+    }
+    S.pathPts = [];
+    return;
+  }
+
   const x0 = S.drawP0.x, y0 = S.drawP0.y;
   const x1 = sn(p.x), y1 = sn(p.y);
   const minX = Math.min(x0,x1), minY = Math.min(y0,y1);
@@ -727,11 +840,15 @@ function endDraw(p) {
   if (w < 0.2 && h < 0.2) {
     // シングルクリック：デフォルトサイズで配置
     const dw = 30;
-    if (S.tool === 'rect')    s = { ...def, id:uid(), type:'rect',    x:sn(x0-dw/2), y:sn(y0-10), w:dw, h:20 };
-    if (S.tool === 'ellipse') s = { ...def, id:uid(), type:'ellipse', x:sn(x0-10),   y:sn(y0-10), w:20, h:20 }; // 真円
-    if (S.tool === 'line')    s = { ...def, id:uid(), type:'line', x1:sn(x0-dw/2), y1:y0, x2:sn(x0+dw/2), y2:y0, fill:'none' };
+    if (S.tool === 'rect')     s = { ...def, id:uid(), type:'rect',    x:sn(x0-dw/2), y:sn(y0-10), w:dw, h:20 };
+    if (S.tool === 'ellipse')  s = { ...def, id:uid(), type:'ellipse', x:sn(x0-10),   y:sn(y0-10), w:20, h:20 };
+    if (S.tool === 'triangle') s = { ...def, id:uid(), type:'polygon', x:sn(x0-15),   y:sn(y0-13), w:30, h:26, sides:3 };
+    if (S.tool === 'pentagon') s = { ...def, id:uid(), type:'polygon', x:sn(x0-15),   y:sn(y0-15), w:30, h:30, sides:5 };
+    if (S.tool === 'line')     s = { ...def, id:uid(), type:'line', x1:sn(x0-dw/2), y1:y0, x2:sn(x0+dw/2), y2:y0, fill:'none' };
   } else {
-    if (S.tool === 'rect')    s = { ...def, id:uid(), type:'rect',    x:minX, y:minY, w, h };
+    if (S.tool === 'rect')     s = { ...def, id:uid(), type:'rect',    x:minX, y:minY, w, h };
+    if (S.tool === 'triangle') s = { ...def, id:uid(), type:'polygon', x:minX, y:minY, w, h, sides:3 };
+    if (S.tool === 'pentagon') s = { ...def, id:uid(), type:'polygon', x:minX, y:minY, w, h, sides:5 };
     if (S.tool === 'ellipse') {
       // 真円：短辺を直径として始点から描画
       const side = Math.min(w, h);
@@ -739,7 +856,7 @@ function endDraw(p) {
       const ey = y1 >= y0 ? y0 : y0 - side;
       s = { ...def, id:uid(), type:'ellipse', x:ex, y:ey, w:side, h:side };
     }
-    if (S.tool === 'line')    s = { ...def, id:uid(), type:'line', x1:x0,y1:y0,x2:x1,y2:y1, fill:'none' };
+    if (S.tool === 'line')     s = { ...def, id:uid(), type:'line', x1:x0,y1:y0,x2:x1,y2:y1, fill:'none' };
   }
   if (s) {
     S.shapes.push(s); S.selected = [s.id]; renderAll(); updatePanel();
@@ -767,9 +884,14 @@ function startDrag(p) {
   S.dragOrigins = {};
   for (const id of S.selected) {
     const sh = findShape(id);
-    if (sh) { S.dragOrigins[id] = sh.type === 'line'
-      ? { x1:sh.x1, y1:sh.y1, x2:sh.x2, y2:sh.y2 }
-      : { x:sh.x, y:sh.y }; continue; }
+    if (sh) {
+      S.dragOrigins[id] = sh.type === 'line'
+        ? { x1:sh.x1, y1:sh.y1, x2:sh.x2, y2:sh.y2 }
+        : sh.type === 'path'
+        ? { pts: sh.pts.map(pt => ({ ...pt })) }
+        : { x:sh.x, y:sh.y };
+      continue;
+    }
     const g = findGroup(id);
     if (g) {
       S.dragOrigins[id] = {};
@@ -777,7 +899,10 @@ function startDrag(p) {
         const s = findShape(sid);
         if (!s) continue;
         S.dragOrigins[id][sid] = s.type === 'line'
-          ? { x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2 } : { x:s.x,y:s.y };
+          ? { x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2 }
+          : s.type === 'path'
+          ? { pts: s.pts.map(pt => ({ ...pt })) }
+          : { x:s.x,y:s.y };
       }
     }
   }
@@ -796,6 +921,7 @@ function updateDrag(p) {
     if (sh) {
       const o = S.dragOrigins[id];
       if (sh.type === 'line') { sh.x1 = o.x1+dx; sh.y1 = o.y1+dy; sh.x2 = o.x2+dx; sh.y2 = o.y2+dy; }
+      else if (sh.type === 'path') { sh.pts = o.pts.map(pt => ({ x: pt.x+dx, y: pt.y+dy })); }
       else { sh.x = o.x+dx; sh.y = o.y+dy; }
       continue;
     }
@@ -806,6 +932,7 @@ function updateDrag(p) {
         const s = findShape(sid); if (!s) continue;
         const o = og[sid];
         if (s.type === 'line') { s.x1 = o.x1+dx; s.y1 = o.y1+dy; s.x2 = o.x2+dx; s.y2 = o.y2+dy; }
+        else if (s.type === 'path') { s.pts = o.pts.map(pt => ({ x: pt.x+dx, y: pt.y+dy })); }
         else { s.x = o.x+dx; s.y = o.y+dy; }
       }
     }
@@ -821,12 +948,14 @@ function endDrag() {
     const sh = findShape(id);
     if (sh) {
       if (sh.type === 'line') { sh.x1=sn(sh.x1); sh.y1=sn(sh.y1); sh.x2=sn(sh.x2); sh.y2=sn(sh.y2); }
+      else if (sh.type === 'path') { sh.pts = sh.pts.map(pt => ({ x:sn(pt.x), y:sn(pt.y) })); }
       else { sh.x=sn(sh.x); sh.y=sn(sh.y); }
     }
     const g = findGroup(id);
     if (g) for (const sid of g.shapeIds) {
       const s = findShape(sid); if (!s) continue;
       if (s.type === 'line') { s.x1=sn(s.x1); s.y1=sn(s.y1); s.x2=sn(s.x2); s.y2=sn(s.y2); }
+      else if (s.type === 'path') { s.pts = s.pts.map(pt => ({ x:sn(pt.x), y:sn(pt.y) })); }
       else { s.x=sn(s.x); s.y=sn(s.y); }
     }
   }
@@ -841,12 +970,17 @@ function startResize(handle, e) {
   S.dragP0 = toMM(e.clientX, e.clientY);
   const b = selectionBbox();
   S.resizeBbox0 = { ...b };
-  // snapshot shapes in selection
+  // snapshot shapes in selection (deep-copy pts for path type)
   S.resizeShapes0 = [];
+  const shallowCopy = (s) => {
+    const c = { ...s };
+    if (s.type === 'path' && s.pts) c.pts = s.pts.map(pt => ({ ...pt }));
+    return c;
+  };
   const collectShapes = (id) => {
-    const sh = findShape(id); if (sh) { S.resizeShapes0.push({ ...sh }); return; }
+    const sh = findShape(id); if (sh) { S.resizeShapes0.push(shallowCopy(sh)); return; }
     const g  = findGroup(id);
-    if (g) g.shapeIds.forEach(sid => { const s = findShape(sid); if (s) S.resizeShapes0.push({ ...s }); });
+    if (g) g.shapeIds.forEach(sid => { const s = findShape(sid); if (s) S.resizeShapes0.push(shallowCopy(s)); });
   };
   S.selected.forEach(collectShapes);
 }
@@ -889,6 +1023,11 @@ function updateResize(p) {
     if (s.type === 'line') {
       s.x1 = nx + (orig.x1 - b0.x) * sx; s.y1 = ny + (orig.y1 - b0.y) * sy;
       s.x2 = nx + (orig.x2 - b0.x) * sx; s.y2 = ny + (orig.y2 - b0.y) * sy;
+    } else if (s.type === 'path') {
+      s.pts = orig.pts.map(pt => ({
+        x: nx + (pt.x - b0.x) * sx,
+        y: ny + (pt.y - b0.y) * sy,
+      }));
     } else if (s.type === 'text') {
       s.x = nx + (orig.x - b0.x) * sx; s.y = ny + (orig.y - b0.y) * sy;
       s.fs = orig.fs * ((sx + sy) / 2);
@@ -912,6 +1051,7 @@ function endResize() {
   for (const orig of S.resizeShapes0) {
     const s = findShape(orig.id); if (!s) continue;
     if (s.type === 'line') { s.x1=sn(s.x1); s.y1=sn(s.y1); s.x2=sn(s.x2); s.y2=sn(s.y2); }
+    else if (s.type === 'path') { s.pts = s.pts.map(pt => ({ x:sn(pt.x), y:sn(pt.y) })); }
     else if (s.type === 'text') { s.x=sn(s.x); s.y=sn(s.y); s.fs=sn(s.fs); }
     else { s.x=sn(s.x); s.y=sn(s.y); s.w=sn(s.w); s.h=sn(s.h); }
   }
@@ -945,6 +1085,7 @@ function pasteCopied() {
       const newShapes = item.shapes.map(s => {
         const ns = { ...s, id: uid(), groupId: null };
         if (ns.type === 'line') { ns.x1 += off; ns.y1 += off; ns.x2 += off; ns.y2 += off; }
+        else if (ns.type === 'path') { ns.pts = ns.pts.map(pt => ({ x: pt.x+off, y: pt.y+off })); }
         else { ns.x += off; ns.y += off; }
         S.shapes.push(ns); return ns;
       });
@@ -954,6 +1095,7 @@ function pasteCopied() {
     } else {
       const ns = { ...item.data, id: uid(), groupId: null };
       if (ns.type === 'line') { ns.x1 += off; ns.y1 += off; ns.x2 += off; ns.y2 += off; }
+      else if (ns.type === 'path') { ns.pts = ns.pts.map(pt => ({ x: pt.x+off, y: pt.y+off })); }
       else { ns.x += off; ns.y += off; }
       S.shapes.push(ns); newSel.push(ns.id);
     }
@@ -1024,11 +1166,12 @@ function updatePanel() {
   if (!item) { panel.innerHTML = '<div class="p-empty">—</div>'; return; }
   const b    = sh ? bbox(sh) : groupBbox(grp);
   const gld  = goldenCheck(b.w, b.h);
-  const label = grp ? 'グループ' : ({ rect:'四角形', ellipse:'楕円', line:'直線', text:'テキスト' }[sh.type] || sh.type);
+  const label = grp ? 'グループ' : ({ rect:'四角形', ellipse:'楕円', polygon: sh && sh.sides === 3 ? '三角形' : sh && sh.sides === 5 ? '五角形' : '多角形', line:'直線', path:'流線形', text:'テキスト' }[sh.type] || sh.type);
 
   // スタイルセクション
   let colorSection = '';
-  if (sh && (sh.type === 'rect' || sh.type === 'ellipse')) {
+  if (sh && (sh.type === 'rect' || sh.type === 'ellipse' || sh.type === 'polygon' || sh.type === 'path')) {
+    const hasFill = sh.type !== 'path' || sh.fill !== 'none'; // path defaults none but can be set
     colorSection = `<div class="p-section">
       <div class="p-title">スタイル</div>
       <div class="p-row">
@@ -1068,8 +1211,8 @@ function updatePanel() {
     </div>`;
   }
 
-  // 黄金比セクション（rect/ellipse/グループ）
-  const showGolden = (sh && (sh.type === 'rect' || sh.type === 'ellipse')) || grp;
+  // 黄金比セクション（rect/ellipse/polygon/グループ）
+  const showGolden = (sh && (sh.type === 'rect' || sh.type === 'ellipse' || sh.type === 'polygon')) || grp;
   const goldenSection = showGolden ? `<div class="p-section">
     <div class="p-title">黄金比  φ = 1.618…</div>
     <div class="p-row">
@@ -1121,8 +1264,8 @@ function updatePanel() {
   }
   numInput('pi-x', v => { if (sh) sh.x = v; });
   numInput('pi-y', v => { if (sh) sh.y = v; });
-  numInput('pi-w', v => { if (sh && (sh.type==='rect'||sh.type==='ellipse')) sh.w = v; });
-  numInput('pi-h', v => { if (sh && (sh.type==='rect'||sh.type==='ellipse')) sh.h = v; });
+  numInput('pi-w', v => { if (sh && (sh.type==='rect'||sh.type==='ellipse'||sh.type==='polygon')) sh.w = v; });
+  numInput('pi-h', v => { if (sh && (sh.type==='rect'||sh.type==='ellipse'||sh.type==='polygon')) sh.h = v; });
   numInput('pi-sw', v => { if (sh) { sh.sw = v; renderAll(); persist(); } });
   numInput('pi-fs', v => { if (sh && sh.type==='text') { sh.fs = v; renderAll(); persist(); } });
 
@@ -1148,7 +1291,7 @@ function updatePanel() {
 
   // 黄金比ボタン
   const phiSnap = (fn) => () => {
-    if (!sh || (sh.type !== 'rect' && sh.type !== 'ellipse')) return;
+    if (!sh || (sh.type !== 'rect' && sh.type !== 'ellipse' && sh.type !== 'polygon')) return;
     saveHistory(); fn(); renderAll(); updatePanel();
   };
   document.getElementById('btn-phi-wh')?.addEventListener('click', phiSnap(() => { sh.w = sn(sh.h * PHI); }));
@@ -1189,10 +1332,25 @@ function exportPDF() {
       doc.rect(s.x, s.y, s.w, s.h, style);
     } else if (s.type === 'ellipse') {
       doc.ellipse(s.x + s.w/2, s.y + s.h/2, s.w/2, s.h/2, style);
+    } else if (s.type === 'polygon') {
+      const cx = s.x + s.w/2, cy = s.y + s.h/2, rx = s.w/2, ry = s.h/2, n = s.sides;
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+        pts.push([cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)]);
+      }
+      doc.lines(pts.slice(1).map((pt, i) => [pt[0]-pts[i][0], pt[1]-pts[i][1]]), pts[0][0], pts[0][1], [1, 1], style, true);
     } else if (s.type === 'line') {
       if (strokeRgb) doc.setDrawColor(...strokeRgb);
       doc.setLineWidth(s.sw || 0.3);
       doc.line(s.x1, s.y1, s.x2, s.y2);
+    } else if (s.type === 'path') {
+      if (strokeRgb) doc.setDrawColor(...strokeRgb);
+      doc.setLineWidth(s.sw || 0.3);
+      if (s.pts && s.pts.length >= 2) {
+        doc.lines(s.pts.slice(1).map((pt, i) => [pt.x - s.pts[i].x, pt.y - s.pts[i].y]),
+          s.pts[0].x, s.pts[0].y, [1, 1], 'S', false);
+      }
     } else if (s.type === 'text') {
       const rgb = hexToRgb(s.fill);
       if (rgb) doc.setTextColor(...rgb);
@@ -1257,7 +1415,8 @@ function persist() {
   for (const s of S.shapes)
     if (s.partNum != null && !s.groupId) {
       const b = bbox(s);
-      parts.push({ num: s.partNum, label: `${({rect:'四角形',ellipse:'楕円',line:'直線',text:'テキスト'}[s.type]||s.type)} ${fmt(b.w)}×${fmt(b.h)}mm`, notes: s.notes || '' });
+      const typeLabel = s.type === 'polygon' ? (s.sides === 3 ? '三角形' : s.sides === 5 ? '五角形' : '多角形') : ({rect:'四角形',ellipse:'楕円',line:'直線',path:'流線形',text:'テキスト'}[s.type]||s.type);
+      parts.push({ num: s.partNum, label: `${typeLabel} ${fmt(b.w)}×${fmt(b.h)}mm`, notes: s.notes || '' });
     }
   parts.sort((a,b) => a.num - b.num);
   localStorage.setItem('2d-parts', JSON.stringify(parts));
@@ -1322,7 +1481,7 @@ ca.addEventListener('mouseup', e => {
 });
 
 ca.addEventListener('mouseleave', () => {
-  if (S.isDraw) { S.isDraw = false; layerPreview.innerHTML = ''; }
+  if (S.isDraw) { S.isDraw = false; layerPreview.innerHTML = ''; S.pathPts = []; }
   if (S.isPan)  S.isPan = false;
 });
 
@@ -1346,7 +1505,10 @@ document.addEventListener('keydown', e => {
     if (e.key === 'v' || e.key === 'V') setTool('select');
     if (e.key === 'r' || e.key === 'R') setTool('rect');
     if (e.key === 'e' || e.key === 'E') setTool('ellipse');
+    if (e.key === '3') setTool('triangle');
+    if (e.key === '5') setTool('pentagon');
     if (e.key === 'l' || e.key === 'L') setTool('line');
+    if (e.key === 'f' || e.key === 'F') setTool('path');
     if (e.key === 't' || e.key === 'T') setTool('text');
   }
   if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
@@ -1412,12 +1574,14 @@ document.addEventListener('keydown', e => {
       const sh = findShape(id);
       if (sh) {
         if (sh.type === 'line') { sh.x1=sn(sh.x1+dx); sh.y1=sn(sh.y1+dy); sh.x2=sn(sh.x2+dx); sh.y2=sn(sh.y2+dy); }
+        else if (sh.type === 'path') { sh.pts = sh.pts.map(pt => ({ x:sn(pt.x+dx), y:sn(pt.y+dy) })); }
         else { sh.x=sn(sh.x+dx); sh.y=sn(sh.y+dy); }
       }
       const g = findGroup(id);
       if (g) for (const sid of g.shapeIds) {
         const s = findShape(sid); if (!s) continue;
         if (s.type === 'line') { s.x1=sn(s.x1+dx); s.y1=sn(s.y1+dy); s.x2=sn(s.x2+dx); s.y2=sn(s.y2+dy); }
+        else if (s.type === 'path') { s.pts = s.pts.map(pt => ({ x:sn(pt.x+dx), y:sn(pt.y+dy) })); }
         else { s.x=sn(s.x+dx); s.y=sn(s.y+dy); }
       }
     }
@@ -1433,16 +1597,37 @@ document.addEventListener('keyup', e => {
   }
 });
 
-// Tool buttons
-document.querySelectorAll('[data-tool]').forEach(btn => {
-  btn.addEventListener('click', () => setTool(btn.dataset.tool));
+// Draw-tool dropdown
+const drawPanel  = document.getElementById('draw-panel');
+const btnDrawTool = document.getElementById('btn-draw-tool');
+const DRAW_TOOLS = new Set(['rect','ellipse','triangle','pentagon','line','path','text']);
+const DRAW_ICONS = { rect:'□ 四角形', ellipse:'○ 真円', triangle:'△ 三角形', pentagon:'⬠ 五角形', line:'／ 直線', path:'〜 流線形', text:'T テキスト' };
+btnDrawTool.addEventListener('click', e => {
+  e.stopPropagation();
+  drawPanel.classList.toggle('open');
 });
+document.addEventListener('mousedown', e => {
+  if (!drawPanel.contains(e.target) && e.target !== btnDrawTool) drawPanel.classList.remove('open');
+});
+
+// Tool buttons (inside panel + select)
+document.querySelectorAll('[data-tool]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setTool(btn.dataset.tool);
+    drawPanel.classList.remove('open');
+  });
+});
+
 function setTool(t) {
   S.tool = t;
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
   ca.className = t === 'select' ? 'cursor-default' : 'cursor-cross';
-  const names = { select:'選択', rect:'四角形', ellipse:'楕円', line:'直線', text:'テキスト' };
+  const names = { select:'選択', rect:'四角形', ellipse:'楕円', triangle:'三角形', pentagon:'五角形', line:'直線', path:'流線形', text:'テキスト' };
   document.getElementById('st-tool').textContent = `ツール: ${names[t] || t}`;
+  // Update dropdown trigger button
+  const isDraw = DRAW_TOOLS.has(t);
+  btnDrawTool.classList.toggle('active', isDraw);
+  btnDrawTool.textContent = isDraw ? DRAW_ICONS[t] : '図形の描画';
 }
 
 // ── Keyboard shortcut modal ────────────────────────────────────────
