@@ -53,9 +53,7 @@
     #btn-draw-tool::after { content: '▾'; font-size: 9px; opacity: 0.6; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); }
     .tb-draw-panel {
       display: none;
-      position: absolute;
-      top: calc(100% + 5px);
-      left: 0;
+      position: fixed;
       background: var(--bg);
       border: 1px solid var(--border);
       box-shadow: 0 6px 18px rgba(0,0,0,0.13);
@@ -1604,7 +1602,12 @@ const DRAW_TOOLS = new Set(['rect','ellipse','triangle','pentagon','line','path'
 const DRAW_ICONS = { rect:'□ 四角形', ellipse:'○ 真円', triangle:'△ 三角形', pentagon:'⬠ 五角形', line:'／ 直線', path:'〜 流線形', text:'T テキスト' };
 btnDrawTool.addEventListener('click', e => {
   e.stopPropagation();
-  drawPanel.classList.toggle('open');
+  const isOpen = drawPanel.classList.contains('open');
+  if (isOpen) { drawPanel.classList.remove('open'); return; }
+  const r = btnDrawTool.getBoundingClientRect();
+  drawPanel.style.top  = (r.bottom + 4) + 'px';
+  drawPanel.style.left = r.left + 'px';
+  drawPanel.classList.add('open');
 });
 document.addEventListener('mousedown', e => {
   if (!drawPanel.contains(e.target) && e.target !== btnDrawTool) drawPanel.classList.remove('open');
