@@ -301,6 +301,34 @@ ul li::before {
   }
 }
 
+/* ── illustration grid ── */
+.illustration-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+  padding-top: 1rem;
+}
+
+.illustration-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.illustration-item svg {
+  width: 100px;
+  height: auto;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.illust-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--text-light);
+}
+
 /* ── gallery ── */
 .gallery {
   display: grid;
