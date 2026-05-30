@@ -9,173 +9,209 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ── Password ── */
-    #pw-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
-    .pw-box{text-align:center;width:300px}
-    .pw-box h1{font-family:'Noto Serif JP',serif;font-weight:300;font-size:1rem;letter-spacing:.3em;color:var(--text-light);margin-bottom:2.5rem}
-    .pw-box input{width:100%;padding:.7rem 1rem;border:1px solid var(--border);border-radius:3px;font-size:.85rem;background:white;color:var(--text);outline:none;text-align:center;letter-spacing:.1em;margin-bottom:.8rem}
-    .pw-box input:focus{border-color:var(--accent)}
-    .pw-box .pw-btn{width:100%;padding:.65rem;background:var(--text);color:var(--bg);border:none;border-radius:3px;font-family:'Noto Sans JP',sans-serif;font-size:.78rem;letter-spacing:.12em;cursor:pointer}
-    .pw-box .pw-btn:hover{background:var(--accent-dark)}
-    .pw-error{color:#c0392b;font-size:.72rem;margin-top:.6rem;min-height:1rem}
+    #pw-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .pw-box { text-align:center; width:300px; }
+    .pw-box h1 { font-family:'Noto Serif JP',serif; font-weight:300; font-size:1rem; letter-spacing:0.3em; color:var(--text-light); margin-bottom:2.5rem; }
+    .pw-box input { width:100%; padding:0.7rem 1rem; border:1px solid var(--border); border-radius:3px; font-size:0.85rem; background:white; color:var(--text); outline:none; text-align:center; letter-spacing:0.1em; margin-bottom:0.8rem; }
+    .pw-box input:focus { border-color:var(--accent); }
+    .pw-box .pw-btn { width:100%; padding:0.65rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.78rem; letter-spacing:0.12em; cursor:pointer; }
+    .pw-box .pw-btn:hover { background:var(--accent-dark); }
+    .pw-error { color:#c0392b; font-size:0.72rem; margin-top:0.6rem; min-height:1rem; }
 
-    /* ── App ── */
-    #app{display:none}
+    #app { display:none; }
 
-    /* ── Tab bar ── */
-    .view-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 0;max-width:100%}
-    .view-tab{font-family:'Noto Sans JP',sans-serif;font-size:.75rem;font-weight:300;letter-spacing:.1em;padding:.8rem 1.4rem .7rem;border:none;background:none;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
-    .view-tab:hover{color:var(--text)}
-    .view-tab.active{color:var(--text);border-bottom-color:var(--text)}
+    /* ── View switcher ── */
+    .view-switcher { display:flex; gap:0; border-bottom:1px solid var(--border); background:var(--bg-sub); }
+    .view-tab { padding:0.5rem 1.2rem; font-size:0.72rem; letter-spacing:0.1em; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; user-select:none; }
+    .view-tab:hover { color:var(--text); }
+    .view-tab.active { color:var(--text); border-bottom-color:var(--accent); }
 
     /* ── Memo view ── */
-    #view-memo{display:none}
-    .memo-layout{display:grid;grid-template-columns:180px 240px 1fr;min-height:calc(100vh - 160px);border-top:1px solid var(--border)}
+    .memo-layout { display:grid; grid-template-columns:180px 220px 1fr; min-height:calc(100vh - 150px); border-top:1px solid var(--border); }
 
     /* Sidebar */
-    .sidebar{border-right:1px solid var(--border);padding:1.2rem .8rem;background:var(--bg-sub);overflow-y:auto}
-    .sidebar-label{font-size:.65rem;letter-spacing:.15em;color:var(--text-light);opacity:.6;margin-bottom:.6rem;text-transform:uppercase}
-    .new-btn{width:100%;padding:.55rem;background:var(--text);color:var(--bg);border:none;border-radius:3px;font-family:'Noto Sans JP',sans-serif;font-size:.73rem;letter-spacing:.08em;cursor:pointer;margin-bottom:1.2rem;transition:background .15s}
-    .new-btn:hover{background:var(--accent-dark)}
+    .sidebar { border-right:1px solid var(--border); padding:1.2rem 0.8rem; background:var(--bg-sub); overflow-y:auto; }
+    .sidebar-label { font-size:0.65rem; letter-spacing:0.15em; color:var(--text-light); opacity:0.6; margin-bottom:0.6rem; margin-top:1.2rem; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
+    .sidebar-label:first-child { margin-top:0; }
+    .new-btn { width:100%; padding:0.6rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; margin-bottom:1rem; transition:background 0.15s; }
+    .new-btn:hover { background:var(--accent-dark); }
+    .tag-filter { list-style:none; }
+    .tag-filter li { display:flex; align-items:center; justify-content:space-between; padding:0.3rem 0.5rem; border-radius:3px; cursor:pointer; font-size:0.78rem; color:var(--text-light); transition:background 0.1s; user-select:none; }
+    .tag-filter li:hover { background:var(--border); }
+    .tag-filter li.active { background:var(--text); color:var(--bg); }
+    .tag-count { font-size:0.65rem; opacity:0.6; }
 
-    /* Tag filter */
-    .tag-filter{list-style:none;margin-bottom:1rem}
-    .tag-filter li{display:flex;align-items:center;justify-content:space-between;padding:.3rem .4rem;border-radius:3px;cursor:pointer;font-size:.76rem;color:var(--text-light);transition:background .1s;user-select:none;gap:.3rem}
-    .tag-filter li:hover{background:var(--border)}
-    .tag-filter li.active{background:var(--text);color:var(--bg)}
-    .tag-count{font-size:.62rem;opacity:.6;flex-shrink:0}
+    /* Tag manage button in sidebar */
+    .tag-manage-btn { font-size:0.6rem; letter-spacing:0.05em; color:var(--text-light); background:none; border:1px solid var(--border); border-radius:2px; padding:0.1rem 0.4rem; cursor:pointer; }
+    .tag-manage-btn:hover { background:var(--border); }
 
     /* Memo list */
-    .memo-list-panel{border-right:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 160px)}
-    .memo-item{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
-    .memo-item:hover{background:var(--bg-sub)}
-    .memo-item.active{background:#f0ece6;border-left:2px solid var(--accent)}
-    .memo-item-title{font-family:'Noto Serif JP',serif;font-size:.86rem;font-weight:400;margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .memo-item-preview{font-size:.68rem;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .memo-item-meta{font-size:.62rem;color:var(--text-light);opacity:.6;margin-top:.25rem}
-    .memo-item-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
-    .tag-chip{font-size:.58rem;padding:.1rem .45rem;border:1px solid var(--border);border-radius:10px;color:var(--text-light)}
+    .memo-list-panel { border-right:1px solid var(--border); overflow-y:auto; max-height:calc(100vh - 150px); }
+    .memo-item { padding:1rem 1.2rem; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
+    .memo-item:hover { background:var(--bg-sub); }
+    .memo-item.active { background:#f0ece6; border-left:2px solid var(--accent); }
+    .memo-item-title { font-family:'Noto Serif JP',serif; font-size:0.88rem; font-weight:400; margin-bottom:0.2rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .memo-item-preview { font-size:0.7rem; color:var(--text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .memo-item-meta { font-size:0.65rem; color:var(--text-light); opacity:0.6; margin-top:0.3rem; }
+    .memo-item-tags { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.4rem; }
+    .tag-chip { font-size:0.6rem; padding:0.1rem 0.5rem; border:1px solid var(--border); border-radius:10px; color:var(--text-light); }
 
     /* Editor */
-    .editor-panel{display:flex;flex-direction:column;max-height:calc(100vh - 160px);overflow:hidden}
-    .editor-toolbar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.1rem;border-bottom:1px solid var(--border);gap:.7rem;flex-shrink:0}
-    .toolbar-left{display:flex;gap:.4rem;align-items:center;flex:1;min-width:0}
-    .title-input{flex:1;border:none;background:transparent;font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:400;color:var(--text);outline:none;letter-spacing:.05em}
-    .title-input::placeholder{color:var(--border)}
-    .toolbar-right{display:flex;gap:.35rem;flex-shrink:0;align-items:center}
-    .toolbar-btn{font-family:'Noto Sans JP',sans-serif;font-size:.7rem;font-weight:300;letter-spacing:.06em;border:1px solid var(--border);background:white;color:var(--text);padding:.35rem .85rem;border-radius:3px;cursor:pointer;transition:background .15s;white-space:nowrap}
-    .toolbar-btn:hover{background:var(--bg-sub)}
-    .toolbar-btn.save{background:var(--text);color:var(--bg);border-color:var(--text)}
-    .toolbar-btn.save:hover{background:var(--accent-dark)}
-    .toolbar-btn.del{color:#c0392b;border-color:#e8c4c0}
-    .toolbar-btn.del:hover{background:#fdf0ee}
+    .editor-panel { display:flex; flex-direction:column; max-height:calc(100vh - 150px); overflow:hidden; }
+    .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1.2rem; border-bottom:1px solid var(--border); gap:0.8rem; flex-shrink:0; }
+    .toolbar-left { display:flex; gap:0.5rem; align-items:center; flex:1; min-width:0; }
+    .title-input { flex:1; border:none; background:transparent; font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); outline:none; letter-spacing:0.05em; }
+    .title-input::placeholder { color:var(--border); }
+    .toolbar-right { display:flex; gap:0.4rem; flex-shrink:0; align-items:center; }
+    .toolbar-btn { font-family:'Noto Sans JP',sans-serif; font-size:0.72rem; font-weight:300; letter-spacing:0.06em; border:1px solid var(--border); background:white; color:var(--text); padding:0.38rem 0.9rem; border-radius:3px; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+    .toolbar-btn:hover { background:var(--bg-sub); }
+    .toolbar-btn.save { background:var(--text); color:var(--bg); border-color:var(--text); }
+    .toolbar-btn.save:hover { background:var(--accent-dark); }
+    .toolbar-btn.del { color:#c0392b; border-color:#e8c4c0; }
+    .toolbar-btn.del:hover { background:#fdf0ee; }
 
-    /* Tag input row */
-    .tag-input-row{display:flex;align-items:center;gap:.5rem;padding:.4rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
-    .tag-input-label{font-size:.63rem;color:var(--text-light);letter-spacing:.1em;flex-shrink:0}
-    .current-tags{display:flex;gap:.25rem;flex-wrap:wrap}
-    .current-tag{font-size:.63rem;padding:.12rem .45rem;background:var(--bg-sub);border:1px solid var(--border);border-radius:10px;color:var(--text-light);display:flex;align-items:center;gap:.25rem}
-    .current-tag button{border:none;background:none;cursor:pointer;color:var(--text-light);font-size:.68rem;padding:0;line-height:1}
+    /* Tag row with dropdown */
+    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.45rem 1.2rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; position:relative; }
+    .tag-input-label { font-size:0.65rem; color:var(--text-light); letter-spacing:0.1em; flex-shrink:0; }
+    .current-tags { display:flex; gap:0.3rem; flex-wrap:wrap; }
+    .current-tag { font-size:0.65rem; padding:0.15rem 0.5rem; background:var(--bg-sub); border:1px solid var(--border); border-radius:10px; color:var(--text-light); display:flex; align-items:center; gap:0.3rem; }
+    .current-tag button { border:none; background:none; cursor:pointer; color:var(--text-light); font-size:0.7rem; padding:0; line-height:1; }
 
     /* Tag dropdown */
-    .tag-dropdown-wrap{position:relative}
-    .tag-dropdown-btn{font-size:.68rem;padding:.25rem .7rem;border:1px dashed var(--border);border-radius:3px;background:transparent;cursor:pointer;color:var(--text-light)}
-    .tag-dropdown-btn:hover{border-color:var(--accent);color:var(--text)}
-    .tag-dropdown{position:absolute;top:110%;left:0;background:white;border:1px solid var(--border);border-radius:4px;min-width:140px;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.08);display:none}
-    .tag-dropdown.open{display:block}
-    .tag-dropdown li{list-style:none;padding:.4rem .8rem;font-size:.76rem;cursor:pointer;color:var(--text-light);transition:background .1s}
-    .tag-dropdown li:hover{background:var(--bg-sub);color:var(--text)}
-    .tag-dropdown li.selected{color:var(--text);font-weight:400}
-    .tag-dropdown-input{width:100%;padding:.35rem .6rem;border:none;border-bottom:1px solid var(--border);font-size:.74rem;outline:none}
+    .tag-dropdown-wrapper { position:relative; }
+    .tag-add-btn { font-size:0.68rem; padding:0.15rem 0.6rem; border:1px solid var(--border); border-radius:10px; background:white; color:var(--text-light); cursor:pointer; letter-spacing:0.05em; }
+    .tag-add-btn:hover { background:var(--bg-sub); }
+    .tag-dropdown { position:absolute; top:calc(100% + 4px); left:0; background:white; border:1px solid var(--border); border-radius:4px; box-shadow:0 4px 16px rgba(0,0,0,0.08); z-index:100; min-width:160px; max-height:220px; overflow-y:auto; display:none; }
+    .tag-dropdown.open { display:block; }
+    .tag-dropdown-item { padding:0.4rem 0.8rem; font-size:0.78rem; color:var(--text-light); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; }
+    .tag-dropdown-item:hover { background:var(--bg-sub); }
+    .tag-dropdown-item.selected { color:var(--text); font-weight:400; }
+    .tag-dropdown-item.selected::before { content:'✓'; font-size:0.7rem; margin-right:0.3rem; color:var(--accent); }
+    .tag-dropdown-sep { height:1px; background:var(--border); margin:0.3rem 0; }
+    .tag-dropdown-new { padding:0.4rem 0.8rem; display:flex; gap:0.4rem; border-top:1px solid var(--border); }
+    .tag-dropdown-new input { flex:1; border:none; border-bottom:1px solid var(--border); font-size:0.75rem; color:var(--text); outline:none; background:transparent; padding:0.2rem 0; }
+    .tag-dropdown-new button { font-size:0.68rem; padding:0.2rem 0.5rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
 
-    /* Editor body */
-    .editor-body{flex:1;overflow-y:auto;padding:1.3rem 1.5rem;font-family:'Noto Sans JP',sans-serif;font-size:.88rem;font-weight:300;color:var(--text);line-height:2;outline:none}
-    .editor-body:empty::before{content:'メモを入力...\A画像はドラッグ＆ドロップまたは「🖼」ボタンから';white-space:pre;color:var(--border);pointer-events:none}
-    .editor-body img{max-width:100%;height:auto;display:block;margin:.8rem 0;border-radius:3px;border:1px solid var(--border)}
-    .editor-panel.drag-over{outline:2px dashed var(--accent);outline-offset:-4px;background:#faf7f3}
-
-    .empty-state{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:.8rem;letter-spacing:.1em;opacity:.5}
-    .no-memos{padding:2rem;text-align:center;color:var(--text-light);font-size:.76rem}
-
-    /* ── Tag manager view ── */
-    #view-tags{display:none;max-width:640px;margin:0 auto;padding:2.5rem 2rem 5rem}
-    .tag-manager-title{font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:400;letter-spacing:.08em;margin-bottom:.4rem}
-    .tag-manager-sub{font-size:.75rem;color:var(--text-light);margin-bottom:1.8rem}
-    .tm-divider{width:32px;height:1px;background:var(--accent);opacity:.4;margin:.5rem 0 1.8rem}
-    .tag-list-edit{list-style:none;margin-bottom:1.5rem}
-    .tag-list-edit li{display:flex;align-items:center;gap:.6rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
-    .tag-edit-name{flex:1;font-size:.86rem}
-    .tag-edit-input{flex:1;border:none;border-bottom:1px solid var(--accent);background:transparent;font-size:.86rem;outline:none;padding:.1rem .2rem}
-    .tag-edit-actions{display:flex;gap:.4rem}
-    .sm-btn{font-family:'Noto Sans JP',sans-serif;font-size:.68rem;border:1px solid var(--border);background:white;color:var(--text);padding:.28rem .7rem;border-radius:3px;cursor:pointer}
-    .sm-btn:hover{background:var(--bg-sub)}
-    .sm-btn.danger{color:#c0392b;border-color:#e8c4c0}
-    .sm-btn.danger:hover{background:#fdf0ee}
-    .sm-btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
-    .add-tag-row{display:flex;gap:.6rem;margin-top:.5rem}
-    .add-tag-input{flex:1;padding:.5rem .7rem;border:1px solid var(--border);border-radius:3px;font-size:.82rem;outline:none}
-    .add-tag-input:focus{border-color:var(--accent)}
-
-    /* ── Logic tree view ── */
-    #view-tree{display:none;padding:1.5rem 2rem 5rem}
-    .tree-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-    .tree-title{font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:400;letter-spacing:.08em}
-    .tree-mode-btns{display:flex;gap:.4rem}
-    .tree-mode-btn{font-size:.7rem;padding:.3rem .8rem;border:1px solid var(--border);border-radius:3px;background:white;cursor:pointer;color:var(--text-light)}
-    .tree-mode-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
-
-    /* SVG tree */
-    #tree-svg-wrap{overflow:auto;background:var(--bg-sub);border-radius:4px;border:1px solid var(--border);min-height:400px}
-    #tree-svg{font-family:'Noto Sans JP',sans-serif}
-
-    /* Node styles */
-    .tree-node-root rect{fill:var(--text);rx:4}
-    .tree-node-root text{fill:var(--bg);font-size:12px}
-    .tree-node-tag rect{fill:#e8e4de;stroke:var(--border);stroke-width:1;rx:4}
-    .tree-node-tag text{fill:var(--text-light);font-size:11px}
-    .tree-node-memo rect{fill:white;stroke:var(--border);stroke-width:1;rx:3}
-    .tree-node-memo text{fill:var(--text);font-size:11px}
-    .tree-node-memo:hover rect{stroke:var(--accent);fill:#faf7f3;cursor:pointer}
-    .tree-edge{stroke:var(--border);stroke-width:1.5;fill:none}
-
-    /* Memo preview panel */
-    #tree-preview{position:fixed;top:0;right:0;width:340px;height:100vh;background:white;border-left:1px solid var(--border);padding:1.5rem;overflow-y:auto;transform:translateX(100%);transition:transform .25s;z-index:80;display:flex;flex-direction:column;gap:1rem}
-    #tree-preview.open{transform:translateX(0)}
-    .preview-close{align-self:flex-end;background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-light)}
-    .preview-title{font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:400;border-bottom:1px solid var(--border);padding-bottom:.8rem}
-    .preview-body{font-size:.84rem;font-weight:300;line-height:2;color:var(--text);flex:1;overflow-y:auto}
-    .preview-body img{max-width:100%;height:auto;border-radius:3px;margin:.5rem 0}
-    .preview-tags{display:flex;gap:.3rem;flex-wrap:wrap}
-    .preview-open-btn{font-size:.72rem;padding:.4rem 1rem;background:var(--text);color:var(--bg);border:none;border-radius:3px;cursor:pointer;align-self:flex-start}
+    /* Contenteditable editor body */
+    .editor-body { flex:1; overflow-y:auto; padding:1.5rem; font-family:'Noto Sans JP',sans-serif; font-size:0.88rem; font-weight:300; color:var(--text); line-height:2; outline:none; }
+    .editor-body:empty::before { content:'メモを入力...\A画像はドラッグ＆ドロップまたは「🖼 画像」ボタンから追加できます'; white-space:pre; color:var(--border); pointer-events:none; }
+    .editor-body img { max-width:100%; height:auto; display:block; margin:0.8rem 0; border-radius:3px; border:1px solid var(--border); cursor:pointer; }
+    .editor-body img:hover { opacity:0.9; }
+    .editor-panel.drag-over { outline:2px dashed var(--accent); outline-offset:-4px; background:#faf7f3; }
+    .empty-state { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:0.8rem; letter-spacing:0.1em; opacity:0.5; }
+    .no-memos { padding:2rem; text-align:center; color:var(--text-light); font-size:0.78rem; }
 
     /* Upload overlay */
-    .upload-overlay{position:fixed;inset:0;background:rgba(44,44,44,.5);display:none;align-items:center;justify-content:center;z-index:300}
-    .upload-overlay.show{display:flex}
-    .upload-box{background:var(--bg);padding:2rem 3rem;border-radius:4px;text-align:center;font-size:.85rem;color:var(--text-light)}
+    .upload-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.5); display:none; align-items:center; justify-content:center; z-index:300; }
+    .upload-overlay.show { display:flex; }
+    .upload-box { background:var(--bg); padding:2rem 3rem; border-radius:4px; text-align:center; font-size:0.85rem; color:var(--text-light); }
 
-    /* Modal */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(44,44,44,.35);z-index:200;align-items:center;justify-content:center}
-    .modal-overlay.open{display:flex}
-    .modal{background:white;border:1px solid var(--border);border-radius:4px;padding:2rem;width:90%;max-width:480px}
-    .modal h3{font-family:'Noto Serif JP',serif;font-size:.9rem;font-weight:400;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border)}
-    .modal-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem}
+    #toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:0.7rem 1.6rem; border-radius:3px; font-size:0.78rem; letter-spacing:0.06em; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:200; }
+    #toast.show { opacity:1; }
+    #toast.error { background:#c0392b; }
+    #saving { font-size:0.68rem; color:var(--text-light); opacity:0; transition:opacity 0.3s; }
+    #saving.show { opacity:1; }
 
-    /* Toast & Saving */
-    #toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:.65rem 1.5rem;border-radius:3px;font-size:.76rem;letter-spacing:.06em;opacity:0;transition:opacity .3s;pointer-events:none;z-index:400}
-    #toast.show{opacity:1}
-    #toast.error{background:#c0392b}
-    #saving{font-size:.66rem;color:var(--text-light);opacity:0;transition:opacity .3s}
-    #saving.show{opacity:1}
+    /* ── Tag Manager Modal ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.4); display:none; align-items:center; justify-content:center; z-index:400; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:white; border-radius:6px; width:400px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+    .modal-header { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .modal-title { font-family:'Noto Serif JP',serif; font-size:0.95rem; font-weight:400; letter-spacing:0.05em; }
+    .modal-close { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--text-light); padding:0; }
+    .modal-body { flex:1; overflow-y:auto; padding:1rem 1.5rem; }
+    .tag-manage-list { list-style:none; }
+    .tag-manage-item { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0; border-bottom:1px solid var(--border); }
+    .tag-manage-item:last-child { border-bottom:none; }
+    .tag-manage-name { flex:1; font-size:0.82rem; color:var(--text); }
+    .tag-manage-input { flex:1; border:none; border-bottom:1px solid var(--accent); font-size:0.82rem; color:var(--text); outline:none; background:transparent; padding:0.1rem 0; display:none; }
+    .tag-manage-input.editing { display:block; }
+    .tag-manage-name.editing { display:none; }
+    .tag-manage-btn-sm { font-size:0.65rem; padding:0.15rem 0.5rem; border:1px solid var(--border); border-radius:3px; background:white; color:var(--text-light); cursor:pointer; white-space:nowrap; }
+    .tag-manage-btn-sm:hover { background:var(--bg-sub); }
+    .tag-manage-btn-sm.del { color:#c0392b; border-color:#e8c4c0; }
+    .tag-manage-btn-sm.del:hover { background:#fdf0ee; }
+    .tag-manage-btn-sm.save { background:var(--text); color:var(--bg); border-color:var(--text); }
+    .modal-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; }
+    .modal-footer input { flex:1; border:1px solid var(--border); border-radius:3px; font-size:0.8rem; padding:0.4rem 0.8rem; outline:none; }
+    .modal-footer input:focus { border-color:var(--accent); }
+    .modal-footer button { font-size:0.78rem; padding:0.4rem 1rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
 
-    @media(max-width:700px){
-      .memo-layout{grid-template-columns:1fr}
-      .memo-list-panel{max-height:180px}
+    /* ── Logic Tree view ── */
+    #tree-view { display:none; padding:1.5rem 2rem; overflow-y:auto; max-height:calc(100vh - 150px); }
+    .tree-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+    .tree-title { font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; letter-spacing:0.05em; color:var(--text); }
+    .tree-mode-btns { display:flex; gap:0.3rem; }
+    .tree-mode-btn { font-size:0.68rem; padding:0.25rem 0.7rem; border:1px solid var(--border); border-radius:3px; background:white; color:var(--text-light); cursor:pointer; }
+    .tree-mode-btn.active { background:var(--text); color:var(--bg); border-color:var(--text); }
+
+    /* Tree structure */
+    .tree-root { list-style:none; }
+    .tree-node { margin:0; padding:0; }
+    .tree-node-row { display:flex; align-items:flex-start; gap:0; padding:0.1rem 0; }
+    .tree-indent { width:20px; flex-shrink:0; }
+    .tree-branch { width:20px; flex-shrink:0; position:relative; display:flex; align-items:center; justify-content:center; }
+    .tree-branch::before { content:''; position:absolute; left:50%; top:0; bottom:50%; border-left:1px solid var(--border); }
+    .tree-branch::after { content:''; position:absolute; left:50%; top:50%; width:50%; border-top:1px solid var(--border); }
+    .tree-node-last .tree-branch::before { bottom:50%; }
+    .tree-children { list-style:none; margin:0; padding:0; }
+
+    .tree-tag-node { font-size:0.72rem; letter-spacing:0.08em; color:var(--text-light); padding:0.3rem 0.6rem; border-radius:3px; background:var(--bg-sub); border:1px solid var(--border); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:0.4rem; margin:0.2rem 0; }
+    .tree-tag-node:hover { background:var(--border); }
+    .tree-tag-node.expanded::before { content:'▾ '; font-size:0.6rem; }
+    .tree-tag-node.collapsed::before { content:'▸ '; font-size:0.6rem; }
+    .tree-tag-node .tag-note-count { font-size:0.6rem; opacity:0.6; }
+
+    .tree-memo-node { font-size:0.8rem; font-family:'Noto Serif JP',serif; color:var(--text); padding:0.3rem 0.8rem; border-radius:3px; cursor:pointer; display:inline-block; margin:0.15rem 0; transition:background 0.1s; border-left:2px solid transparent; }
+    .tree-memo-node:hover { background:var(--bg-sub); border-left-color:var(--accent); }
+    .tree-no-tag { font-size:0.72rem; color:var(--text-light); font-style:italic; padding:0.3rem 0.6rem; }
+
+    .tree-connector { display:flex; flex-direction:column; align-items:center; }
+    .tree-line-v { width:1px; background:var(--border); flex:1; min-height:8px; }
+    .tree-line-h-wrap { display:flex; align-items:center; width:100%; }
+    .tree-line-h { height:1px; background:var(--border); flex:1; }
+
+    /* Simplified tree layout */
+    .tree-section { margin-bottom:1.5rem; }
+    .tree-section-header { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; cursor:pointer; user-select:none; }
+    .tree-section-tag { font-size:0.72rem; letter-spacing:0.08em; color:var(--text-light); padding:0.25rem 0.7rem; border-radius:3px; background:var(--bg-sub); border:1px solid var(--border); display:inline-flex; align-items:center; gap:0.4rem; }
+    .tree-section-toggle { font-size:0.65rem; color:var(--text-light); transition:transform 0.15s; display:inline-block; }
+    .tree-section.collapsed .tree-section-toggle { transform:rotate(-90deg); }
+    .tree-section.collapsed .tree-section-memos { display:none; }
+    .tree-section-count { font-size:0.62rem; color:var(--text-light); opacity:0.6; }
+    .tree-section-memos { padding-left:1.2rem; border-left:1px solid var(--border); margin-left:0.6rem; }
+    .tree-memo-link { display:flex; align-items:center; gap:0.4rem; padding:0.28rem 0.6rem; border-radius:3px; cursor:pointer; transition:background 0.1s; }
+    .tree-memo-link:hover { background:var(--bg-sub); }
+    .tree-memo-link::before { content:'—'; font-size:0.6rem; color:var(--border); }
+    .tree-memo-link-title { font-size:0.82rem; font-family:'Noto Serif JP',serif; color:var(--text); }
+    .tree-memo-link-tags { display:flex; gap:0.2rem; }
+    .tree-memo-link-tag { font-size:0.58rem; padding:0.05rem 0.4rem; border:1px solid var(--border); border-radius:8px; color:var(--text-light); }
+    .tree-untagged { margin-top:1.2rem; padding-top:1rem; border-top:1px dashed var(--border); }
+    .tree-untagged-label { font-size:0.68rem; color:var(--text-light); letter-spacing:0.08em; margin-bottom:0.5rem; opacity:0.6; }
+
+    /* Memo preview panel in tree */
+    .tree-preview-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.3); display:none; z-index:350; }
+    .tree-preview-overlay.open { display:block; }
+    .tree-preview-panel { position:fixed; right:0; top:0; bottom:0; width:480px; background:white; border-left:1px solid var(--border); box-shadow:-4px 0 20px rgba(0,0,0,0.08); display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.25s ease; z-index:360; }
+    .tree-preview-panel.open { transform:translateX(0); }
+    .tree-preview-header { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .tree-preview-title { font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tree-preview-tags { display:flex; gap:0.3rem; flex-wrap:wrap; padding:0.5rem 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .tree-preview-body { flex:1; overflow-y:auto; padding:1.5rem; font-family:'Noto Sans JP',sans-serif; font-size:0.85rem; font-weight:300; line-height:2; color:var(--text); }
+    .tree-preview-body img { max-width:100%; height:auto; border-radius:3px; border:1px solid var(--border); display:block; margin:0.8rem 0; }
+    .tree-preview-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; flex-shrink:0; }
+    .tree-preview-btn { font-size:0.75rem; padding:0.45rem 1rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
+    .tree-preview-btn.sec { background:white; color:var(--text); }
+
+    @media (max-width:700px) {
+      .memo-layout { grid-template-columns:1fr; }
+      .memo-list-panel { max-height:180px; }
+      .tree-preview-panel { width:100%; }
     }
   </style>
 </head>
 <body>
 
-<!-- Password -->
 <div id="pw-screen">
   <div class="pw-box">
     <h1>note</h1>
@@ -185,9 +221,10 @@
   </div>
 </div>
 
-<!-- App -->
 <div id="app">
-  <header class="site-header"><h1><a href="index.html">note</a></h1></header>
+  <header class="site-header">
+    <h1><a href="index.html">note</a></h1>
+  </header>
   <nav>
     <a href="about.html">About</a>
     <a href="interest.html">Interest</a>
@@ -198,322 +235,266 @@
     <a href="admin.html">Admin</a>
   </nav>
 
-  <!-- View tabs -->
-  <div class="view-tabs">
-    <button class="view-tab active" onclick="switchView('memo')">メモ</button>
-    <button class="view-tab" onclick="switchView('tree')">ロジックツリー</button>
-    <button class="view-tab" onclick="switchView('tags')">タグ管理</button>
+  <!-- View switcher -->
+  <div class="view-switcher">
+    <div class="view-tab active" id="tab-memo" onclick="switchView('memo')">メモ</div>
+    <div class="view-tab" id="tab-tree" onclick="switchView('tree')">ロジックツリー</div>
   </div>
 
-  <!-- ═══ VIEW: MEMO ═══ -->
-  <div id="view-memo">
+  <!-- Memo view -->
+  <div id="memo-view">
     <div class="memo-layout">
 
-      <!-- Sidebar -->
       <div class="sidebar">
         <button class="new-btn" onclick="newMemo()">＋ 新規メモ</button>
-        <p class="sidebar-label">Tags</p>
+        <div class="sidebar-label">
+          <span>Tags</span>
+          <button class="tag-manage-btn" onclick="openTagManager()">管理</button>
+        </div>
         <ul class="tag-filter" id="tag-filter">
           <li class="active" onclick="filterByTag(null,this)">すべて</li>
         </ul>
       </div>
 
-      <!-- Memo list -->
       <div class="memo-list-panel" id="memo-list-panel">
-        <div class="no-memos" id="no-memos" style="display:none">メモなし</div>
+        <div class="no-memos" id="no-memos" style="display:none;">メモなし</div>
       </div>
 
-      <!-- Editor -->
       <div class="editor-panel" id="editor-panel">
         <div class="empty-state" id="empty-state">メモを選択するか、新規作成してください</div>
-        <div id="editor" style="display:none;flex-direction:column;height:100%">
+
+        <div id="editor" style="display:none; flex-direction:column; height:100%;">
           <div class="editor-toolbar">
             <div class="toolbar-left">
               <input class="title-input" id="memo-title" placeholder="タイトル" oninput="markDirty()">
             </div>
             <div class="toolbar-right">
               <span id="saving">保存中...</span>
-              <button class="toolbar-btn" onclick="triggerImageUpload()" title="画像">🖼</button>
+              <button class="toolbar-btn" onclick="triggerImageUpload()" title="画像を挿入">🖼 画像</button>
               <button class="toolbar-btn save" onclick="saveMemo()">保存</button>
               <button class="toolbar-btn del" onclick="deleteMemo()">削除</button>
             </div>
           </div>
+
+          <!-- Tag row with dropdown -->
           <div class="tag-input-row">
             <span class="tag-input-label">タグ</span>
             <div class="current-tags" id="current-tags"></div>
-            <!-- Dropdown -->
-            <div class="tag-dropdown-wrap" id="tag-dd-wrap">
-              <button class="tag-dropdown-btn" onclick="toggleTagDropdown()">＋ タグを選択</button>
-              <ul class="tag-dropdown" id="tag-dropdown">
-                <input class="tag-dropdown-input" id="tag-dd-search" placeholder="検索..." oninput="renderTagDropdown()">
-              </ul>
+            <div class="tag-dropdown-wrapper" id="tag-dropdown-wrapper">
+              <button class="tag-add-btn" onclick="toggleTagDropdown()">＋ タグ追加</button>
+              <div class="tag-dropdown" id="tag-dropdown">
+                <div id="tag-dropdown-list"></div>
+                <div class="tag-dropdown-new">
+                  <input type="text" id="tag-dropdown-input" placeholder="新しいタグ..." onkeydown="handleTagDropdownInput(event)">
+                  <button onclick="addTagFromDropdown()">追加</button>
+                </div>
+              </div>
             </div>
           </div>
+
           <div class="editor-body" id="memo-body" contenteditable="true"></div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- ═══ VIEW: TREE ═══ -->
-  <div id="view-tree">
+  <!-- Logic Tree view -->
+  <div id="tree-view">
     <div class="tree-header">
-      <span class="tree-title">ロジックツリー</span>
+      <div class="tree-title">ロジックツリー</div>
       <div class="tree-mode-btns">
-        <button class="tree-mode-btn active" onclick="setTreeMode('tag',this)">タグ軸</button>
-        <button class="tree-mode-btn" onclick="setTreeMode('title',this)">タイトル軸</button>
+        <button class="tree-mode-btn active" id="tree-mode-tag" onclick="setTreeMode('tag')">タグ別</button>
+        <button class="tree-mode-btn" id="tree-mode-title" onclick="setTreeMode('title')">タイトル別</button>
       </div>
     </div>
-    <div id="tree-svg-wrap">
-      <svg id="tree-svg" width="100%" height="600"></svg>
-    </div>
+    <div id="tree-content"></div>
   </div>
 
-  <!-- ═══ VIEW: TAGS ═══ -->
-  <div id="view-tags">
-    <h2 class="tag-manager-title">タグ管理</h2>
-    <p class="tag-manager-sub">タグの追加・編集・削除</p>
-    <div class="tm-divider"></div>
-    <ul class="tag-list-edit" id="tag-list-edit"></ul>
-    <div class="add-tag-row">
-      <input class="add-tag-input" id="add-tag-input" placeholder="新しいタグ名..." onkeydown="if(event.key==='Enter')addTag()">
-      <button class="sm-btn primary" onclick="addTag()">追加</button>
-    </div>
-  </div>
-
-</div><!-- /app -->
-
-<!-- Memo preview (tree click) -->
-<div id="tree-preview">
-  <button class="preview-close" onclick="closePreview()">✕</button>
-  <div class="preview-title" id="preview-title"></div>
-  <div class="preview-tags" id="preview-tags"></div>
-  <div class="preview-body" id="preview-body"></div>
-  <button class="preview-open-btn" onclick="openPreviewInEditor()">エディタで開く</button>
 </div>
 
-<!-- File input -->
+<!-- Tag Manager Modal -->
+<div class="modal-overlay" id="tag-manager-overlay" onclick="closeTagManagerIfOutside(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">タグ管理</div>
+      <button class="modal-close" onclick="closeTagManager()">✕</button>
+    </div>
+    <div class="modal-body">
+      <ul class="tag-manage-list" id="tag-manage-list"></ul>
+    </div>
+    <div class="modal-footer">
+      <input type="text" id="new-tag-input" placeholder="新しいタグを追加..." onkeydown="if(event.key==='Enter')addNewTag()">
+      <button onclick="addNewTag()">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Memo preview panel (for tree view) -->
+<div class="tree-preview-overlay" id="tree-preview-overlay" onclick="closeTreePreview()"></div>
+<div class="tree-preview-panel" id="tree-preview-panel">
+  <div class="tree-preview-header">
+    <div class="tree-preview-title" id="tree-preview-title"></div>
+    <button class="modal-close" onclick="closeTreePreview()">✕</button>
+  </div>
+  <div class="tree-preview-tags" id="tree-preview-tags"></div>
+  <div class="tree-preview-body" id="tree-preview-body"></div>
+  <div class="tree-preview-footer">
+    <button class="tree-preview-btn" onclick="openNoteFromTree()">編集する</button>
+    <button class="tree-preview-btn sec" onclick="closeTreePreview()">閉じる</button>
+  </div>
+</div>
+
 <input type="file" id="file-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(event)">
-
-<!-- Upload overlay -->
-<div class="upload-overlay" id="upload-overlay">
-  <div class="upload-box">アップロード中...</div>
-</div>
-
+<div class="upload-overlay" id="upload-overlay"><div class="upload-box">アップロード中...</div></div>
 <div id="toast"></div>
 
 <script>
 const REPO    = '0301egg/note';
-const BASE    = `https://api.github.com/repos/${REPO}/contents/`;
+const BASE    = 'https://api.github.com/repos/' + REPO + '/contents/';
 const RAW     = `https://raw.githubusercontent.com/${REPO}/main/`;
 const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
-const SESSION_KEY = 'note_admin_auth';
-const NOTES_FILE  = 'notes.json';
-const IMG_DIR     = 'images/memo/';
+const SESSION_KEY  = 'note_admin_auth';
+const NOTES_FILE   = 'notes.json';
+const TAGS_FILE    = 'tags.json';
+const IMG_DIR      = 'images/memo/';
 
-let token='', notes=[], notesSha='', allTags=[];
-let currentNoteId=null, isDirty=false, activeTag=null, autoSaveTimer=null;
-let treeMode='tag', previewNoteId=null;
+let token = '', notes = [], notesSha = '', currentNoteId = null;
+let isDirty = false, activeTag = null, autoSaveTimer = null;
+let masterTags = [], tagsSha = '';
+let currentView = 'memo', treeMode = 'tag', previewNoteId = null;
 
 // ── Password ───────────────────────────────────
-async function checkPassword(){
-  const pw=document.getElementById('pw-input').value;
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
-  const hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hash===PW_HASH){sessionStorage.setItem(SESSION_KEY,'1');showApp();}
-  else{document.getElementById('pw-error').textContent='パスワードが違います';document.getElementById('pw-input').value='';}
+async function checkPassword() {
+  const pw = document.getElementById('pw-input').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if (hash === PW_HASH) { sessionStorage.setItem(SESSION_KEY,'1'); showApp(); }
+  else { document.getElementById('pw-error').textContent='パスワードが違います'; document.getElementById('pw-input').value=''; }
 }
-function showApp(){
+function showApp() {
   document.getElementById('pw-screen').style.display='none';
   document.getElementById('app').style.display='block';
-  token=sessionStorage.getItem('note_admin_token')||'';
-  if(token)loadNotes();else promptToken();
+  token = sessionStorage.getItem('note_admin_token') || '';
+  if (token) { loadNotes(); loadTags(); } else promptToken();
   setupDragDrop();
-  switchView('memo');
 }
-function promptToken(){
-  const t=prompt('GitHub Personal Access Tokenを入力してください');
-  if(t){token=t.trim();sessionStorage.setItem('note_admin_token',token);loadNotes();}
+function promptToken() {
+  const t = prompt('GitHub Personal Access Tokenを入力してください');
+  if (t) { token=t.trim(); sessionStorage.setItem('note_admin_token',token); loadNotes(); loadTags(); }
 }
-window.addEventListener('DOMContentLoaded',()=>{if(sessionStorage.getItem(SESSION_KEY)==='1')showApp();});
-document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPassword();});
-
-// ── View switch ────────────────────────────────
-function switchView(v){
-  ['memo','tree','tags'].forEach(n=>{
-    document.getElementById('view-'+n).style.display= n===v?'block':'none';
-  });
-  document.querySelectorAll('.view-tab').forEach((b,i)=>{
-    b.classList.toggle('active',['memo','tree','tags'][i]===v);
-  });
-  if(v==='tree')renderTree();
-  if(v==='tags')renderTagManager();
-}
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SESSION_KEY)==='1') showApp();
+  document.addEventListener('click', handleOutsideClick);
+});
+document.getElementById('pw-input').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPassword(); });
 
 // ── API ────────────────────────────────────────
-function apiFetch(path,options={}){
-  return fetch(BASE+path,{...options,headers:{'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}})
-    .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});
+function apiFetch(path, options={}) {
+  return fetch(BASE+path, {
+    ...options,
+    headers:{'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}
+  }).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); });
 }
-function decode(b64){return decodeURIComponent(escape(atob(b64.replace(/\n/g,''))));}
+function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
 
 // ── Toast ──────────────────────────────────────
-function toast(msg,isError=false){
+function toast(msg, isError=false) {
   const el=document.getElementById('toast');
-  el.textContent=msg;el.className='show'+(isError?' error':'');
+  el.textContent=msg; el.className='show'+(isError?' error':'');
   setTimeout(()=>el.className='',2200);
 }
 
-// ── Load / Save ────────────────────────────────
-async function loadNotes(){
-  try{
-    const data=await apiFetch(NOTES_FILE);
-    notesSha=data.sha;
-    const parsed=JSON.parse(decode(data.content));
-    // 後方互換: {notes,tags} or 配列
-    if(Array.isArray(parsed)){notes=parsed;allTags=[];}
-    else{notes=parsed.notes||[];allTags=parsed.tags||[];}
-  }catch(e){notes=[];allTags=[];}
+// ── Notes load/save ────────────────────────────
+async function loadNotes() {
+  try {
+    const data = await apiFetch(NOTES_FILE);
+    notesSha = data.sha;
+    notes = JSON.parse(decode(data.content));
+  } catch(e) { notes=[]; notesSha=''; }
   renderAll();
 }
-async function saveNotes(message='Update notes'){
-  const el=document.getElementById('saving');el.className='show';
-  const payload={notes,tags:allTags};
-  const body={message,content:btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))))};
-  if(notesSha)body.sha=notesSha;
-  const res=await apiFetch(NOTES_FILE,{method:'PUT',body:JSON.stringify(body)});
-  notesSha=res.content.sha;
+async function saveNotes(message='Update notes') {
+  const el=document.getElementById('saving'); el.className='show';
+  const body={ message, content:btoa(unescape(encodeURIComponent(JSON.stringify(notes,null,2)))) };
+  if (notesSha) body.sha=notesSha;
+  const res = await apiFetch(NOTES_FILE,{method:'PUT',body:JSON.stringify(body)});
+  notesSha = res.content.sha;
   el.className='';
 }
 
-// ── Tag manager ────────────────────────────────
-function renderTagManager(){
-  const ul=document.getElementById('tag-list-edit');
-  ul.innerHTML=allTags.map((t,i)=>`
-    <li>
-      <span class="tag-edit-name" id="tname-${i}">${t}</span>
-      <input class="tag-edit-input" id="tinput-${i}" value="${t}" style="display:none" onkeydown="if(event.key==='Enter')saveTagEdit(${i})">
-      <div class="tag-edit-actions">
-        <button class="sm-btn" id="tedit-${i}" onclick="startTagEdit(${i})">編集</button>
-        <button class="sm-btn" id="tsave-${i}" style="display:none" onclick="saveTagEdit(${i})">保存</button>
-        <button class="sm-btn danger" onclick="deleteTag(${i})">削除</button>
-      </div>
-    </li>`).join('');
-}
-function startTagEdit(i){
-  document.getElementById('tname-'+i).style.display='none';
-  document.getElementById('tinput-'+i).style.display='inline';
-  document.getElementById('tedit-'+i).style.display='none';
-  document.getElementById('tsave-'+i).style.display='inline';
-  document.getElementById('tinput-'+i).focus();
-}
-async function saveTagEdit(i){
-  const newName=document.getElementById('tinput-'+i).value.trim();
-  if(!newName)return;
-  const oldName=allTags[i];
-  allTags[i]=newName;
-  // メモのタグも更新
-  notes.forEach(n=>{if(n.tags)n.tags=n.tags.map(t=>t===oldName?newName:t);});
-  await saveNotes(`Rename tag: ${oldName} → ${newName}`);
-  renderTagManager();renderAll();toast('タグを更新しました');
-}
-async function deleteTag(i){
-  const name=allTags[i];
-  if(!confirm(`タグ「${name}」を削除しますか？\nこのタグを持つメモからも削除されます。`))return;
-  allTags.splice(i,1);
-  notes.forEach(n=>{if(n.tags)n.tags=n.tags.filter(t=>t!==name);});
-  await saveNotes(`Delete tag: ${name}`);
-  renderTagManager();renderAll();toast('削除しました');
-}
-async function addTag(){
-  const val=document.getElementById('add-tag-input').value.trim();
-  if(!val||allTags.includes(val))return;
-  allTags.push(val);
-  await saveNotes(`Add tag: ${val}`);
-  document.getElementById('add-tag-input').value='';
-  renderTagManager();renderAll();toast(`タグ「${val}」を追加しました`);
-}
-
-// ── Tag dropdown in editor ─────────────────────
-function toggleTagDropdown(){
-  const dd=document.getElementById('tag-dropdown');
-  dd.classList.toggle('open');
-  if(dd.classList.contains('open')){
-    document.getElementById('tag-dd-search').value='';
-    renderTagDropdown();
-    document.getElementById('tag-dd-search').focus();
+// ── Tags load/save ─────────────────────────────
+async function loadTags() {
+  try {
+    const data = await apiFetch(TAGS_FILE);
+    tagsSha = data.sha;
+    masterTags = JSON.parse(decode(data.content));
+  } catch(e) {
+    // tags.json未作成の場合は空配列、後で保存時に作成
+    masterTags = []; tagsSha = '';
   }
 }
-function renderTagDropdown(){
-  const dd=document.getElementById('tag-dropdown');
-  const q=document.getElementById('tag-dd-search').value.toLowerCase();
-  const note=notes.find(n=>n.id===currentNoteId);
-  const activeTags=note?note.tags||[]:[];
-  const filtered=allTags.filter(t=>!q||t.toLowerCase().includes(q));
-  // 既存のliを削除
-  dd.querySelectorAll('li').forEach(el=>el.remove());
-  filtered.forEach(t=>{
-    const li=document.createElement('li');
-    li.className=activeTags.includes(t)?'selected':'';
-    li.textContent=(activeTags.includes(t)?'✓ ':'')+t;
-    li.onclick=()=>toggleNoteTag(t);
-    dd.appendChild(li);
-  });
+async function saveTags() {
+  const body = { message:'Update tags', content:btoa(unescape(encodeURIComponent(JSON.stringify(masterTags,null,2)))) };
+  if (tagsSha) body.sha = tagsSha;
+  try {
+    const res = await apiFetch(TAGS_FILE,{method:'PUT',body:JSON.stringify(body)});
+    tagsSha = res.content.sha;
+  } catch(e) { toast('タグの保存に失敗しました',true); }
 }
-function toggleNoteTag(tag){
-  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
-  if((note.tags||[]).includes(tag)){note.tags=note.tags.filter(t=>t!==tag);}
-  else{note.tags=[...(note.tags||[]),tag];}
-  renderCurrentTags(note.tags);
-  renderTagDropdown();
-  markDirty();
+
+// ── View switching ─────────────────────────────
+function switchView(view) {
+  currentView = view;
+  document.getElementById('memo-view').style.display = view==='memo' ? 'block' : 'none';
+  document.getElementById('tree-view').style.display = view==='tree' ? 'block' : 'none';
+  document.getElementById('tab-memo').className = 'view-tab'+(view==='memo'?' active':'');
+  document.getElementById('tab-tree').className = 'view-tab'+(view==='tree'?' active':'');
+  if (view==='tree') renderTree();
 }
-// ドロップダウン外クリックで閉じる
-document.addEventListener('click',e=>{
-  const wrap=document.getElementById('tag-dd-wrap');
-  if(wrap&&!wrap.contains(e.target))document.getElementById('tag-dropdown').classList.remove('open');
-});
 
 // ── Render ─────────────────────────────────────
-function renderAll(){renderTagFilter();renderMemoList();}
+function renderAll() { renderTagFilter(); renderMemoList(); if(currentView==='tree') renderTree(); }
 
-function renderTagFilter(){
+function getAllTagsFromNotes() {
+  const m={};
+  notes.forEach(n=>(n.tags||[]).forEach(t=>{ m[t]=(m[t]||0)+1; }));
+  return m;
+}
+
+function renderTagFilter() {
+  const tagMap=getAllTagsFromNotes();
   const ul=document.getElementById('tag-filter');
   ul.innerHTML=`<li class="${activeTag===null?'active':''}" onclick="filterByTag(null,this)">すべて<span class="tag-count">${notes.length}</span></li>`;
+  // masterTagsを優先、残りはnotesから
+  const allTags = [...new Set([...masterTags, ...Object.keys(tagMap)])].sort();
   allTags.forEach(tag=>{
-    const count=notes.filter(n=>(n.tags||[]).includes(tag)).length;
+    const count=tagMap[tag]||0;
     const li=document.createElement('li');
     li.className=activeTag===tag?'active':'';
-    li.onclick=function(){filterByTag(tag,this);};
-    li.innerHTML=`${tag}<span class="tag-count">${count}</span>`;
-    ul.appendChild(li);
-  });
-  // allTagsにないタグもメモに存在する場合に備えて
-  const extraTags=[...new Set(notes.flatMap(n=>n.tags||[]))].filter(t=>!allTags.includes(t));
-  extraTags.forEach(tag=>{
-    const count=notes.filter(n=>(n.tags||[]).includes(tag)).length;
-    const li=document.createElement('li');
-    li.className=activeTag===tag?'active':'';
-    li.onclick=function(){filterByTag(tag,this);};
+    li.onclick=function(){ filterByTag(tag,this); };
     li.innerHTML=`${tag}<span class="tag-count">${count}</span>`;
     ul.appendChild(li);
   });
 }
 
-function filterByTag(tag,el){
+function filterByTag(tag,el) {
   activeTag=tag;
   document.querySelectorAll('.tag-filter li').forEach(l=>l.classList.remove('active'));
   el.classList.add('active');
   renderMemoList();
 }
-function getFilteredNotes(){return activeTag===null?notes:notes.filter(n=>(n.tags||[]).includes(activeTag));}
 
-function renderMemoList(){
+function getFilteredNotes() {
+  return activeTag===null ? notes : notes.filter(n=>(n.tags||[]).includes(activeTag));
+}
+
+function renderMemoList() {
   const panel=document.getElementById('memo-list-panel');
   panel.querySelectorAll('.memo-item').forEach(el=>el.remove());
   const filtered=getFilteredNotes();
   const noMemos=document.getElementById('no-memos');
-  if(!filtered.length){noMemos.style.display='block';return;}
+  if (!filtered.length) { noMemos.style.display='block'; return; }
   noMemos.style.display='none';
   [...filtered].reverse().forEach(note=>{
     const div=document.createElement('div');
@@ -521,10 +502,11 @@ function renderMemoList(){
     div.onclick=()=>openNote(note.id);
     const date=new Date(note.updatedAt).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
     const tagsHtml=(note.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
-    const tmp=document.createElement('div');tmp.innerHTML=note.body||'';
+    const tmp=document.createElement('div'); tmp.innerHTML=note.body||'';
+    const preview=tmp.textContent.slice(0,50).replace(/\n/g,' ');
     div.innerHTML=`
       <div class="memo-item-title">${note.title||'（タイトルなし）'}</div>
-      <div class="memo-item-preview">${tmp.textContent.slice(0,50).replace(/\n/g,' ')}</div>
+      <div class="memo-item-preview">${preview}</div>
       <div class="memo-item-meta">${date}</div>
       ${tagsHtml?`<div class="memo-item-tags">${tagsHtml}</div>`:''}`;
     panel.appendChild(div);
@@ -532,242 +514,447 @@ function renderMemoList(){
 }
 
 // ── Note operations ────────────────────────────
-function newMemo(){
-  if(isDirty&&currentNoteId&&!confirm('保存されていない変更があります。破棄しますか？'))return;
-  const note={id:Date.now().toString(),title:'',body:'',tags:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
-  notes.push(note);openNote(note.id);renderAll();
+function newMemo() {
+  if (isDirty && currentNoteId && !confirm('保存されていない変更があります。破棄しますか？')) return;
+  const note={ id:Date.now().toString(), title:'', body:'', tags:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
+  notes.push(note);
+  openNote(note.id);
+  renderAll();
   document.getElementById('memo-title').focus();
 }
-function openNote(id){
-  if(isDirty&&currentNoteId&&currentNoteId!==id&&!confirm('保存されていない変更があります。破棄しますか？'))return;
-  currentNoteId=id;isDirty=false;
-  const note=notes.find(n=>n.id===id);if(!note)return;
+
+function openNote(id) {
+  if (isDirty && currentNoteId && currentNoteId!==id && !confirm('保存されていない変更があります。破棄しますか？')) return;
+  currentNoteId=id; isDirty=false;
+  const note=notes.find(n=>n.id===id);
+  if (!note) return;
+  if (currentView==='tree') switchView('memo');
   document.getElementById('empty-state').style.display='none';
   document.getElementById('editor').style.display='flex';
   document.getElementById('memo-title').value=note.title||'';
   document.getElementById('memo-body').innerHTML=note.body||'';
   renderCurrentTags(note.tags||[]);
   renderMemoList();
-  document.getElementById('memo-body').oninput=markDirty;
+  const body=document.getElementById('memo-body');
+  body.oninput=markDirty;
 }
-function renderCurrentTags(tags){
+
+// ── Tag dropdown ───────────────────────────────
+function toggleTagDropdown() {
+  const dd = document.getElementById('tag-dropdown');
+  const isOpen = dd.classList.contains('open');
+  if (isOpen) { dd.classList.remove('open'); return; }
+  renderTagDropdown();
+  dd.classList.add('open');
+  document.getElementById('tag-dropdown-input').focus();
+}
+
+function renderTagDropdown() {
+  const note = notes.find(n=>n.id===currentNoteId);
+  const currentTags = note ? (note.tags||[]) : [];
+  const allTags = [...new Set([...masterTags, ...Object.keys(getAllTagsFromNotes())])].sort();
+  const list = document.getElementById('tag-dropdown-list');
+  list.innerHTML = '';
+  if (!allTags.length) {
+    list.innerHTML = '<div style="padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--text-light);">タグがありません</div>';
+    return;
+  }
+  allTags.forEach(tag=>{
+    const div = document.createElement('div');
+    div.className = 'tag-dropdown-item' + (currentTags.includes(tag)?' selected':'');
+    div.textContent = tag;
+    div.onclick = () => toggleTagOnNote(tag);
+    list.appendChild(div);
+  });
+}
+
+function toggleTagOnNote(tag) {
+  const note = notes.find(n=>n.id===currentNoteId); if(!note) return;
+  const idx = (note.tags||[]).indexOf(tag);
+  if (idx>=0) note.tags.splice(idx,1);
+  else note.tags = [...(note.tags||[]), tag];
+  renderCurrentTags(note.tags);
+  renderTagDropdown();
+  renderTagFilter();
+  markDirty();
+}
+
+function handleTagDropdownInput(e) {
+  if (e.key==='Enter') addTagFromDropdown();
+}
+
+function addTagFromDropdown() {
+  const input = document.getElementById('tag-dropdown-input');
+  const val = input.value.trim();
+  if (!val) return;
+  // masterTagsに追加
+  if (!masterTags.includes(val)) { masterTags.push(val); saveTags(); }
+  // 現在のノートにも追加
+  const note = notes.find(n=>n.id===currentNoteId);
+  if (note && !(note.tags||[]).includes(val)) {
+    note.tags = [...(note.tags||[]), val];
+    renderCurrentTags(note.tags);
+    markDirty();
+  }
+  input.value='';
+  renderTagDropdown();
+  renderTagFilter();
+}
+
+function handleOutsideClick(e) {
+  const wrapper = document.getElementById('tag-dropdown-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('tag-dropdown').classList.remove('open');
+  }
+}
+
+function renderCurrentTags(tags) {
   document.getElementById('current-tags').innerHTML=tags.map(t=>
-    `<span class="current-tag">${t}<button onclick="removeMemoTag('${t}')">×</button></span>`
+    `<span class="current-tag">${t}<button onclick="removeTag('${t}')">×</button></span>`
   ).join('');
 }
-function removeMemoTag(tag){
-  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
+
+function removeTag(tag) {
+  const note=notes.find(n=>n.id===currentNoteId); if(!note) return;
   note.tags=(note.tags||[]).filter(t=>t!==tag);
-  renderCurrentTags(note.tags);markDirty();renderTagFilter();
+  renderCurrentTags(note.tags); markDirty(); renderTagFilter();
 }
-function markDirty(){isDirty=true;clearTimeout(autoSaveTimer);autoSaveTimer=setTimeout(()=>saveMemo(true),3000);}
-async function saveMemo(auto=false){
+
+function markDirty() {
+  isDirty=true;
   clearTimeout(autoSaveTimer);
-  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
+  autoSaveTimer=setTimeout(()=>saveMemo(true),3000);
+}
+
+async function saveMemo(auto=false) {
+  clearTimeout(autoSaveTimer);
+  const note=notes.find(n=>n.id===currentNoteId); if(!note) return;
   note.title=document.getElementById('memo-title').value.trim();
   note.body=document.getElementById('memo-body').innerHTML;
   note.updatedAt=new Date().toISOString();
   isDirty=false;
-  try{await saveNotes(`${auto?'Auto save':'Save'} memo: ${note.title||'（タイトルなし）'}`);renderAll();if(!auto)toast('保存しました');}
-  catch(e){toast('保存に失敗しました',true);}
-}
-async function deleteMemo(){
-  if(!confirm('このメモを削除しますか？'))return;
-  notes=notes.filter(n=>n.id!==currentNoteId);currentNoteId=null;isDirty=false;
-  document.getElementById('empty-state').style.display='flex';
-  document.getElementById('editor').style.display='none';
-  try{await saveNotes('Delete memo');renderAll();toast('削除しました');}
-  catch(e){toast('削除に失敗しました',true);}
+  try {
+    await saveNotes(`${auto?'Auto save':'Save'} memo: ${note.title||'（タイトルなし）'}`);
+    renderAll();
+    if (!auto) toast('保存しました');
+  } catch(e) { toast('保存に失敗しました',true); }
 }
 
-// ── Image upload ───────────────────────────────
-function triggerImageUpload(){document.getElementById('file-input').click();}
-async function handleFileSelect(e){const files=[...e.target.files];e.target.value='';if(files.length)await uploadAndInsertImages(files);}
-async function uploadAndInsertImages(files){
-  if(!currentNoteId)return toast('先にメモを開いてください',true);
-  document.getElementById('upload-overlay').classList.add('show');
-  for(const file of files){
-    if(!file.type.startsWith('image/'))continue;
-    try{
-      const dataUrl=await fileToDataUrl(file);
-      const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
-      const fname=`${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
-      const path=IMG_DIR+fname;
-      await apiFetch(path,{method:'PUT',body:JSON.stringify({message:`Upload memo image: ${fname}`,content:dataUrl.split(',')[1]})});
-      insertImageAtCursor(RAW+path,fname);markDirty();toast(`${file.name} を挿入しました`);
-    }catch(e){toast(`${file.name} のアップロードに失敗しました`,true);}
+async function deleteMemo() {
+  if (!confirm('このメモを削除しますか？')) return;
+  notes=notes.filter(n=>n.id!==currentNoteId);
+  currentNoteId=null; isDirty=false;
+  document.getElementById('empty-state').style.display='flex';
+  document.getElementById('editor').style.display='none';
+  try { await saveNotes('Delete memo'); renderAll(); toast('削除しました'); }
+  catch(e) { toast('削除に失敗しました',true); }
+}
+
+// ── Tag Manager ────────────────────────────────
+function openTagManager() {
+  renderTagManagerList();
+  document.getElementById('tag-manager-overlay').classList.add('open');
+}
+function closeTagManager() {
+  document.getElementById('tag-manager-overlay').classList.remove('open');
+  renderTagFilter();
+}
+function closeTagManagerIfOutside(e) {
+  if (e.target===document.getElementById('tag-manager-overlay')) closeTagManager();
+}
+
+function renderTagManagerList() {
+  const ul = document.getElementById('tag-manage-list');
+  ul.innerHTML = '';
+  const allTags = [...new Set([...masterTags, ...Object.keys(getAllTagsFromNotes())])].sort();
+  if (!allTags.length) {
+    ul.innerHTML='<li style="padding:0.5rem;font-size:0.8rem;color:var(--text-light);">タグがありません</li>';
+    return;
   }
-  document.getElementById('upload-overlay').classList.remove('show');
-}
-function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
-function insertImageAtCursor(src,alt){
-  const editor=document.getElementById('memo-body');editor.focus();
-  const sel=window.getSelection();
-  let range;
-  if(sel&&sel.rangeCount>0&&editor.contains(sel.anchorNode)){range=sel.getRangeAt(0);}
-  else{range=document.createRange();range.selectNodeContents(editor);range.collapse(false);}
-  range.deleteContents();
-  const img=document.createElement('img');img.src=src;img.alt=alt;
-  const br1=document.createElement('br'),br2=document.createElement('br');
-  range.insertNode(br2);range.insertNode(img);range.insertNode(br1);
-  range.setStartAfter(img);range.collapse(true);sel.removeAllRanges();sel.addRange(range);
-}
-function setupDragDrop(){
-  const panel=document.getElementById('editor-panel');
-  panel.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();panel.classList.add('drag-over');}});
-  panel.addEventListener('dragleave',e=>{if(!panel.contains(e.relatedTarget))panel.classList.remove('drag-over');});
-  panel.addEventListener('drop',e=>{
-    e.preventDefault();panel.classList.remove('drag-over');
-    if(!currentNoteId)return toast('先にメモを開いてください',true);
-    const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
-    if(files.length)uploadAndInsertImages(files);
+  allTags.forEach(tag=>{
+    const li = document.createElement('li');
+    li.className = 'tag-manage-item';
+    li.dataset.tag = tag;
+    li.innerHTML = `
+      <span class="tag-manage-name">${tag}</span>
+      <input class="tag-manage-input" type="text" value="${tag}" onkeydown="if(event.key==='Enter')saveTagEdit(this,'${tag}')">
+      <button class="tag-manage-btn-sm" onclick="startTagEdit(this)">編集</button>
+      <button class="tag-manage-btn-sm save" onclick="saveTagEdit(this.previousElementSibling,'${tag}')" style="display:none">保存</button>
+      <button class="tag-manage-btn-sm del" onclick="deleteTag('${tag}')">削除</button>
+    `;
+    ul.appendChild(li);
   });
-  document.getElementById('memo-body').addEventListener('paste',e=>{
-    const items=[...e.clipboardData.items].filter(i=>i.type.startsWith('image/'));
-    if(!items.length)return;
-    e.preventDefault();
-    if(!currentNoteId)return toast('先にメモを開いてください',true);
-    uploadAndInsertImages(items.map(i=>i.getAsFile()));
+}
+
+function startTagEdit(btn) {
+  const li = btn.closest('li');
+  li.querySelector('.tag-manage-name').classList.add('editing');
+  li.querySelector('.tag-manage-input').classList.add('editing');
+  btn.style.display = 'none';
+  li.querySelector('.tag-manage-btn-sm.save').style.display = 'inline-block';
+  li.querySelector('.tag-manage-input').focus();
+}
+
+function saveTagEdit(inputEl, oldTag) {
+  if (inputEl.tagName==='BUTTON') { // called from save button
+    inputEl = inputEl.previousElementSibling;
+  }
+  const newTag = inputEl.value.trim();
+  if (!newTag || newTag===oldTag) {
+    const li = inputEl.closest('li');
+    li.querySelector('.tag-manage-name').classList.remove('editing');
+    li.querySelector('.tag-manage-input').classList.remove('editing');
+    li.querySelector('.tag-manage-btn-sm:not(.del):not(.save)').style.display='inline-block';
+    li.querySelector('.tag-manage-btn-sm.save').style.display='none';
+    return;
+  }
+  // masterTagsを更新
+  const idx = masterTags.indexOf(oldTag);
+  if (idx>=0) masterTags[idx]=newTag; else if(!masterTags.includes(newTag)) masterTags.push(newTag);
+  // notesのタグも更新
+  notes.forEach(n=>{
+    if ((n.tags||[]).includes(oldTag)) {
+      n.tags = n.tags.map(t=>t===oldTag?newTag:t);
+    }
   });
+  saveTags();
+  saveNotes('Rename tag: '+oldTag+' -> '+newTag);
+  toast('タグを変更しました');
+  renderTagManagerList();
+}
+
+async function deleteTag(tag) {
+  if (!confirm(`タグ「${tag}」を削除しますか？\nメモからも除去されます。`)) return;
+  masterTags = masterTags.filter(t=>t!==tag);
+  notes.forEach(n=>{ n.tags=(n.tags||[]).filter(t=>t!==tag); });
+  await saveTags();
+  await saveNotes('Delete tag: '+tag);
+  toast('タグを削除しました');
+  renderTagManagerList();
+}
+
+async function addNewTag() {
+  const input = document.getElementById('new-tag-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!masterTags.includes(val)) {
+    masterTags.push(val);
+    await saveTags();
+    toast('タグを追加しました');
+  }
+  input.value='';
+  renderTagManagerList();
 }
 
 // ── Logic Tree ─────────────────────────────────
-function setTreeMode(mode,btn){
-  treeMode=mode;
-  document.querySelectorAll('.tree-mode-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+function setTreeMode(mode) {
+  treeMode = mode;
+  document.getElementById('tree-mode-tag').className = 'tree-mode-btn'+(mode==='tag'?' active':'');
+  document.getElementById('tree-mode-title').className = 'tree-mode-btn'+(mode==='title'?' active':'');
   renderTree();
 }
 
-function renderTree(){
-  const svg=document.getElementById('tree-svg');
-  svg.innerHTML='';
-  if(treeMode==='tag')renderTagTree(svg);
-  else renderTitleTree(svg);
+function renderTree() {
+  const container = document.getElementById('tree-content');
+  container.innerHTML = '';
+  if (!notes.length) {
+    container.innerHTML = '<div style="color:var(--text-light);font-size:0.8rem;padding:1rem;">メモがありません</div>';
+    return;
+  }
+  if (treeMode==='tag') renderTagTree(container);
+  else renderTitleTree(container);
 }
 
-function renderTagTree(svg){
-  // root → tags → memos
-  const W=900, NODE_W=140, NODE_H=36, GAP_X=60, GAP_Y=14;
+function renderTagTree(container) {
+  const tagMap = getAllTagsFromNotes();
+  const allTags = [...new Set([...masterTags, ...Object.keys(tagMap)])].sort();
 
-  // ツリー構造を構築
-  const usedTags=[...new Set(notes.flatMap(n=>n.tags||[]))];
-  // タグなしメモも含む
-  const untagged=notes.filter(n=>!(n.tags||[]).length);
-
-  const tagNodes=usedTags.map(tag=>({
-    tag,
-    memos:notes.filter(n=>(n.tags||[]).includes(tag))
-  }));
-  if(untagged.length)tagNodes.push({tag:'（タグなし）',memos:untagged});
-
-  // 高さ計算
-  let totalH=0;
-  tagNodes.forEach(tn=>{
-    tn._h=Math.max(1,tn.memos.length)*(NODE_H+GAP_Y);
-    totalH+=tn._h+20;
+  allTags.forEach(tag=>{
+    const tagNotes = notes.filter(n=>(n.tags||[]).includes(tag));
+    if (!tagNotes.length && !masterTags.includes(tag)) return;
+    const section = document.createElement('div');
+    section.className = 'tree-section';
+    const header = document.createElement('div');
+    header.className = 'tree-section-header';
+    header.innerHTML = `
+      <span class="tree-section-toggle">▾</span>
+      <span class="tree-section-tag">${tag}</span>
+      <span class="tree-section-count">${tagNotes.length}件</span>
+    `;
+    header.onclick = ()=>{
+      section.classList.toggle('collapsed');
+      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
+    };
+    const memosDiv = document.createElement('div');
+    memosDiv.className = 'tree-section-memos';
+    if (!tagNotes.length) {
+      memosDiv.innerHTML = '<div class="tree-no-tag">メモなし</div>';
+    } else {
+      [...tagNotes].reverse().forEach(note=>{
+        const link = document.createElement('div');
+        link.className = 'tree-memo-link';
+        const otherTags = (note.tags||[]).filter(t=>t!==tag);
+        link.innerHTML = `
+          <span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>
+          ${otherTags.length?`<span class="tree-memo-link-tags">${otherTags.map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('')}</span>`:''}
+        `;
+        link.onclick = ()=>openTreePreview(note.id);
+        memosDiv.appendChild(link);
+      });
+    }
+    section.appendChild(header);
+    section.appendChild(memosDiv);
+    container.appendChild(section);
   });
-  totalH=Math.max(totalH,400);
-  const svgH=totalH+80;
-  svg.setAttribute('height',svgH);
-  svg.setAttribute('viewBox',`0 0 ${W} ${svgH}`);
 
-  const rootX=40, rootY=svgH/2;
-  const tagX=rootX+NODE_W+GAP_X;
-  const memoX=tagX+NODE_W+GAP_X;
-
-  // Root node
-  drawNode(svg,rootX,rootY,'root','Memo',null);
-
-  let curY=40;
-  tagNodes.forEach(tn=>{
-    const ty=curY+tn._h/2;
-    // edge root→tag
-    drawEdge(svg,rootX+NODE_W,rootY,tagX,ty);
-    drawNode(svg,tagX,ty,'tag',tn.tag,null);
-
-    tn.memos.forEach((memo,mi)=>{
-      const my=curY+mi*(NODE_H+GAP_Y)+NODE_H/2;
-      drawEdge(svg,tagX+NODE_W,ty,memoX,my);
-      drawNode(svg,memoX,my,'memo',memo.title||'（タイトルなし）',memo.id);
+  // タグなし
+  const untagged = notes.filter(n=>!(n.tags||[]).length);
+  if (untagged.length) {
+    const section = document.createElement('div');
+    section.className = 'tree-section tree-untagged';
+    const header = document.createElement('div');
+    header.className = 'tree-section-header';
+    header.innerHTML = `<span class="tree-section-toggle">▾</span><span class="tree-section-tag" style="opacity:0.5">タグなし</span><span class="tree-section-count">${untagged.length}件</span>`;
+    header.onclick = ()=>{
+      section.classList.toggle('collapsed');
+      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
+    };
+    const memosDiv = document.createElement('div');
+    memosDiv.className = 'tree-section-memos';
+    untagged.forEach(note=>{
+      const link = document.createElement('div');
+      link.className = 'tree-memo-link';
+      link.innerHTML = `<span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>`;
+      link.onclick = ()=>openTreePreview(note.id);
+      memosDiv.appendChild(link);
     });
-    curY+=tn._h+20;
+    section.appendChild(header);
+    section.appendChild(memosDiv);
+    container.appendChild(section);
+  }
+}
+
+function renderTitleTree(container) {
+  // タイトルの頭文字でグループ化
+  const grouped = {};
+  [...notes].sort((a,b)=>(a.title||'').localeCompare(b.title||'','ja')).forEach(note=>{
+    const key = (note.title||'（タイトルなし）').slice(0,1) || '—';
+    if (!grouped[key]) grouped[key]=[];
+    grouped[key].push(note);
+  });
+  Object.entries(grouped).forEach(([key,groupNotes])=>{
+    const section = document.createElement('div');
+    section.className = 'tree-section';
+    const header = document.createElement('div');
+    header.className = 'tree-section-header';
+    header.innerHTML = `<span class="tree-section-toggle">▾</span><span class="tree-section-tag">${key}</span><span class="tree-section-count">${groupNotes.length}件</span>`;
+    header.onclick = ()=>{
+      section.classList.toggle('collapsed');
+      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
+    };
+    const memosDiv = document.createElement('div');
+    memosDiv.className = 'tree-section-memos';
+    groupNotes.forEach(note=>{
+      const link = document.createElement('div');
+      link.className = 'tree-memo-link';
+      const tagsHtml = (note.tags||[]).map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('');
+      link.innerHTML = `
+        <span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>
+        ${tagsHtml?`<span class="tree-memo-link-tags">${tagsHtml}</span>`:''}
+      `;
+      link.onclick = ()=>openTreePreview(note.id);
+      memosDiv.appendChild(link);
+    });
+    section.appendChild(header);
+    section.appendChild(memosDiv);
+    container.appendChild(section);
   });
 }
 
-function renderTitleTree(svg){
-  // root → memos(all) with tags as labels
-  const W=900, NODE_H=36, GAP_Y=12;
-  const memos=[...notes];
-  const svgH=Math.max(400,memos.length*(NODE_H+GAP_Y)+80);
-  svg.setAttribute('height',svgH);
-  svg.setAttribute('viewBox',`0 0 ${W} ${svgH}`);
+// ── Tree preview ───────────────────────────────
+function openTreePreview(id) {
+  const note = notes.find(n=>n.id===id); if(!note) return;
+  previewNoteId = id;
+  document.getElementById('tree-preview-title').textContent = note.title||'（タイトルなし）';
+  document.getElementById('tree-preview-tags').innerHTML = (note.tags||[]).map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('');
+  document.getElementById('tree-preview-body').innerHTML = note.body||'';
+  document.getElementById('tree-preview-overlay').classList.add('open');
+  document.getElementById('tree-preview-panel').classList.add('open');
+}
 
-  const rootX=40,rootY=svgH/2;
-  const memoX=240;
+function closeTreePreview() {
+  document.getElementById('tree-preview-overlay').classList.remove('open');
+  document.getElementById('tree-preview-panel').classList.remove('open');
+  previewNoteId = null;
+}
 
-  drawNode(svg,rootX,rootY,'root','Memo',null);
+function openNoteFromTree() {
+  const id = previewNoteId;
+  closeTreePreview();
+  openNote(id);
+}
 
-  memos.forEach((memo,i)=>{
-    const my=40+i*(NODE_H+GAP_Y)+NODE_H/2;
-    drawEdge(svg,rootX+140,rootY,memoX,my);
-    const label=(memo.title||'（タイトルなし）')+((memo.tags||[]).length?'  ['+memo.tags.join(', ')+']':'');
-    drawNode(svg,memoX,my,'memo',label,memo.id);
+// ── Image upload ───────────────────────────────
+function triggerImageUpload() { document.getElementById('file-input').click(); }
+async function handleFileSelect(e) {
+  const files=[...e.target.files]; e.target.value='';
+  if (!files.length) return;
+  await uploadAndInsertImages(files);
+}
+async function uploadAndInsertImages(files) {
+  if (!currentNoteId) return toast('先にメモを開いてください',true);
+  document.getElementById('upload-overlay').classList.add('show');
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const b64content = dataUrl.split(',')[1];
+      const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+      const fname = `${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+      const path = IMG_DIR + fname;
+      await apiFetch(path, { method:'PUT', body: JSON.stringify({ message:`Upload memo image: ${fname}`, content:b64content }) });
+      insertImageAtCursor(RAW + path, fname);
+      markDirty();
+      toast(`${file.name} を挿入しました`);
+    } catch(e) { toast(`${file.name} のアップロードに失敗しました`,true); }
+  }
+  document.getElementById('upload-overlay').classList.remove('show');
+}
+function fileToDataUrl(file) {
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+}
+function insertImageAtCursor(src, alt) {
+  const editor = document.getElementById('memo-body'); editor.focus();
+  const sel = window.getSelection();
+  let range;
+  if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) range = sel.getRangeAt(0);
+  else { range = document.createRange(); range.selectNodeContents(editor); range.collapse(false); }
+  range.deleteContents();
+  const img = document.createElement('img'); img.src=src; img.alt=alt;
+  const br1=document.createElement('br'); const br2=document.createElement('br');
+  range.insertNode(br2); range.insertNode(img); range.insertNode(br1);
+  range.setStartAfter(img); range.collapse(true); sel.removeAllRanges(); sel.addRange(range);
+}
+
+// ── Drag & Drop ────────────────────────────────
+function setupDragDrop() {
+  const panel = document.getElementById('editor-panel');
+  panel.addEventListener('dragover', e=>{ if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); panel.classList.add('drag-over'); } });
+  panel.addEventListener('dragleave', e=>{ if (!panel.contains(e.relatedTarget)) panel.classList.remove('drag-over'); });
+  panel.addEventListener('drop', e=>{
+    e.preventDefault(); panel.classList.remove('drag-over');
+    if (!currentNoteId) return toast('先にメモを開いてください',true);
+    const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+    if (files.length) uploadAndInsertImages(files);
   });
-}
-
-function drawNode(svg,x,y,type,label,noteId){
-  const W=type==='root'?120:type==='tag'?130:300;
-  const H=34;
-  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-  g.setAttribute('class','tree-node-'+type);
-  if(noteId){g.style.cursor='pointer';g.addEventListener('click',()=>showMemoPreview(noteId));}
-
-  const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-  rect.setAttribute('x',x);rect.setAttribute('y',y-H/2);
-  rect.setAttribute('width',W);rect.setAttribute('height',H);
-  rect.setAttribute('rx',4);
-
-  const text=document.createElementNS('http://www.w3.org/2000/svg','text');
-  text.setAttribute('x',x+W/2);text.setAttribute('y',y+4);
-  text.setAttribute('text-anchor','middle');
-  text.setAttribute('font-family',"'Noto Sans JP',sans-serif");
-  text.setAttribute('font-size','11');
-  // ラベルが長い場合は切り詰め
-  const maxLen=type==='memo'?38:type==='tag'?14:10;
-  text.textContent=label.length>maxLen?label.slice(0,maxLen)+'…':label;
-
-  if(type==='root'){rect.setAttribute('fill','#2c2c2c');text.setAttribute('fill','#faf9f7');}
-  else if(type==='tag'){rect.setAttribute('fill','#e8e4de');rect.setAttribute('stroke','#dcdcdc');text.setAttribute('fill','#6b6b6b');}
-  else{rect.setAttribute('fill','white');rect.setAttribute('stroke','#dcdcdc');text.setAttribute('fill','#2c2c2c');}
-
-  g.appendChild(rect);g.appendChild(text);
-  svg.appendChild(g);
-}
-
-function drawEdge(svg,x1,y1,x2,y2){
-  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-  const cx=(x1+x2)/2;
-  path.setAttribute('d',`M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
-  path.setAttribute('class','tree-edge');
-  svg.appendChild(path);
-}
-
-// ── Memo preview (from tree) ───────────────────
-function showMemoPreview(id){
-  const note=notes.find(n=>n.id===id);if(!note)return;
-  previewNoteId=id;
-  document.getElementById('preview-title').textContent=note.title||'（タイトルなし）';
-  document.getElementById('preview-tags').innerHTML=(note.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
-  document.getElementById('preview-body').innerHTML=note.body||'（内容なし）';
-  document.getElementById('tree-preview').classList.add('open');
-}
-function closePreview(){document.getElementById('tree-preview').classList.remove('open');previewNoteId=null;}
-function openPreviewInEditor(){
-  if(!previewNoteId)return;
-  closePreview();
-  switchView('memo');
-  setTimeout(()=>openNote(previewNoteId),100);
+  document.getElementById('memo-body').addEventListener('paste', e=>{
+    const items=[...e.clipboardData.items].filter(i=>i.type.startsWith('image/'));
+    if (!items.length) return;
+    e.preventDefault();
+    const files = items.map(i=>i.getAsFile());
+    if (!currentNoteId) return toast('先にメモを開いてください',true);
+    uploadAndInsertImages(files);
+  });
 }
 </script>
 </body>
