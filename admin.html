@@ -31,7 +31,6 @@
     header h1 { font-family: 'Noto Serif JP', serif; font-weight: 300; font-size: 1rem; letter-spacing: 0.3em; color: var(--text-light); }
     header span { font-size: 0.72rem; color: var(--text-light); opacity: 0.6; letter-spacing: 0.1em; }
 
-    /* Tab nav */
     .tab-nav { display: flex; border-bottom: 1px solid var(--border); padding: 0 2rem; max-width: 760px; margin: 0 auto; }
     .tab-btn { font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 300; letter-spacing: 0.1em; padding: 1rem 1.5rem 0.9rem; border: none; background: none; color: var(--text-light); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; }
     .tab-btn:hover { color: var(--text); }
@@ -58,70 +57,61 @@
     button.save-order { background: var(--success); color: white; border-color: var(--success); }
     button.save-order:hover { background: #219a52; }
 
-    /* Section */
     .section-title { font-family: 'Noto Serif JP', serif; font-size: 1rem; font-weight: 400; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
     .section-subtitle { font-size: 0.75rem; color: var(--text-light); margin-bottom: 1.8rem; }
     .divider { width: 32px; height: 1px; background: var(--accent); opacity: 0.4; margin: 0.6rem 0 1.8rem; }
     .section-gap { margin-bottom: 3.5rem; }
 
-    /* Lists */
     .edit-list { list-style: none; margin-bottom: 1rem; }
-    .edit-list li { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0.6rem; border-bottom: 1px solid var(--border); gap: 1rem; border-radius: 3px; transition: background 0.1s; }
+    .edit-list li { display: flex; align-items: center; padding: 0.75rem 0.6rem; border-bottom: 1px solid var(--border); gap: 0.8rem; border-radius: 3px; transition: background 0.1s; }
     .edit-list li.dragging { opacity: 0.4; }
-    .edit-list li.drag-over { background: #f0ece6; border-bottom-color: var(--accent); }
+    .edit-list li.drag-over { background: #f0ece6; }
     .item-label { font-size: 0.88rem; flex: 1; min-width: 0; }
     .item-label span { font-size: 0.72rem; color: var(--text-light); margin-left: 0.6rem; }
     .item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center; }
 
-    /* Drag handle */
-    .drag-handle { cursor: grab; color: var(--border); font-size: 1rem; padding: 0 0.4rem; user-select: none; flex-shrink: 0; }
+    .drag-handle { cursor: grab; color: #ccc; font-size: 1rem; padding: 0 0.2rem; user-select: none; flex-shrink: 0; }
     .drag-handle:hover { color: var(--accent); }
     .drag-handle:active { cursor: grabbing; }
 
-    /* Sort bar */
-    .sort-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
-    .sort-hint { font-size: 0.7rem; color: var(--text-light); letter-spacing: 0.05em; }
+    .sort-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; min-height: 2rem; }
+    .sort-hint { font-size: 0.7rem; color: var(--text-light); }
 
-    /* Entry list */
     .entry-info { flex: 1; min-width: 0; }
     .entry-title { font-size: 0.9rem; font-family: 'Noto Serif JP', serif; }
-    .entry-sub { font-size: 0.72rem; color: var(--text-light); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-sub { font-size: 0.72rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Page selector */
     .page-selector { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .page-btn { font-size: 0.72rem; letter-spacing: 0.06em; padding: 0.4rem 1rem; }
+    .page-btn { font-size: 0.72rem; padding: 0.4rem 1rem; }
     .page-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 
-    /* Forms */
     .add-form { background: var(--bg-sub); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; margin-top: 1rem; }
     .add-form h3 { font-size: 0.78rem; color: var(--text-light); letter-spacing: 0.1em; margin-bottom: 1.2rem; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 0.8rem; }
     .form-row.full { grid-template-columns: 1fr; }
     label { display: block; font-size: 0.7rem; color: var(--text-light); letter-spacing: 0.08em; margin-bottom: 0.3rem; }
     input[type=text], input[type=password], textarea { width: 100%; padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-radius: 3px; font-family: 'Noto Sans JP', sans-serif; font-size: 0.82rem; font-weight: 300; background: white; color: var(--text); outline: none; transition: border-color 0.15s; }
-    input[type=text]:focus, input[type=password]:focus, textarea:focus { border-color: var(--accent); }
+    input:focus, textarea:focus { border-color: var(--accent); }
     textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
     .form-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1rem; }
+    .form-note { font-size: 0.7rem; color: var(--text-light); margin-top: 0.4rem; }
 
-    /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(44,44,44,0.4); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
     .modal h3 { font-family: 'Noto Serif JP', serif; font-size: 0.9rem; font-weight: 400; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.5rem; }
 
-    /* Toast */
     #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 0.7rem 1.6rem; border-radius: 3px; font-size: 0.78rem; letter-spacing: 0.06em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
     #toast.show { opacity: 1; }
     #toast.error { background: var(--danger); }
 
-    .loading { text-align: center; padding: 2rem; color: var(--text-light); font-size: 0.8rem; }
+    .loading { padding: 2rem; color: var(--text-light); font-size: 0.8rem; }
     .empty { color: var(--text-light); font-size: 0.82rem; padding: 1.5rem 0; display: block; }
   </style>
 </head>
 <body>
 
-<!-- Password Screen -->
 <div id="pw-screen">
   <div class="pw-box">
     <h1>note</h1>
@@ -131,7 +121,6 @@
   </div>
 </div>
 
-<!-- Main App -->
 <div id="app">
   <header>
     <h1>note</h1>
@@ -144,11 +133,9 @@
   </div>
 
   <div class="container">
-
-    <!-- Token -->
     <div id="setup">
       <h2>GitHub 接続設定</h2>
-      <p>Personal Access Token（repo権限）を入力してください。このページ内にのみ保存されます。</p>
+      <p>Personal Access Token（repo権限）を入力してください。セッション中のみ保持されます。</p>
       <div class="token-row">
         <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
         <button onclick="saveToken()">接続</button>
@@ -156,10 +143,9 @@
       <p id="token-status" style="margin-top:0.8rem; font-size:0.72rem;"></p>
     </div>
 
-    <!-- ═══ TAB: トップページ ═══ -->
+    <!-- TAB: トップページ -->
     <div id="tab-index" class="tab-panel active">
 
-      <!-- Nav -->
       <div class="section-gap">
         <h2 class="section-title">ナビゲーション</h2>
         <p class="section-subtitle">navバーのリンクを追加・編集・削除・並び替え</p>
@@ -174,7 +160,11 @@
           <h3>新規ナビリンク</h3>
           <div class="form-row">
             <div><label>表示名</label><input type="text" id="new-nav-label" placeholder="Blog"></div>
-            <div><label>リンク先ファイル</label><input type="text" id="new-nav-href" placeholder="blog.html"></div>
+            <div>
+              <label>リンク先ファイル名</label>
+              <input type="text" id="new-nav-href" placeholder="blog.html">
+              <p class="form-note">※ 存在しないファイル名を入力すると自動生成します</p>
+            </div>
           </div>
           <div class="form-actions">
             <button onclick="toggleForm('add-nav-form')">キャンセル</button>
@@ -183,7 +173,6 @@
         </div>
       </div>
 
-      <!-- Cards -->
       <div class="section-gap">
         <h2 class="section-title">トップカード</h2>
         <p class="section-subtitle">index.htmlのカード一覧を追加・編集・削除・並び替え</p>
@@ -198,7 +187,11 @@
           <h3>新規カード</h3>
           <div class="form-row">
             <div><label>タイトル</label><input type="text" id="new-card-title" placeholder="Blog"></div>
-            <div><label>リンク先ファイル</label><input type="text" id="new-card-href" placeholder="blog.html"></div>
+            <div>
+              <label>リンク先ファイル名</label>
+              <input type="text" id="new-card-href" placeholder="blog.html">
+              <p class="form-note">※ 存在しないファイル名を入力すると自動生成します</p>
+            </div>
           </div>
           <div class="form-row full">
             <div><label>説明文</label><input type="text" id="new-card-desc" placeholder="ブログ記事一覧"></div>
@@ -212,10 +205,9 @@
 
     </div>
 
-    <!-- ═══ TAB: Selection ═══ -->
+    <!-- TAB: Selection -->
     <div id="tab-selection" class="tab-panel">
 
-      <!-- Categories -->
       <div class="section-gap">
         <h2 class="section-title">カテゴリ管理</h2>
         <p class="section-subtitle">Selectionページのカテゴリを追加・削除・並び替え</p>
@@ -239,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Entries -->
       <div class="section-gap">
         <h2 class="section-title">エントリ管理</h2>
         <p class="section-subtitle">各カテゴリページのエントリを追加・編集・削除・並び替え</p>
@@ -331,26 +322,49 @@
 const REPO = '0301egg/note';
 const BASE = 'https://api.github.com/repos/' + REPO + '/contents/';
 const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
+const SESSION_KEY = 'note_admin_auth';
 
 let token = '';
 let indexContent = '', indexSha = '';
-let categories = [], selectionSha = '';
+let categories = [];
 let currentPage = null, currentPageContent = '', currentPageSha = '';
 let editingMode = '', editingIndex = -1;
 
-// ── Password ───────────────────────────────────
+// ── Password & Session ─────────────────────────
 async function checkPassword() {
   const pw = document.getElementById('pw-input').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
   const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
   if (hash === PW_HASH) {
-    document.getElementById('pw-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+    sessionStorage.setItem(SESSION_KEY, '1');
+    showApp();
   } else {
     document.getElementById('pw-error').textContent = 'パスワードが違います';
     document.getElementById('pw-input').value = '';
   }
 }
+
+function showApp() {
+  document.getElementById('pw-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // sessionStorageにトークンが残っていれば自動復元
+  const savedToken = sessionStorage.getItem('note_admin_token');
+  if (savedToken) {
+    token = savedToken;
+    document.getElementById('token-input').value = savedToken;
+    document.getElementById('token-status').style.color = 'var(--success)';
+    document.getElementById('token-status').textContent = '✓ 接続済み（セッションから復元）';
+    loadAll();
+  }
+}
+
+// 起動時にセッションチェック
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    showApp();
+  }
+});
+
 document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPassword(); });
 
 // ── Tab ────────────────────────────────────────
@@ -368,7 +382,12 @@ function apiFetch(path, options={}) {
   }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
 }
 function apiPut(path, content, sha, message) {
-  return apiFetch(path, {method:'PUT', body:JSON.stringify({message, content:btoa(unescape(encodeURIComponent(content))), sha})});
+  const body = {message, content: btoa(unescape(encodeURIComponent(content)))};
+  if (sha) body.sha = sha;
+  return apiFetch(path, {method:'PUT', body:JSON.stringify(body)});
+}
+async function fileExists(path) {
+  try { await apiFetch(path); return true; } catch(e) { return false; }
 }
 function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
 
@@ -385,6 +404,7 @@ function saveToken() {
   if (!token) return;
   document.getElementById('token-status').textContent = '接続確認中...';
   apiFetch('index.html').then(() => {
+    sessionStorage.setItem('note_admin_token', token);
     document.getElementById('token-status').style.color = 'var(--success)';
     document.getElementById('token-status').textContent = '✓ 接続しました';
     loadAll();
@@ -397,7 +417,6 @@ async function loadAll() { await loadIndex(); await loadCategories(); }
 
 // ── Drag & Drop ────────────────────────────────
 let dragSrc = null;
-
 function makeDraggable(ul, onReorder) {
   ul.addEventListener('dragstart', e => {
     dragSrc = e.target.closest('li');
@@ -411,13 +430,11 @@ function makeDraggable(ul, onReorder) {
     if (!target || target === dragSrc) return;
     ul.querySelectorAll('li').forEach(l => l.classList.remove('drag-over'));
     target.classList.add('drag-over');
-    const rect = target.getBoundingClientRect();
-    const mid = rect.top + rect.height / 2;
-    if (e.clientY < mid) ul.insertBefore(dragSrc, target);
-    else ul.insertBefore(dragSrc, target.nextSibling);
+    const mid = target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+    e.clientY < mid ? ul.insertBefore(dragSrc, target) : ul.insertBefore(dragSrc, target.nextSibling);
   });
   ul.addEventListener('dragend', () => {
-    ul.querySelectorAll('li').forEach(l => { l.classList.remove('dragging','drag-over'); });
+    ul.querySelectorAll('li').forEach(l => l.classList.remove('dragging','drag-over'));
     dragSrc = null;
     onReorder();
   });
@@ -470,21 +487,128 @@ function renderCardList() {
   makeDraggable(ul, () => document.getElementById('save-card-btn').style.display = 'inline-block');
 }
 
-// Nav save order
+// ── ページ自動生成 ──────────────────────────────
+function buildBlankPage(title, desc) {
+  const navItems = parseNavItems(indexContent);
+  const navLinks = navItems.map(it => `    <a href="${it.href}">${it.label}</a>`).join('\n');
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} — note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <h1><a href="index.html">note</a></h1>
+  </header>
+
+  <nav>
+${navLinks}
+  </nav>
+
+  <main>
+    <div class="page">
+      <h2 class="page-title">${title}</h2>
+      <p class="page-subtitle">${desc}</p>
+      <div class="divider"></div>
+
+      <div class="section">
+        <p>準備中です。</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 note</p>
+  </footer>
+
+</body>
+</html>
+`;
+}
+
+async function ensurePageExists(href, label, desc) {
+  const exists = await fileExists(href);
+  if (!exists) {
+    await apiPut(href, buildBlankPage(label, desc || ''), '', `Create ${href}`);
+    return true; // 新規作成
+  }
+  return false; // 既存
+}
+
+// Nav CRUD
+async function addNavItem() {
+  const label = document.getElementById('new-nav-label').value.trim();
+  const href  = document.getElementById('new-nav-href').value.trim();
+  if (!label || !href) return toast('表示名とリンク先を入力してください', true);
+
+  const created = await ensurePageExists(href, label, '');
+  let html = indexContent.replace('</nav>', `    <a href="${href}">${label}</a>\n  </nav>`);
+  await apiPut('index.html', html, indexSha, `Add nav: ${label}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  document.getElementById('new-nav-label').value = '';
+  document.getElementById('new-nav-href').value = '';
+  toggleForm('add-nav-form'); renderNavList();
+  toast(created ? `「${label}」を追加し、${href} を新規作成しました` : `「${label}」をナビに追加しました`);
+}
+
+async function deleteNavItem(i) {
+  const items = parseNavItems(indexContent);
+  const it = items[i];
+  if (!confirm(`ナビから「${it.label}」を削除しますか？\n（ページファイル自体は残ります）`)) return;
+  const esc = it.href.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = indexContent.replace(new RegExp(`\\s*<a href="${esc}">[^<]+<\\/a>`), '');
+  await apiPut('index.html', html, indexSha, `Remove nav: ${it.label}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  renderNavList(); toast(`「${it.label}」をナビから削除しました`);
+}
+
 async function saveNavOrder() {
   const lis = [...document.getElementById('nav-list').querySelectorAll('li[draggable]')];
   const allItems = parseNavItems(indexContent);
   const newOrder = lis.map(li => allItems[parseInt(li.dataset.idx)]);
-  let html = indexContent;
   const newNav = newOrder.map(it => `    <a href="${it.href}">${it.label}</a>`).join('\n');
-  html = html.replace(/<nav>[\s\S]*?<\/nav>/, `<nav>\n${newNav}\n  </nav>`);
+  let html = indexContent.replace(/<nav>[\s\S]*?<\/nav>/, `<nav>\n${newNav}\n  </nav>`);
   await apiPut('index.html', html, indexSha, 'Reorder nav');
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
   document.getElementById('save-nav-btn').style.display = 'none';
   renderNavList(); toast('ナビの順序を保存しました');
 }
 
-// Card save order
+// Card CRUD
+async function addCardItem() {
+  const title = document.getElementById('new-card-title').value.trim();
+  const href  = document.getElementById('new-card-href').value.trim();
+  const desc  = document.getElementById('new-card-desc').value.trim();
+  if (!title || !href) return toast('タイトルとリンク先を入力してください', true);
+
+  const created = await ensurePageExists(href, title, desc);
+  const newItem = `        <li>\n          <a href="${href}">\n            <span class="card-title">${title}</span>\n            <p class="card-desc">${desc}</p>\n          </a>\n        </li>`;
+  let html = indexContent.replace('      </ul>', newItem + '\n      </ul>');
+  await apiPut('index.html', html, indexSha, `Add card: ${title}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  ['new-card-title','new-card-href','new-card-desc'].forEach(id => document.getElementById(id).value='');
+  toggleForm('add-card-form'); renderCardList();
+  toast(created ? `「${title}」を追加し、${href} を新規作成しました` : `「${title}」をカードに追加しました`);
+}
+
+async function deleteCardItem(i) {
+  const items = parseCardItems(indexContent);
+  const it = items[i];
+  if (!confirm(`「${it.title}」を削除しますか？`)) return;
+  const esc = it.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = indexContent.replace(new RegExp(`\\s*<li>\\s*<a href="[^"]+">\\s*<span class="card-title">${esc}<\\/span>[\\s\\S]*?<\\/a>\\s*<\\/li>`), '');
+  await apiPut('index.html', html, indexSha, `Remove card: ${it.title}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  renderCardList(); toast(`「${it.title}」を削除しました`);
+}
+
 async function saveCardOrder() {
   const lis = [...document.getElementById('card-list').querySelectorAll('li[draggable]')];
   const allItems = parseCardItems(indexContent);
@@ -497,53 +621,6 @@ async function saveCardOrder() {
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
   document.getElementById('save-card-btn').style.display = 'none';
   renderCardList(); toast('カードの順序を保存しました');
-}
-
-// Nav CRUD
-async function addNavItem() {
-  const label = document.getElementById('new-nav-label').value.trim();
-  const href  = document.getElementById('new-nav-href').value.trim();
-  if (!label || !href) return toast('表示名とリンク先を入力してください', true);
-  let html = indexContent.replace('</nav>', `    <a href="${href}">${label}</a>\n  </nav>`);
-  await apiPut('index.html', html, indexSha, `Add nav: ${label}`);
-  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  document.getElementById('new-nav-label').value = '';
-  document.getElementById('new-nav-href').value = '';
-  toggleForm('add-nav-form'); renderNavList(); toast(`ナビに「${label}」を追加しました`);
-}
-async function deleteNavItem(i) {
-  const items = parseNavItems(indexContent);
-  const it = items[i];
-  if (!confirm(`ナビから「${it.label}」を削除しますか？`)) return;
-  const esc = it.href.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  let html = indexContent.replace(new RegExp(`\\s*<a href="${esc}">[^<]+<\\/a>`), '');
-  await apiPut('index.html', html, indexSha, `Remove nav: ${it.label}`);
-  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  renderNavList(); toast(`「${it.label}」を削除しました`);
-}
-
-// Card CRUD
-async function addCardItem() {
-  const title = document.getElementById('new-card-title').value.trim();
-  const href  = document.getElementById('new-card-href').value.trim();
-  const desc  = document.getElementById('new-card-desc').value.trim();
-  if (!title || !href) return toast('タイトルとリンク先を入力してください', true);
-  const newItem = `        <li>\n          <a href="${href}">\n            <span class="card-title">${title}</span>\n            <p class="card-desc">${desc}</p>\n          </a>\n        </li>`;
-  let html = indexContent.replace('      </ul>', newItem + '\n      </ul>');
-  await apiPut('index.html', html, indexSha, `Add card: ${title}`);
-  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  ['new-card-title','new-card-href','new-card-desc'].forEach(id => document.getElementById(id).value='');
-  toggleForm('add-card-form'); renderCardList(); toast(`「${title}」を追加しました`);
-}
-async function deleteCardItem(i) {
-  const items = parseCardItems(indexContent);
-  const it = items[i];
-  if (!confirm(`「${it.title}」を削除しますか？`)) return;
-  const esc = it.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  let html = indexContent.replace(new RegExp(`\\s*<li>\\s*<a href="[^"]+">\\s*<span class="card-title">${esc}<\\/span>[\\s\\S]*?<\\/a>\\s*<\\/li>`), '');
-  await apiPut('index.html', html, indexSha, `Remove card: ${it.title}`);
-  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  renderCardList(); toast(`「${it.title}」を削除しました`);
 }
 
 // Index edit modal
@@ -594,7 +671,6 @@ async function saveIndexEdit() {
 // ── Selection / Categories ─────────────────────
 async function loadCategories() {
   const data = await apiFetch('selection.html');
-  selectionSha = data.sha;
   const content = decode(data.content);
   const matches = [...content.matchAll(/<a href="(selection-[^"]+\.html)">\s*<span class="card-title">([^<]+)<\/span>\s*<p class="card-desc">([^<]+)<\/p>/g)];
   categories = matches.map(m => ({ file: m[1], en: m[2].trim(), ja: m[3].trim() }));
@@ -644,7 +720,7 @@ async function addCategory() {
   const newItem = `        <li>\n          <a href="${slug}">\n            <span class="card-title">${en}</span>\n            <p class="card-desc">${ja}</p>\n          </a>\n        </li>`;
   html = html.replace('      </ul>', newItem + '\n      </ul>');
   await apiPut('selection.html', html, data.sha, `Add category: ${en}`);
-  try { await apiPut(slug, buildNewPage(en, ja), '', `Create ${slug}`); } catch(e){}
+  try { await apiPut(slug, buildSelectionPage(en, ja), '', `Create ${slug}`); } catch(e){}
   document.getElementById('new-cat-en').value = '';
   document.getElementById('new-cat-ja').value = '';
   toggleForm('add-cat-form'); await loadCategories(); toast(`「${en}」を追加しました`);
@@ -660,7 +736,7 @@ async function deleteCategory(i) {
   await loadCategories(); toast(`「${cat.en}」を削除しました`);
 }
 
-function buildNewPage(en, ja) {
+function buildSelectionPage(en, ja) {
   return `<!DOCTYPE html>\n<html lang="ja">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${en} — note</title>\n  <link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n\n  <header class="site-header">\n    <h1><a href="index.html">note</a></h1>\n  </header>\n\n  <nav>\n    <a href="about.html">About</a>\n    <a href="interest.html">Interest</a>\n    <a href="philosophy.html">Philosophy</a>\n    <a href="archive.html">Archive</a>\n    <a href="selection.html">Selection</a>\n  </nav>\n\n  <main>\n    <div class="page">\n      <p class="page-subtitle"><a href="selection.html">&larr; Selection</a></p>\n      <h2 class="page-title">${en}</h2>\n      <p class="page-subtitle">${ja}</p>\n      <div class="divider"></div>\n\n      <div class="section">\n        <p>準備中です。</p>\n      </div>\n    </div>\n  </main>\n\n  <footer>\n    <p>&copy; 2025 note</p>\n  </footer>\n\n</body>\n</html>\n`;
 }
 
@@ -723,7 +799,6 @@ async function saveEntryOrder() {
   const lis = [...document.getElementById('entry-list').querySelectorAll('li[draggable]')];
   const allEntries = parseEntries(currentPageContent);
   const newOrder = lis.map(li => allEntries[parseInt(li.dataset.idx)]);
-  // カード部分だけ置換
   const newCards = newOrder.map(e => buildCardHtml(e)).join('');
   let html = currentPageContent.replace(/([\s\S]*?<div class="divider"><\/div>\s*\n)([\s\S]*?)(\s*<\/div>\s*<\/main>)/, `$1${newCards}$3`);
   await apiPut(currentPage, html, currentPageSha, 'Reorder entries');
