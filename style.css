@@ -71,8 +71,11 @@ a:hover {
 
 /* ── nav ── */
 nav {
-  text-align: center;
-  padding: 1.2rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.2rem;
+  padding: 0.9rem 2rem;
   border-bottom: 1px solid var(--border);
 }
 
@@ -80,8 +83,9 @@ nav a {
   font-size: 0.78rem;
   letter-spacing: 0.1em;
   color: var(--text-light);
-  margin: 0 1rem;
+  padding: 0.3rem 0.8rem;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 nav a:hover {
