@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ── Password screen ── */
     #pw-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
     .pw-box { text-align:center; width:300px; }
     .pw-box h1 { font-family:'Noto Serif JP',serif; font-weight:300; font-size:1rem; letter-spacing:0.3em; color:var(--text-light); margin-bottom:2.5rem; }
@@ -19,27 +18,20 @@
     .pw-box .pw-btn:hover { background:var(--accent-dark); }
     .pw-error { color:#c0392b; font-size:0.72rem; margin-top:0.6rem; min-height:1rem; }
 
-    /* ── App layout ── */
     #app { display:none; }
-    .memo-layout { display:grid; grid-template-columns:240px 1fr; min-height:calc(100vh - 120px); gap:0; border-top:1px solid var(--border); }
+    .memo-layout { display:grid; grid-template-columns:180px 220px 1fr; min-height:calc(100vh - 120px); border-top:1px solid var(--border); }
 
-    /* ── Sidebar ── */
     .sidebar { border-right:1px solid var(--border); padding:1.5rem 1rem; background:var(--bg-sub); }
     .sidebar-section { margin-bottom:2rem; }
     .sidebar-label { font-size:0.65rem; letter-spacing:0.15em; color:var(--text-light); opacity:0.6; margin-bottom:0.8rem; text-transform:uppercase; }
-
-    /* New memo button */
     .new-btn { width:100%; padding:0.6rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; margin-bottom:1.5rem; transition:background 0.15s; }
     .new-btn:hover { background:var(--accent-dark); }
-
-    /* Tag list */
     .tag-filter { list-style:none; }
     .tag-filter li { display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.5rem; border-radius:3px; cursor:pointer; font-size:0.78rem; color:var(--text-light); transition:background 0.1s; user-select:none; }
     .tag-filter li:hover { background:var(--border); }
     .tag-filter li.active { background:var(--text); color:var(--bg); }
     .tag-count { font-size:0.65rem; opacity:0.6; }
 
-    /* Memo list */
     .memo-list-panel { border-right:1px solid var(--border); overflow-y:auto; max-height:calc(100vh - 120px); }
     .memo-item { padding:1rem 1.2rem; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
     .memo-item:hover { background:var(--bg-sub); }
@@ -50,22 +42,22 @@
     .memo-item-tags { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.4rem; }
     .tag-chip { font-size:0.6rem; padding:0.1rem 0.5rem; border:1px solid var(--border); border-radius:10px; color:var(--text-light); }
 
-    /* Editor panel */
-    .editor-panel { display:flex; flex-direction:column; overflow:hidden; }
-    .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1.5rem; border-bottom:1px solid var(--border); gap:1rem; flex-shrink:0; }
+    .editor-panel { display:flex; flex-direction:column; overflow:hidden; max-height:calc(100vh - 120px); }
+    .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1.2rem; border-bottom:1px solid var(--border); gap:0.8rem; flex-shrink:0; }
     .toolbar-left { display:flex; gap:0.5rem; align-items:center; flex:1; min-width:0; }
     .title-input { flex:1; border:none; background:transparent; font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); outline:none; letter-spacing:0.05em; }
     .title-input::placeholder { color:var(--border); }
-    .toolbar-right { display:flex; gap:0.5rem; flex-shrink:0; }
-    .toolbar-btn { font-family:'Noto Sans JP',sans-serif; font-size:0.72rem; font-weight:300; letter-spacing:0.06em; border:1px solid var(--border); background:white; color:var(--text); padding:0.4rem 1rem; border-radius:3px; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+    .toolbar-right { display:flex; gap:0.4rem; flex-shrink:0; align-items:center; }
+    .toolbar-btn { font-family:'Noto Sans JP',sans-serif; font-size:0.72rem; font-weight:300; letter-spacing:0.06em; border:1px solid var(--border); background:white; color:var(--text); padding:0.38rem 0.9rem; border-radius:3px; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
     .toolbar-btn:hover { background:var(--bg-sub); }
     .toolbar-btn.save { background:var(--text); color:var(--bg); border-color:var(--text); }
     .toolbar-btn.save:hover { background:var(--accent-dark); }
     .toolbar-btn.del { color:#c0392b; border-color:#e8c4c0; }
     .toolbar-btn.del:hover { background:#fdf0ee; }
+    .toolbar-btn.img-btn { color:var(--text-light); }
+    .toolbar-btn.img-btn:hover { color:var(--text); background:var(--bg-sub); }
 
-    /* Tag input */
-    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
+    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.45rem 1.2rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
     .tag-input-label { font-size:0.65rem; color:var(--text-light); letter-spacing:0.1em; flex-shrink:0; }
     .current-tags { display:flex; gap:0.3rem; flex-wrap:wrap; }
     .current-tag { font-size:0.65rem; padding:0.15rem 0.5rem; background:var(--bg-sub); border:1px solid var(--border); border-radius:10px; color:var(--text-light); display:flex; align-items:center; gap:0.3rem; }
@@ -73,35 +65,49 @@
     .tag-add-input { border:none; background:transparent; font-size:0.72rem; color:var(--text); outline:none; width:100px; }
     .tag-add-input::placeholder { color:var(--border); }
 
-    /* Body textarea */
-    .body-textarea { flex:1; border:none; background:transparent; font-family:'Noto Sans JP',sans-serif; font-size:0.88rem; font-weight:300; color:var(--text); line-height:2; padding:1.5rem; outline:none; resize:none; }
+    /* エディタ上下分割 */
+    .editor-body { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+    .body-textarea { flex:1; border:none; background:transparent; font-family:'Noto Sans JP',sans-serif; font-size:0.88rem; font-weight:300; color:var(--text); line-height:2; padding:1.2rem 1.5rem; outline:none; resize:none; min-height:120px; }
     .body-textarea::placeholder { color:var(--border); }
 
-    /* Empty state */
+    /* 画像プレビューエリア */
+    .image-preview-area { border-top:1px solid var(--border); padding:1rem 1.5rem; overflow-y:auto; max-height:240px; display:none; }
+    .image-preview-area.has-images { display:block; }
+    .image-preview-label { font-size:0.65rem; letter-spacing:0.1em; color:var(--text-light); opacity:0.6; margin-bottom:0.8rem; }
+    .image-grid { display:flex; flex-wrap:wrap; gap:0.8rem; }
+    .image-thumb-wrap { position:relative; }
+    .image-thumb { width:80px; height:80px; object-fit:cover; border-radius:3px; border:1px solid var(--border); cursor:pointer; transition:opacity 0.15s; display:block; }
+    .image-thumb:hover { opacity:0.85; }
+    .image-insert-btn { position:absolute; bottom:0; left:0; right:0; background:rgba(44,44,44,0.7); color:white; border:none; font-size:0.6rem; padding:0.2rem; cursor:pointer; border-radius:0 0 3px 3px; text-align:center; opacity:0; transition:opacity 0.15s; }
+    .image-thumb-wrap:hover .image-insert-btn { opacity:1; }
+    .image-delete-btn { position:absolute; top:-5px; right:-5px; width:16px; height:16px; background:#c0392b; color:white; border:none; border-radius:50%; font-size:0.6rem; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
+    .image-thumb-wrap:hover .image-delete-btn { opacity:1; }
+
+    /* アップロード中オーバーレイ */
+    .upload-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.5); display:flex; align-items:center; justify-content:center; z-index:300; display:none; }
+    .upload-overlay.show { display:flex; }
+    .upload-box { background:var(--bg); padding:2rem 3rem; border-radius:4px; text-align:center; font-size:0.85rem; color:var(--text-light); }
+
+    /* ドロップゾーン */
+    .editor-panel.drag-over { outline:2px dashed var(--accent); outline-offset:-4px; background:#faf7f3; }
+
     .empty-state { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:0.8rem; letter-spacing:0.1em; opacity:0.5; }
     .no-memos { padding:2rem; text-align:center; color:var(--text-light); font-size:0.78rem; }
 
-    /* 3-column layout */
-    .memo-layout { grid-template-columns:180px 220px 1fr; }
-
-    /* Toast */
     #toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:0.7rem 1.6rem; border-radius:3px; font-size:0.78rem; letter-spacing:0.06em; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:200; }
     #toast.show { opacity:1; }
     #toast.error { background:#c0392b; }
-
-    /* Saving indicator */
     #saving { font-size:0.68rem; color:var(--text-light); opacity:0; transition:opacity 0.3s; }
     #saving.show { opacity:1; }
 
-    @media (max-width: 700px) {
+    @media (max-width:700px) {
       .memo-layout { grid-template-columns:1fr; }
-      .memo-list-panel { max-height:200px; }
+      .memo-list-panel { max-height:180px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Password -->
 <div id="pw-screen">
   <div class="pw-box">
     <h1>note</h1>
@@ -111,7 +117,6 @@
   </div>
 </div>
 
-<!-- App -->
 <div id="app">
   <header class="site-header">
     <h1><a href="index.html">note</a></h1>
@@ -122,36 +127,36 @@
     <a href="philosophy.html">Philosophy</a>
     <a href="archive.html">Archive</a>
     <a href="selection.html">Selection</a>
+    <a href="memo.html">Memo</a>
+    <a href="admin.html">Admin</a>
   </nav>
 
   <div class="memo-layout">
 
-    <!-- Sidebar: tag filter -->
     <div class="sidebar">
       <button class="new-btn" onclick="newMemo()">＋ 新規メモ</button>
       <div class="sidebar-section">
         <p class="sidebar-label">Tags</p>
         <ul class="tag-filter" id="tag-filter">
-          <li class="active" onclick="filterByTag(null, this)" data-tag="">すべて</li>
+          <li class="active" onclick="filterByTag(null,this)">すべて</li>
         </ul>
       </div>
     </div>
 
-    <!-- Memo list -->
     <div class="memo-list-panel" id="memo-list-panel">
       <div class="no-memos" id="no-memos" style="display:none;">メモなし</div>
     </div>
 
-    <!-- Editor -->
     <div class="editor-panel" id="editor-panel">
       <div class="empty-state" id="empty-state">メモを選択するか、新規作成してください</div>
-      <div id="editor" style="display:none; display:flex; flex-direction:column; height:100%;">
+      <div id="editor" style="display:none; flex-direction:column; height:100%;">
         <div class="editor-toolbar">
           <div class="toolbar-left">
             <input class="title-input" id="memo-title" placeholder="タイトル" oninput="markDirty()">
           </div>
           <div class="toolbar-right">
             <span id="saving">保存中...</span>
+            <button class="toolbar-btn img-btn" onclick="triggerImageUpload()" title="画像を追加">🖼 画像</button>
             <button class="toolbar-btn save" onclick="saveMemo()">保存</button>
             <button class="toolbar-btn del" onclick="deleteMemo()">削除</button>
           </div>
@@ -161,11 +166,25 @@
           <div class="current-tags" id="current-tags"></div>
           <input class="tag-add-input" id="tag-input" placeholder="タグを追加..." onkeydown="handleTagInput(event)">
         </div>
-        <textarea class="body-textarea" id="memo-body" placeholder="メモを入力..." oninput="markDirty()"></textarea>
+        <div class="editor-body">
+          <textarea class="body-textarea" id="memo-body" placeholder="メモを入力...&#10;画像はドラッグ＆ドロップまたは「画像」ボタンから追加できます" oninput="markDirty()"></textarea>
+          <div class="image-preview-area" id="image-preview-area">
+            <p class="image-preview-label">添付画像（クリックで本文に挿入）</p>
+            <div class="image-grid" id="image-grid"></div>
+          </div>
+        </div>
       </div>
     </div>
 
   </div>
+</div>
+
+<!-- 非表示のファイル入力 -->
+<input type="file" id="file-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(event)">
+
+<!-- アップロード中オーバーレイ -->
+<div class="upload-overlay" id="upload-overlay">
+  <div class="upload-box">アップロード中...</div>
 </div>
 
 <div id="toast"></div>
@@ -176,6 +195,7 @@ const BASE = 'https://api.github.com/repos/' + REPO + '/contents/';
 const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
 const SESSION_KEY = 'note_admin_auth';
 const NOTES_FILE = 'notes.json';
+const IMG_DIR = 'images/memo/';
 
 let token = '';
 let notes = [];
@@ -198,24 +218,18 @@ async function checkPassword() {
     document.getElementById('pw-input').value = '';
   }
 }
-
 function showApp() {
   document.getElementById('pw-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   token = sessionStorage.getItem('note_admin_token') || '';
   if (token) loadNotes();
   else promptToken();
+  setupDragDrop();
 }
-
 function promptToken() {
   const t = prompt('GitHub Personal Access Tokenを入力してください');
-  if (t) {
-    token = t.trim();
-    sessionStorage.setItem('note_admin_token', token);
-    loadNotes();
-  }
+  if (t) { token = t.trim(); sessionStorage.setItem('note_admin_token', token); loadNotes(); }
 }
-
 window.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem(SESSION_KEY) === '1') showApp();
 });
@@ -237,21 +251,15 @@ function toast(msg, isError=false) {
   setTimeout(() => el.className='', 2200);
 }
 
-// ── Load notes ─────────────────────────────────
+// ── Notes load/save ────────────────────────────
 async function loadNotes() {
   try {
     const data = await apiFetch(NOTES_FILE);
     notesSha = data.sha;
     notes = JSON.parse(decode(data.content));
-  } catch(e) {
-    // ファイルが存在しない場合は空で初期化
-    notes = [];
-    notesSha = '';
-  }
+  } catch(e) { notes = []; notesSha = ''; }
   renderAll();
 }
-
-// ── Save notes to GitHub ───────────────────────
 async function saveNotes(message='Update notes') {
   const el = document.getElementById('saving');
   el.className = 'show';
@@ -262,23 +270,138 @@ async function saveNotes(message='Update notes') {
   el.className = '';
 }
 
-// ── Render ─────────────────────────────────────
-function renderAll() {
-  renderTagFilter();
-  renderMemoList();
+// ── Image upload ───────────────────────────────
+function triggerImageUpload() {
+  document.getElementById('file-input').click();
 }
 
+async function handleFileSelect(e) {
+  const files = [...e.target.files];
+  e.target.value = '';
+  if (!files.length) return;
+  await uploadImages(files);
+}
+
+async function uploadImages(files) {
+  if (!currentNoteId) return toast('先にメモを開いてください', true);
+  document.getElementById('upload-overlay').classList.add('show');
+
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note.images) note.images = [];
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    try {
+      const b64 = await fileToBase64(file);
+      const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+      const fname = `${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+      const path = IMG_DIR + fname;
+
+      // GitHubにアップロード
+      await apiFetch(path, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `Upload memo image: ${fname}`,
+          content: b64.split(',')[1]  // data:image/xxx;base64, の後ろだけ
+        })
+      });
+
+      // メモに画像パスを記録
+      note.images.push({ path, name: fname });
+      toast(`${file.name} をアップロードしました`);
+    } catch(e) {
+      toast(`${file.name} のアップロードに失敗しました`, true);
+    }
+  }
+
+  document.getElementById('upload-overlay').classList.remove('show');
+  renderImagePreview(note.images);
+  markDirty();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Drag & Drop for images ─────────────────────
+function setupDragDrop() {
+  const panel = document.getElementById('editor-panel');
+  panel.addEventListener('dragover', e => {
+    if (e.dataTransfer.types.includes('Files')) {
+      e.preventDefault();
+      panel.classList.add('drag-over');
+    }
+  });
+  panel.addEventListener('dragleave', e => {
+    if (!panel.contains(e.relatedTarget)) panel.classList.remove('drag-over');
+  });
+  panel.addEventListener('drop', e => {
+    e.preventDefault();
+    panel.classList.remove('drag-over');
+    if (!currentNoteId) return toast('先にメモを開いてください', true);
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+    if (files.length) uploadImages(files);
+  });
+}
+
+// ── Image preview & insert ─────────────────────
+function renderImagePreview(images) {
+  const area = document.getElementById('image-preview-area');
+  const grid = document.getElementById('image-grid');
+  if (!images || !images.length) { area.classList.remove('has-images'); return; }
+  area.classList.add('has-images');
+  grid.innerHTML = images.map((img, i) => `
+    <div class="image-thumb-wrap">
+      <img class="image-thumb"
+        src="https://raw.githubusercontent.com/${REPO}/main/${img.path}"
+        alt="${img.name}"
+        onclick="insertImageToBody('${img.path}', '${img.name}')"
+        title="クリックで本文に挿入">
+      <button class="image-insert-btn" onclick="insertImageToBody('${img.path}','${img.name}')">挿入</button>
+      <button class="image-delete-btn" onclick="removeImage(${i})" title="削除">×</button>
+    </div>`).join('');
+}
+
+function insertImageToBody(path, name) {
+  const ta = document.getElementById('memo-body');
+  const pos = ta.selectionStart;
+  const before = ta.value.slice(0, pos);
+  const after = ta.value.slice(pos);
+  const tag = `\n![${name}](https://raw.githubusercontent.com/${REPO}/main/${path})\n`;
+  ta.value = before + tag + after;
+  ta.selectionStart = ta.selectionEnd = pos + tag.length;
+  ta.focus();
+  markDirty();
+  toast('画像を本文に挿入しました');
+}
+
+async function removeImage(i) {
+  if (!confirm('この画像をメモから削除しますか？\n（GitHubのファイルは残ります）')) return;
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  note.images.splice(i, 1);
+  renderImagePreview(note.images);
+  markDirty();
+}
+
+// ── Render ─────────────────────────────────────
+function renderAll() { renderTagFilter(); renderMemoList(); }
+
 function getAllTags() {
-  const tagMap = {};
-  notes.forEach(n => (n.tags||[]).forEach(t => { tagMap[t] = (tagMap[t]||0)+1; }));
-  return tagMap;
+  const m = {};
+  notes.forEach(n => (n.tags||[]).forEach(t => { m[t] = (m[t]||0)+1; }));
+  return m;
 }
 
 function renderTagFilter() {
   const tagMap = getAllTags();
   const ul = document.getElementById('tag-filter');
-  const allCount = notes.length;
-  ul.innerHTML = `<li class="${activeTag===null?'active':''}" onclick="filterByTag(null,this)">すべて<span class="tag-count">${allCount}</span></li>`;
+  ul.innerHTML = `<li class="${activeTag===null?'active':''}" onclick="filterByTag(null,this)">すべて<span class="tag-count">${notes.length}</span></li>`;
   Object.entries(tagMap).sort().forEach(([tag, count]) => {
     const li = document.createElement('li');
     li.className = activeTag===tag ? 'active' : '';
@@ -296,54 +419,36 @@ function filterByTag(tag, el) {
 }
 
 function getFilteredNotes() {
-  if (activeTag === null) return notes;
-  return notes.filter(n => (n.tags||[]).includes(activeTag));
+  return activeTag === null ? notes : notes.filter(n => (n.tags||[]).includes(activeTag));
 }
 
 function renderMemoList() {
   const panel = document.getElementById('memo-list-panel');
+  panel.querySelectorAll('.memo-item').forEach(el => el.remove());
   const filtered = getFilteredNotes();
   const noMemos = document.getElementById('no-memos');
-
-  // 既存のメモアイテムを削除
-  panel.querySelectorAll('.memo-item').forEach(el => el.remove());
-
-  if (!filtered.length) {
-    noMemos.style.display = 'block';
-    return;
-  }
+  if (!filtered.length) { noMemos.style.display = 'block'; return; }
   noMemos.style.display = 'none';
-
-  // 新しい順に表示
   [...filtered].reverse().forEach(note => {
     const div = document.createElement('div');
     div.className = 'memo-item' + (note.id === currentNoteId ? ' active' : '');
     div.onclick = () => openNote(note.id);
     const date = new Date(note.updatedAt).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric'});
     const tagsHtml = (note.tags||[]).map(t => `<span class="tag-chip">${t}</span>`).join('');
+    const imgCount = (note.images||[]).length;
     div.innerHTML = `
       <div class="memo-item-title">${note.title || '（タイトルなし）'}</div>
-      <div class="memo-item-preview">${(note.body||'').slice(0,50)}</div>
-      <div class="memo-item-meta">${date}</div>
-      ${tagsHtml ? `<div class="memo-item-tags">${tagsHtml}</div>` : ''}
-    `;
+      <div class="memo-item-preview">${(note.body||'').slice(0,50).replace(/\n/g,' ')}</div>
+      <div class="memo-item-meta">${date}${imgCount ? ` · 🖼${imgCount}` : ''}</div>
+      ${tagsHtml ? `<div class="memo-item-tags">${tagsHtml}</div>` : ''}`;
     panel.appendChild(div);
   });
 }
 
 // ── Note operations ────────────────────────────
 function newMemo() {
-  if (isDirty && currentNoteId) {
-    if (!confirm('保存されていない変更があります。破棄しますか？')) return;
-  }
-  const note = {
-    id: Date.now().toString(),
-    title: '',
-    body: '',
-    tags: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
+  if (isDirty && currentNoteId && !confirm('保存されていない変更があります。破棄しますか？')) return;
+  const note = { id: Date.now().toString(), title:'', body:'', tags:[], images:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
   notes.push(note);
   openNote(note.id);
   renderAll();
@@ -351,37 +456,31 @@ function newMemo() {
 }
 
 function openNote(id) {
-  if (isDirty && currentNoteId && currentNoteId !== id) {
-    if (!confirm('保存されていない変更があります。破棄しますか？')) return;
-  }
+  if (isDirty && currentNoteId && currentNoteId !== id && !confirm('保存されていない変更があります。破棄しますか？')) return;
   currentNoteId = id;
   isDirty = false;
   const note = notes.find(n => n.id === id);
   if (!note) return;
-
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('editor').style.display = 'flex';
   document.getElementById('memo-title').value = note.title || '';
   document.getElementById('memo-body').value = note.body || '';
   renderCurrentTags(note.tags || []);
+  renderImagePreview(note.images || []);
   renderMemoList();
 }
 
 function renderCurrentTags(tags) {
-  const container = document.getElementById('current-tags');
-  container.innerHTML = tags.map(t => `
-    <span class="current-tag">${t}
-      <button onclick="removeTag('${t}')" title="削除">×</button>
-    </span>`).join('');
+  document.getElementById('current-tags').innerHTML = tags.map(t =>
+    `<span class="current-tag">${t}<button onclick="removeTag('${t}')">×</button></span>`
+  ).join('');
 }
 
 function removeTag(tag) {
   const note = notes.find(n => n.id === currentNoteId);
   if (!note) return;
   note.tags = (note.tags||[]).filter(t => t !== tag);
-  renderCurrentTags(note.tags);
-  markDirty();
-  renderTagFilter();
+  renderCurrentTags(note.tags); markDirty(); renderTagFilter();
 }
 
 function handleTagInput(e) {
@@ -390,20 +489,15 @@ function handleTagInput(e) {
     const val = document.getElementById('tag-input').value.trim().replace(/,/g,'');
     if (!val) return;
     const note = notes.find(n => n.id === currentNoteId);
-    if (!note) return;
-    if (!(note.tags||[]).includes(val)) {
-      note.tags = [...(note.tags||[]), val];
-      renderCurrentTags(note.tags);
-      renderTagFilter();
-      markDirty();
-    }
+    if (!note || (note.tags||[]).includes(val)) return;
+    note.tags = [...(note.tags||[]), val];
+    renderCurrentTags(note.tags); renderTagFilter(); markDirty();
     document.getElementById('tag-input').value = '';
   }
 }
 
 function markDirty() {
   isDirty = true;
-  // 3秒後に自動保存
   clearTimeout(autoSaveTimer);
   autoSaveTimer = setTimeout(() => saveMemo(true), 3000);
 }
@@ -417,28 +511,21 @@ async function saveMemo(auto=false) {
   note.updatedAt = new Date().toISOString();
   isDirty = false;
   try {
-    await saveNotes(`${auto ? 'Auto save' : 'Save'} memo: ${note.title || '（タイトルなし）'}`);
+    await saveNotes(`${auto?'Auto save':'Save'} memo: ${note.title||'（タイトルなし）'}`);
     renderAll();
     if (!auto) toast('保存しました');
-  } catch(e) {
-    toast('保存に失敗しました', true);
-  }
+  } catch(e) { toast('保存に失敗しました', true); }
 }
 
 async function deleteMemo() {
   if (!confirm('このメモを削除しますか？')) return;
   notes = notes.filter(n => n.id !== currentNoteId);
-  currentNoteId = null;
-  isDirty = false;
+  currentNoteId = null; isDirty = false;
   document.getElementById('empty-state').style.display = 'flex';
   document.getElementById('editor').style.display = 'none';
-  try {
-    await saveNotes('Delete memo');
-    renderAll();
-    toast('削除しました');
-  } catch(e) {
-    toast('削除に失敗しました', true);
-  }
+  document.getElementById('image-preview-area').classList.remove('has-images');
+  try { await saveNotes('Delete memo'); renderAll(); toast('削除しました'); }
+  catch(e) { toast('削除に失敗しました', true); }
 }
 </script>
 </body>
