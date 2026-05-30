@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
+    /* ── pw ── */
     #pw-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
     .pw-box { text-align:center; width:300px; }
     .pw-box h1 { font-family:'Noto Serif JP',serif; font-weight:300; font-size:1rem; letter-spacing:0.3em; color:var(--text-light); margin-bottom:2.5rem; }
@@ -20,19 +21,20 @@
 
     #app { display:none; }
 
-    /* ── View switcher ── */
+    /* ── view switcher ── */
     .view-switcher { display:flex; gap:0; border-bottom:1px solid var(--border); background:var(--bg-sub); }
-    .view-tab { padding:0.5rem 1.2rem; font-size:0.72rem; letter-spacing:0.1em; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; user-select:none; }
+    .view-tab { padding:0.5rem 1.4rem; font-size:0.72rem; letter-spacing:0.1em; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; user-select:none; }
     .view-tab:hover { color:var(--text); }
     .view-tab.active { color:var(--text); border-bottom-color:var(--accent); }
 
     /* ── Memo view ── */
-    .memo-layout { display:grid; grid-template-columns:180px 220px 1fr; min-height:calc(100vh - 150px); border-top:1px solid var(--border); }
+    #memo-view { display:block; }
+    .memo-layout { display:grid; grid-template-columns:180px 220px 1fr; min-height:calc(100vh - 152px); border-top:1px solid var(--border); }
 
     /* Sidebar */
     .sidebar { border-right:1px solid var(--border); padding:1.2rem 0.8rem; background:var(--bg-sub); overflow-y:auto; }
-    .sidebar-label { font-size:0.65rem; letter-spacing:0.15em; color:var(--text-light); opacity:0.6; margin-bottom:0.6rem; margin-top:1.2rem; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
-    .sidebar-label:first-child { margin-top:0; }
+    .sidebar-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; }
+    .sidebar-label { font-size:0.65rem; letter-spacing:0.15em; color:var(--text-light); opacity:0.6; text-transform:uppercase; }
     .new-btn { width:100%; padding:0.6rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; margin-bottom:1rem; transition:background 0.15s; }
     .new-btn:hover { background:var(--accent-dark); }
     .tag-filter { list-style:none; }
@@ -40,13 +42,11 @@
     .tag-filter li:hover { background:var(--border); }
     .tag-filter li.active { background:var(--text); color:var(--bg); }
     .tag-count { font-size:0.65rem; opacity:0.6; }
-
-    /* Tag manage button in sidebar */
-    .tag-manage-btn { font-size:0.6rem; letter-spacing:0.05em; color:var(--text-light); background:none; border:1px solid var(--border); border-radius:2px; padding:0.1rem 0.4rem; cursor:pointer; }
+    .tag-manage-btn { font-size:0.6rem; letter-spacing:0.04em; color:var(--text-light); background:none; border:1px solid var(--border); border-radius:2px; padding:0.1rem 0.4rem; cursor:pointer; }
     .tag-manage-btn:hover { background:var(--border); }
 
     /* Memo list */
-    .memo-list-panel { border-right:1px solid var(--border); overflow-y:auto; max-height:calc(100vh - 150px); }
+    .memo-list-panel { border-right:1px solid var(--border); overflow-y:auto; max-height:calc(100vh - 152px); }
     .memo-item { padding:1rem 1.2rem; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
     .memo-item:hover { background:var(--bg-sub); }
     .memo-item.active { background:#f0ece6; border-left:2px solid var(--accent); }
@@ -57,7 +57,7 @@
     .tag-chip { font-size:0.6rem; padding:0.1rem 0.5rem; border:1px solid var(--border); border-radius:10px; color:var(--text-light); }
 
     /* Editor */
-    .editor-panel { display:flex; flex-direction:column; max-height:calc(100vh - 150px); overflow:hidden; }
+    .editor-panel { display:flex; flex-direction:column; max-height:calc(100vh - 152px); overflow:hidden; }
     .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1.2rem; border-bottom:1px solid var(--border); gap:0.8rem; flex-shrink:0; }
     .toolbar-left { display:flex; gap:0.5rem; align-items:center; flex:1; min-width:0; }
     .title-input { flex:1; border:none; background:transparent; font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); outline:none; letter-spacing:0.05em; }
@@ -71,28 +71,26 @@
     .toolbar-btn.del:hover { background:#fdf0ee; }
 
     /* Tag row with dropdown */
-    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.45rem 1.2rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; position:relative; }
+    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.45rem 1.2rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
     .tag-input-label { font-size:0.65rem; color:var(--text-light); letter-spacing:0.1em; flex-shrink:0; }
     .current-tags { display:flex; gap:0.3rem; flex-wrap:wrap; }
     .current-tag { font-size:0.65rem; padding:0.15rem 0.5rem; background:var(--bg-sub); border:1px solid var(--border); border-radius:10px; color:var(--text-light); display:flex; align-items:center; gap:0.3rem; }
     .current-tag button { border:none; background:none; cursor:pointer; color:var(--text-light); font-size:0.7rem; padding:0; line-height:1; }
-
-    /* Tag dropdown */
     .tag-dropdown-wrapper { position:relative; }
     .tag-add-btn { font-size:0.68rem; padding:0.15rem 0.6rem; border:1px solid var(--border); border-radius:10px; background:white; color:var(--text-light); cursor:pointer; letter-spacing:0.05em; }
     .tag-add-btn:hover { background:var(--bg-sub); }
     .tag-dropdown { position:absolute; top:calc(100% + 4px); left:0; background:white; border:1px solid var(--border); border-radius:4px; box-shadow:0 4px 16px rgba(0,0,0,0.08); z-index:100; min-width:160px; max-height:220px; overflow-y:auto; display:none; }
     .tag-dropdown.open { display:block; }
-    .tag-dropdown-item { padding:0.4rem 0.8rem; font-size:0.78rem; color:var(--text-light); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; }
+    .tag-dropdown-item { padding:0.35rem 0.8rem; font-size:0.78rem; color:var(--text-light); cursor:pointer; display:flex; align-items:center; gap:0.4rem; }
     .tag-dropdown-item:hover { background:var(--bg-sub); }
-    .tag-dropdown-item.selected { color:var(--text); font-weight:400; }
-    .tag-dropdown-item.selected::before { content:'✓'; font-size:0.7rem; margin-right:0.3rem; color:var(--accent); }
-    .tag-dropdown-sep { height:1px; background:var(--border); margin:0.3rem 0; }
+    .tag-dropdown-item.selected { color:var(--text); }
+    .tag-dropdown-item.selected::before { content:'✓'; font-size:0.68rem; color:var(--accent); }
+    .tag-dropdown-item:not(.selected)::before { content:''; display:inline-block; width:0.8em; }
     .tag-dropdown-new { padding:0.4rem 0.8rem; display:flex; gap:0.4rem; border-top:1px solid var(--border); }
     .tag-dropdown-new input { flex:1; border:none; border-bottom:1px solid var(--border); font-size:0.75rem; color:var(--text); outline:none; background:transparent; padding:0.2rem 0; }
     .tag-dropdown-new button { font-size:0.68rem; padding:0.2rem 0.5rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
 
-    /* Contenteditable editor body */
+    /* Contenteditable */
     .editor-body { flex:1; overflow-y:auto; padding:1.5rem; font-family:'Noto Sans JP',sans-serif; font-size:0.88rem; font-weight:300; color:var(--text); line-height:2; outline:none; }
     .editor-body:empty::before { content:'メモを入力...\A画像はドラッグ＆ドロップまたは「🖼 画像」ボタンから追加できます'; white-space:pre; color:var(--border); pointer-events:none; }
     .editor-body img { max-width:100%; height:auto; display:block; margin:0.8rem 0; border-radius:3px; border:1px solid var(--border); cursor:pointer; }
@@ -101,11 +99,10 @@
     .empty-state { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:0.8rem; letter-spacing:0.1em; opacity:0.5; }
     .no-memos { padding:2rem; text-align:center; color:var(--text-light); font-size:0.78rem; }
 
-    /* Upload overlay */
+    /* upload */
     .upload-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.5); display:none; align-items:center; justify-content:center; z-index:300; }
     .upload-overlay.show { display:flex; }
     .upload-box { background:var(--bg); padding:2rem 3rem; border-radius:4px; text-align:center; font-size:0.85rem; color:var(--text-light); }
-
     #toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:0.7rem 1.6rem; border-radius:3px; font-size:0.78rem; letter-spacing:0.06em; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:200; }
     #toast.show { opacity:1; }
     #toast.error { background:#c0392b; }
@@ -131,82 +128,102 @@
     .tag-manage-btn-sm:hover { background:var(--bg-sub); }
     .tag-manage-btn-sm.del { color:#c0392b; border-color:#e8c4c0; }
     .tag-manage-btn-sm.del:hover { background:#fdf0ee; }
-    .tag-manage-btn-sm.save { background:var(--text); color:var(--bg); border-color:var(--text); }
+    .tag-manage-btn-sm.ok { background:var(--text); color:var(--bg); border-color:var(--text); display:none; }
     .modal-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; }
     .modal-footer input { flex:1; border:1px solid var(--border); border-radius:3px; font-size:0.8rem; padding:0.4rem 0.8rem; outline:none; }
     .modal-footer input:focus { border-color:var(--accent); }
     .modal-footer button { font-size:0.78rem; padding:0.4rem 1rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
 
     /* ── Logic Tree view ── */
-    #tree-view { display:none; padding:1.5rem 2rem; overflow-y:auto; max-height:calc(100vh - 150px); }
-    .tree-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
-    .tree-title { font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; letter-spacing:0.05em; color:var(--text); }
-    .tree-mode-btns { display:flex; gap:0.3rem; }
-    .tree-mode-btn { font-size:0.68rem; padding:0.25rem 0.7rem; border:1px solid var(--border); border-radius:3px; background:white; color:var(--text-light); cursor:pointer; }
-    .tree-mode-btn.active { background:var(--text); color:var(--bg); border-color:var(--text); }
+    #tree-view { display:none; height:calc(100vh - 152px); overflow:hidden; }
 
-    /* Tree structure */
-    .tree-root { list-style:none; }
-    .tree-node { margin:0; padding:0; }
-    .tree-node-row { display:flex; align-items:flex-start; gap:0; padding:0.1rem 0; }
-    .tree-indent { width:20px; flex-shrink:0; }
-    .tree-branch { width:20px; flex-shrink:0; position:relative; display:flex; align-items:center; justify-content:center; }
-    .tree-branch::before { content:''; position:absolute; left:50%; top:0; bottom:50%; border-left:1px solid var(--border); }
-    .tree-branch::after { content:''; position:absolute; left:50%; top:50%; width:50%; border-top:1px solid var(--border); }
-    .tree-node-last .tree-branch::before { bottom:50%; }
-    .tree-children { list-style:none; margin:0; padding:0; }
+    .lt-toolbar {
+      display:flex; align-items:center; gap:0.8rem;
+      padding:0.55rem 1.4rem;
+      border-bottom:1px solid var(--border);
+      background:var(--bg);
+      flex-shrink:0;
+    }
+    .lt-toolbar-title { font-family:'Noto Serif JP',serif; font-size:0.82rem; color:var(--text-light); flex:1; }
+    .lt-btn { font-family:'Noto Sans JP',sans-serif; font-size:0.72rem; font-weight:300; color:var(--text-light); background:none; border:1px solid var(--border); padding:0.22rem 0.7rem; cursor:pointer; transition:all 0.12s; }
+    .lt-btn:hover { color:var(--text); border-color:var(--accent); }
+    .lt-btn.danger:hover { color:#b33; border-color:#b33; }
+    .lt-btn.active { background:var(--text); color:var(--bg); border-color:var(--text); }
 
-    .tree-tag-node { font-size:0.72rem; letter-spacing:0.08em; color:var(--text-light); padding:0.3rem 0.6rem; border-radius:3px; background:var(--bg-sub); border:1px solid var(--border); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:0.4rem; margin:0.2rem 0; }
-    .tree-tag-node:hover { background:var(--border); }
-    .tree-tag-node.expanded::before { content:'▾ '; font-size:0.6rem; }
-    .tree-tag-node.collapsed::before { content:'▸ '; font-size:0.6rem; }
-    .tree-tag-node .tag-note-count { font-size:0.6rem; opacity:0.6; }
+    .lt-body { display:flex; height:calc(100vh - 152px - 40px); }
 
-    .tree-memo-node { font-size:0.8rem; font-family:'Noto Serif JP',serif; color:var(--text); padding:0.3rem 0.8rem; border-radius:3px; cursor:pointer; display:inline-block; margin:0.15rem 0; transition:background 0.1s; border-left:2px solid transparent; }
-    .tree-memo-node:hover { background:var(--bg-sub); border-left-color:var(--accent); }
-    .tree-no-tag { font-size:0.72rem; color:var(--text-light); font-style:italic; padding:0.3rem 0.6rem; }
+    /* tree canvas */
+    .lt-tree-area { flex:1; overflow:auto; position:relative; padding:48px 60px; background:var(--bg); }
+    .lt-svg { position:absolute; top:0; left:0; pointer-events:none; overflow:visible; }
+    .lt-tree { display:inline-flex; position:relative; min-width:100%; }
 
-    .tree-connector { display:flex; flex-direction:column; align-items:center; }
-    .tree-line-v { width:1px; background:var(--border); flex:1; min-height:8px; }
-    .tree-line-h-wrap { display:flex; align-items:center; width:100%; }
-    .tree-line-h { height:1px; background:var(--border); flex:1; }
+    /* nodes */
+    .node-wrap { display:flex; flex-direction:row; align-items:center; }
+    .node-col { display:flex; flex-direction:column; justify-content:center; gap:14px; }
+    .node-card {
+      position:relative; width:152px; min-height:46px;
+      padding:9px 26px 9px 11px;
+      background:#fff; border:1px solid var(--border);
+      cursor:pointer; flex-shrink:0;
+      transition:border-color 0.12s, box-shadow 0.12s;
+    }
+    .node-card.is-root { background:var(--text); }
+    .node-card.is-selected { border-color:var(--accent); box-shadow:0 0 0 2px rgba(136,136,136,0.15); }
+    .node-card.is-root.is-selected { border-color:#fff; }
+    /* memo node */
+    .node-card.is-memo { background:#faf9f7; border-style:dashed; }
+    .node-card.is-memo:hover { background:#f2ede8; }
+    /* tag node */
+    .node-card.is-tag { background:var(--bg-sub); }
 
-    /* Simplified tree layout */
-    .tree-section { margin-bottom:1.5rem; }
-    .tree-section-header { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; cursor:pointer; user-select:none; }
-    .tree-section-tag { font-size:0.72rem; letter-spacing:0.08em; color:var(--text-light); padding:0.25rem 0.7rem; border-radius:3px; background:var(--bg-sub); border:1px solid var(--border); display:inline-flex; align-items:center; gap:0.4rem; }
-    .tree-section-toggle { font-size:0.65rem; color:var(--text-light); transition:transform 0.15s; display:inline-block; }
-    .tree-section.collapsed .tree-section-toggle { transform:rotate(-90deg); }
-    .tree-section.collapsed .tree-section-memos { display:none; }
-    .tree-section-count { font-size:0.62rem; color:var(--text-light); opacity:0.6; }
-    .tree-section-memos { padding-left:1.2rem; border-left:1px solid var(--border); margin-left:0.6rem; }
-    .tree-memo-link { display:flex; align-items:center; gap:0.4rem; padding:0.28rem 0.6rem; border-radius:3px; cursor:pointer; transition:background 0.1s; }
-    .tree-memo-link:hover { background:var(--bg-sub); }
-    .tree-memo-link::before { content:'—'; font-size:0.6rem; color:var(--border); }
-    .tree-memo-link-title { font-size:0.82rem; font-family:'Noto Serif JP',serif; color:var(--text); }
-    .tree-memo-link-tags { display:flex; gap:0.2rem; }
-    .tree-memo-link-tag { font-size:0.58rem; padding:0.05rem 0.4rem; border:1px solid var(--border); border-radius:8px; color:var(--text-light); }
-    .tree-untagged { margin-top:1.2rem; padding-top:1rem; border-top:1px dashed var(--border); }
-    .tree-untagged-label { font-size:0.68rem; color:var(--text-light); letter-spacing:0.08em; margin-bottom:0.5rem; opacity:0.6; }
+    .node-label { font-family:'Noto Sans JP',sans-serif; font-size:11.5px; font-weight:300; line-height:1.55; color:var(--text); outline:none; word-break:break-all; min-height:1em; }
+    .node-card.is-root .node-label { color:var(--bg); }
+    .node-card.is-tag .node-label { font-size:10.5px; letter-spacing:0.05em; color:var(--text-light); }
+    .node-card.is-memo .node-label { font-family:'Noto Serif JP',serif; font-size:11px; }
 
-    /* Memo preview panel in tree */
-    .tree-preview-overlay { position:fixed; inset:0; background:rgba(44,44,44,0.3); display:none; z-index:350; }
-    .tree-preview-overlay.open { display:block; }
-    .tree-preview-panel { position:fixed; right:0; top:0; bottom:0; width:480px; background:white; border-left:1px solid var(--border); box-shadow:-4px 0 20px rgba(0,0,0,0.08); display:flex; flex-direction:column; transform:translateX(100%); transition:transform 0.25s ease; z-index:360; }
-    .tree-preview-panel.open { transform:translateX(0); }
-    .tree-preview-header { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-    .tree-preview-title { font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .tree-preview-tags { display:flex; gap:0.3rem; flex-wrap:wrap; padding:0.5rem 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; }
-    .tree-preview-body { flex:1; overflow-y:auto; padding:1.5rem; font-family:'Noto Sans JP',sans-serif; font-size:0.85rem; font-weight:300; line-height:2; color:var(--text); }
-    .tree-preview-body img { max-width:100%; height:auto; border-radius:3px; border:1px solid var(--border); display:block; margin:0.8rem 0; }
-    .tree-preview-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:0.5rem; flex-shrink:0; }
-    .tree-preview-btn { font-size:0.75rem; padding:0.45rem 1rem; border:1px solid var(--border); border-radius:3px; background:var(--text); color:var(--bg); cursor:pointer; }
-    .tree-preview-btn.sec { background:white; color:var(--text); }
+    /* badge: note count on tag node */
+    .node-badge { position:absolute; bottom:4px; right:5px; font-size:9px; color:#bbb; }
+
+    /* actions */
+    .node-actions { position:absolute; top:3px; right:3px; display:flex; flex-direction:column; gap:2px; opacity:0; transition:opacity 0.1s; }
+    .node-card:hover .node-actions, .node-card.is-selected .node-actions { opacity:1; }
+    .node-card.is-memo .node-actions { display:none; }
+    .node-card.is-tag .node-actions { display:none; }
+    .node-btn { width:15px; height:15px; font-size:11px; display:flex; align-items:center; justify-content:center; background:none; border:1px solid #ccc; cursor:pointer; color:#bbb; padding:0; line-height:1; font-family:sans-serif; }
+    .node-btn:hover { color:var(--text); border-color:var(--accent); }
+    .node-btn.del:hover { color:#b33; border-color:#b33; }
+    .node-card.is-root .node-btn { border-color:#666; color:#888; }
+    .node-card.is-root .node-btn:hover { color:#fff; border-color:#fff; }
+    .node-gap { width:52px; flex-shrink:0; }
+
+    /* right panel */
+    .lt-panel { width:280px; min-width:280px; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--bg); overflow:hidden; }
+    .lt-panel-header { padding:12px 18px 8px; font-size:10px; letter-spacing:0.08em; color:var(--text-light); border-bottom:1px solid var(--border); text-transform:uppercase; }
+    .lt-panel-path { padding:7px 18px; font-size:10px; color:#bbb; border-bottom:1px solid var(--border); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lt-panel-node-title { padding:10px 18px; font-size:13px; font-weight:300; color:var(--text); border-bottom:1px solid var(--border); word-break:break-all; }
+    .lt-panel-prompts { display:flex; gap:6px; padding:8px 18px; flex-wrap:wrap; border-bottom:1px solid var(--border); }
+    .lt-prompt-btn { font-family:'Noto Sans JP',sans-serif; font-size:10px; font-weight:300; color:var(--text-light); background:none; border:1px solid var(--border); padding:2px 8px; cursor:pointer; transition:all 0.1s; }
+    .lt-prompt-btn:hover { color:var(--text); border-color:var(--accent); }
+    .lt-panel-note { flex:1; padding:12px 18px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:300; color:var(--text); background:transparent; border:none; outline:none; resize:none; line-height:1.9; }
+    .lt-panel-note::placeholder { color:#ccc; }
+    .lt-panel-empty { flex:1; display:flex; align-items:center; justify-content:center; font-size:11px; color:#ccc; }
+
+    /* memo preview inside panel */
+    .lt-memo-preview { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+    .lt-memo-preview-tags { display:flex; gap:4px; flex-wrap:wrap; padding:8px 18px; border-bottom:1px solid var(--border); }
+    .lt-memo-preview-tag { font-size:9px; padding:1px 7px; border:1px solid var(--border); border-radius:8px; color:var(--text-light); }
+    .lt-memo-preview-body { flex:1; overflow-y:auto; padding:14px 18px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:300; color:var(--text); line-height:1.9; }
+    .lt-memo-preview-body img { max-width:100%; height:auto; border-radius:3px; border:1px solid var(--border); display:block; margin:6px 0; }
+    .lt-memo-preview-footer { padding:10px 18px; border-top:1px solid var(--border); }
+    .lt-memo-edit-btn { font-size:11px; padding:4px 12px; border:1px solid var(--border); background:var(--text); color:var(--bg); cursor:pointer; font-family:'Noto Sans JP',sans-serif; font-weight:300; }
+
+    .lt-hint { position:fixed; bottom:0; left:0; right:280px; padding:5px 1.4rem; font-size:10.5px; color:#ccc; background:var(--bg); border-top:1px solid var(--border); letter-spacing:0.02em; z-index:5; }
 
     @media (max-width:700px) {
       .memo-layout { grid-template-columns:1fr; }
       .memo-list-panel { max-height:180px; }
-      .tree-preview-panel { width:100%; }
+      .lt-panel { width:100%; min-width:unset; }
+      .lt-hint { right:0; }
     }
   </style>
 </head>
@@ -241,14 +258,13 @@
     <div class="view-tab" id="tab-tree" onclick="switchView('tree')">ロジックツリー</div>
   </div>
 
-  <!-- Memo view -->
+  <!-- ═══ MEMO VIEW ═══ -->
   <div id="memo-view">
     <div class="memo-layout">
-
       <div class="sidebar">
         <button class="new-btn" onclick="newMemo()">＋ 新規メモ</button>
-        <div class="sidebar-label">
-          <span>Tags</span>
+        <div class="sidebar-row">
+          <span class="sidebar-label">Tags</span>
           <button class="tag-manage-btn" onclick="openTagManager()">管理</button>
         </div>
         <ul class="tag-filter" id="tag-filter">
@@ -262,7 +278,6 @@
 
       <div class="editor-panel" id="editor-panel">
         <div class="empty-state" id="empty-state">メモを選択するか、新規作成してください</div>
-
         <div id="editor" style="display:none; flex-direction:column; height:100%;">
           <div class="editor-toolbar">
             <div class="toolbar-left">
@@ -275,8 +290,6 @@
               <button class="toolbar-btn del" onclick="deleteMemo()">削除</button>
             </div>
           </div>
-
-          <!-- Tag row with dropdown -->
           <div class="tag-input-row">
             <span class="tag-input-label">タグ</span>
             <div class="current-tags" id="current-tags"></div>
@@ -285,37 +298,43 @@
               <div class="tag-dropdown" id="tag-dropdown">
                 <div id="tag-dropdown-list"></div>
                 <div class="tag-dropdown-new">
-                  <input type="text" id="tag-dropdown-input" placeholder="新しいタグ..." onkeydown="handleTagDropdownInput(event)">
+                  <input type="text" id="tag-dropdown-input" placeholder="新しいタグ..." onkeydown="if(event.key==='Enter')addTagFromDropdown()">
                   <button onclick="addTagFromDropdown()">追加</button>
                 </div>
               </div>
             </div>
           </div>
-
           <div class="editor-body" id="memo-body" contenteditable="true"></div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Logic Tree view -->
+  <!-- ═══ TREE VIEW ═══ -->
   <div id="tree-view">
-    <div class="tree-header">
-      <div class="tree-title">ロジックツリー</div>
-      <div class="tree-mode-btns">
-        <button class="tree-mode-btn active" id="tree-mode-tag" onclick="setTreeMode('tag')">タグ別</button>
-        <button class="tree-mode-btn" id="tree-mode-title" onclick="setTreeMode('title')">タイトル別</button>
+    <div class="lt-toolbar">
+      <span class="lt-toolbar-title">Logic Tree</span>
+      <button class="lt-btn active" id="lt-mode-tag" onclick="setLtMode('tag')">タグ別</button>
+      <button class="lt-btn" id="lt-mode-memo" onclick="setLtMode('memo')">メモ別</button>
+      <button class="lt-btn" onclick="window.print()">Print / PDF</button>
+      <button class="lt-btn danger" onclick="ltClearCustomNodes()">カスタムリセット</button>
+    </div>
+    <div class="lt-body">
+      <div class="lt-tree-area" id="lt-tree-area">
+        <svg class="lt-svg" id="lt-svg"></svg>
+        <div class="lt-tree" id="lt-tree"></div>
+      </div>
+      <div class="lt-panel" id="lt-panel">
+        <div class="lt-panel-empty">ノードを選択</div>
       </div>
     </div>
-    <div id="tree-content"></div>
+    <div class="lt-hint">クリック: ノード選択 &nbsp;|&nbsp; メモノード(点線): クリックでメモをプレビュー &nbsp;|&nbsp; ダブルクリック / +: 子ノード追加 &nbsp;|&nbsp; × : 削除</div>
   </div>
-
 </div>
 
 <!-- Tag Manager Modal -->
-<div class="modal-overlay" id="tag-manager-overlay" onclick="closeTagManagerIfOutside(event)">
-  <div class="modal" onclick="event.stopPropagation()">
+<div class="modal-overlay" id="tag-manager-overlay" onclick="if(event.target===this)closeTagManager()">
+  <div class="modal">
     <div class="modal-header">
       <div class="modal-title">タグ管理</div>
       <button class="modal-close" onclick="closeTagManager()">✕</button>
@@ -330,171 +349,153 @@
   </div>
 </div>
 
-<!-- Memo preview panel (for tree view) -->
-<div class="tree-preview-overlay" id="tree-preview-overlay" onclick="closeTreePreview()"></div>
-<div class="tree-preview-panel" id="tree-preview-panel">
-  <div class="tree-preview-header">
-    <div class="tree-preview-title" id="tree-preview-title"></div>
-    <button class="modal-close" onclick="closeTreePreview()">✕</button>
-  </div>
-  <div class="tree-preview-tags" id="tree-preview-tags"></div>
-  <div class="tree-preview-body" id="tree-preview-body"></div>
-  <div class="tree-preview-footer">
-    <button class="tree-preview-btn" onclick="openNoteFromTree()">編集する</button>
-    <button class="tree-preview-btn sec" onclick="closeTreePreview()">閉じる</button>
-  </div>
-</div>
-
 <input type="file" id="file-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(event)">
 <div class="upload-overlay" id="upload-overlay"><div class="upload-box">アップロード中...</div></div>
 <div id="toast"></div>
 
 <script>
-const REPO    = '0301egg/note';
-const BASE    = 'https://api.github.com/repos/' + REPO + '/contents/';
-const RAW     = `https://raw.githubusercontent.com/${REPO}/main/`;
-const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
-const SESSION_KEY  = 'note_admin_auth';
-const NOTES_FILE   = 'notes.json';
-const TAGS_FILE    = 'tags.json';
-const IMG_DIR      = 'images/memo/';
+// ════════════════════════════════════════════════
+//  Config
+// ════════════════════════════════════════════════
+const REPO       = '0301egg/note';
+const BASE       = 'https://api.github.com/repos/' + REPO + '/contents/';
+const RAW        = `https://raw.githubusercontent.com/${REPO}/main/`;
+const PW_HASH    = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
+const SESSION_KEY= 'note_admin_auth';
+const NOTES_FILE = 'notes.json';
+const TAGS_FILE  = 'tags.json';
+const IMG_DIR    = 'images/memo/';
+const LT_STORE   = 'memo-lt-custom'; // localStorage key for custom tree nodes
 
-let token = '', notes = [], notesSha = '', currentNoteId = null;
-let isDirty = false, activeTag = null, autoSaveTimer = null;
-let masterTags = [], tagsSha = '';
-let currentView = 'memo', treeMode = 'tag', previewNoteId = null;
+let token='', notes=[], notesSha='', currentNoteId=null;
+let isDirty=false, activeTag=null, autoSaveTimer=null;
+let masterTags=[], tagsSha='';
+let currentView='memo';
 
-// ── Password ───────────────────────────────────
+// ════════════════════════════════════════════════
+//  Auth
+// ════════════════════════════════════════════════
 async function checkPassword() {
-  const pw = document.getElementById('pw-input').value;
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if (hash === PW_HASH) { sessionStorage.setItem(SESSION_KEY,'1'); showApp(); }
-  else { document.getElementById('pw-error').textContent='パスワードが違います'; document.getElementById('pw-input').value=''; }
+  const pw=document.getElementById('pw-input').value;
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+  const hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash===PW_HASH){sessionStorage.setItem(SESSION_KEY,'1');showApp();}
+  else{document.getElementById('pw-error').textContent='パスワードが違います';document.getElementById('pw-input').value='';}
 }
-function showApp() {
+function showApp(){
   document.getElementById('pw-screen').style.display='none';
   document.getElementById('app').style.display='block';
-  token = sessionStorage.getItem('note_admin_token') || '';
-  if (token) { loadNotes(); loadTags(); } else promptToken();
+  token=sessionStorage.getItem('note_admin_token')||'';
+  if(token){loadNotes();loadTags();}else promptToken();
   setupDragDrop();
 }
-function promptToken() {
-  const t = prompt('GitHub Personal Access Tokenを入力してください');
-  if (t) { token=t.trim(); sessionStorage.setItem('note_admin_token',token); loadNotes(); loadTags(); }
+function promptToken(){
+  const t=prompt('GitHub Personal Access Tokenを入力してください');
+  if(t){token=t.trim();sessionStorage.setItem('note_admin_token',token);loadNotes();loadTags();}
 }
-window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem(SESSION_KEY)==='1') showApp();
-  document.addEventListener('click', handleOutsideClick);
+window.addEventListener('DOMContentLoaded',()=>{
+  if(sessionStorage.getItem(SESSION_KEY)==='1')showApp();
+  document.addEventListener('click',handleOutsideClick);
 });
-document.getElementById('pw-input').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPassword(); });
+document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPassword();});
 
-// ── API ────────────────────────────────────────
-function apiFetch(path, options={}) {
-  return fetch(BASE+path, {
-    ...options,
-    headers:{'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}
-  }).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); });
+// ════════════════════════════════════════════════
+//  API
+// ════════════════════════════════════════════════
+function apiFetch(path,options={}){
+  return fetch(BASE+path,{...options,headers:{'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}})
+    .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});
 }
-function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
+function decode(b64){return decodeURIComponent(escape(atob(b64.replace(/\n/g,''))));}
 
-// ── Toast ──────────────────────────────────────
-function toast(msg, isError=false) {
+// ════════════════════════════════════════════════
+//  Toast
+// ════════════════════════════════════════════════
+function toast(msg,isError=false){
   const el=document.getElementById('toast');
-  el.textContent=msg; el.className='show'+(isError?' error':'');
+  el.textContent=msg;el.className='show'+(isError?' error':'');
   setTimeout(()=>el.className='',2200);
 }
 
-// ── Notes load/save ────────────────────────────
-async function loadNotes() {
-  try {
-    const data = await apiFetch(NOTES_FILE);
-    notesSha = data.sha;
-    notes = JSON.parse(decode(data.content));
-  } catch(e) { notes=[]; notesSha=''; }
+// ════════════════════════════════════════════════
+//  Notes
+// ════════════════════════════════════════════════
+async function loadNotes(){
+  try{const data=await apiFetch(NOTES_FILE);notesSha=data.sha;notes=JSON.parse(decode(data.content));}
+  catch(e){notes=[];notesSha='';}
   renderAll();
 }
-async function saveNotes(message='Update notes') {
-  const el=document.getElementById('saving'); el.className='show';
-  const body={ message, content:btoa(unescape(encodeURIComponent(JSON.stringify(notes,null,2)))) };
-  if (notesSha) body.sha=notesSha;
-  const res = await apiFetch(NOTES_FILE,{method:'PUT',body:JSON.stringify(body)});
-  notesSha = res.content.sha;
-  el.className='';
+async function saveNotes(message='Update notes'){
+  const el=document.getElementById('saving');el.className='show';
+  const body={message,content:btoa(unescape(encodeURIComponent(JSON.stringify(notes,null,2))))};
+  if(notesSha)body.sha=notesSha;
+  const res=await apiFetch(NOTES_FILE,{method:'PUT',body:JSON.stringify(body)});
+  notesSha=res.content.sha;el.className='';
 }
 
-// ── Tags load/save ─────────────────────────────
-async function loadTags() {
-  try {
-    const data = await apiFetch(TAGS_FILE);
-    tagsSha = data.sha;
-    masterTags = JSON.parse(decode(data.content));
-  } catch(e) {
-    // tags.json未作成の場合は空配列、後で保存時に作成
-    masterTags = []; tagsSha = '';
-  }
+// ════════════════════════════════════════════════
+//  Tags
+// ════════════════════════════════════════════════
+async function loadTags(){
+  try{const data=await apiFetch(TAGS_FILE);tagsSha=data.sha;masterTags=JSON.parse(decode(data.content));}
+  catch(e){masterTags=[];tagsSha='';}
 }
-async function saveTags() {
-  const body = { message:'Update tags', content:btoa(unescape(encodeURIComponent(JSON.stringify(masterTags,null,2)))) };
-  if (tagsSha) body.sha = tagsSha;
-  try {
-    const res = await apiFetch(TAGS_FILE,{method:'PUT',body:JSON.stringify(body)});
-    tagsSha = res.content.sha;
-  } catch(e) { toast('タグの保存に失敗しました',true); }
+async function saveTags(){
+  const body={message:'Update tags',content:btoa(unescape(encodeURIComponent(JSON.stringify(masterTags,null,2))))};
+  if(tagsSha)body.sha=tagsSha;
+  try{const res=await apiFetch(TAGS_FILE,{method:'PUT',body:JSON.stringify(body)});tagsSha=res.content.sha;}
+  catch(e){toast('タグの保存に失敗しました',true);}
 }
-
-// ── View switching ─────────────────────────────
-function switchView(view) {
-  currentView = view;
-  document.getElementById('memo-view').style.display = view==='memo' ? 'block' : 'none';
-  document.getElementById('tree-view').style.display = view==='tree' ? 'block' : 'none';
-  document.getElementById('tab-memo').className = 'view-tab'+(view==='memo'?' active':'');
-  document.getElementById('tab-tree').className = 'view-tab'+(view==='tree'?' active':'');
-  if (view==='tree') renderTree();
+function getAllTagsFromNotes(){
+  const m={};notes.forEach(n=>(n.tags||[]).forEach(t=>{m[t]=(m[t]||0)+1;}));return m;
+}
+function allTagsSorted(){
+  return [...new Set([...masterTags,...Object.keys(getAllTagsFromNotes())])].sort();
 }
 
-// ── Render ─────────────────────────────────────
-function renderAll() { renderTagFilter(); renderMemoList(); if(currentView==='tree') renderTree(); }
-
-function getAllTagsFromNotes() {
-  const m={};
-  notes.forEach(n=>(n.tags||[]).forEach(t=>{ m[t]=(m[t]||0)+1; }));
-  return m;
+// ════════════════════════════════════════════════
+//  View switching
+// ════════════════════════════════════════════════
+function switchView(view){
+  currentView=view;
+  document.getElementById('memo-view').style.display=view==='memo'?'block':'none';
+  document.getElementById('tree-view').style.display=view==='tree'?'block':'none';
+  document.getElementById('tab-memo').className='view-tab'+(view==='memo'?' active':'');
+  document.getElementById('tab-tree').className='view-tab'+(view==='tree'?' active':'');
+  if(view==='tree')ltRenderAll();
 }
 
-function renderTagFilter() {
+// ════════════════════════════════════════════════
+//  Render (memo side)
+// ════════════════════════════════════════════════
+function renderAll(){renderTagFilter();renderMemoList();if(currentView==='tree')ltRenderAll();}
+
+function renderTagFilter(){
   const tagMap=getAllTagsFromNotes();
   const ul=document.getElementById('tag-filter');
   ul.innerHTML=`<li class="${activeTag===null?'active':''}" onclick="filterByTag(null,this)">すべて<span class="tag-count">${notes.length}</span></li>`;
-  // masterTagsを優先、残りはnotesから
-  const allTags = [...new Set([...masterTags, ...Object.keys(tagMap)])].sort();
-  allTags.forEach(tag=>{
+  allTagsSorted().forEach(tag=>{
     const count=tagMap[tag]||0;
     const li=document.createElement('li');
     li.className=activeTag===tag?'active':'';
-    li.onclick=function(){ filterByTag(tag,this); };
+    li.onclick=function(){filterByTag(tag,this);};
     li.innerHTML=`${tag}<span class="tag-count">${count}</span>`;
     ul.appendChild(li);
   });
 }
-
-function filterByTag(tag,el) {
+function filterByTag(tag,el){
   activeTag=tag;
   document.querySelectorAll('.tag-filter li').forEach(l=>l.classList.remove('active'));
-  el.classList.add('active');
-  renderMemoList();
+  el.classList.add('active');renderMemoList();
 }
+function getFilteredNotes(){return activeTag===null?notes:notes.filter(n=>(n.tags||[]).includes(activeTag));}
 
-function getFilteredNotes() {
-  return activeTag===null ? notes : notes.filter(n=>(n.tags||[]).includes(activeTag));
-}
-
-function renderMemoList() {
+function renderMemoList(){
   const panel=document.getElementById('memo-list-panel');
   panel.querySelectorAll('.memo-item').forEach(el=>el.remove());
   const filtered=getFilteredNotes();
   const noMemos=document.getElementById('no-memos');
-  if (!filtered.length) { noMemos.style.display='block'; return; }
+  if(!filtered.length){noMemos.style.display='block';return;}
   noMemos.style.display='none';
   [...filtered].reverse().forEach(note=>{
     const div=document.createElement('div');
@@ -502,7 +503,7 @@ function renderMemoList() {
     div.onclick=()=>openNote(note.id);
     const date=new Date(note.updatedAt).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
     const tagsHtml=(note.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
-    const tmp=document.createElement('div'); tmp.innerHTML=note.body||'';
+    const tmp=document.createElement('div');tmp.innerHTML=note.body||'';
     const preview=tmp.textContent.slice(0,50).replace(/\n/g,' ');
     div.innerHTML=`
       <div class="memo-item-title">${note.title||'（タイトルなし）'}</div>
@@ -513,446 +514,453 @@ function renderMemoList() {
   });
 }
 
-// ── Note operations ────────────────────────────
-function newMemo() {
-  if (isDirty && currentNoteId && !confirm('保存されていない変更があります。破棄しますか？')) return;
-  const note={ id:Date.now().toString(), title:'', body:'', tags:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
-  notes.push(note);
-  openNote(note.id);
-  renderAll();
+// ════════════════════════════════════════════════
+//  Note operations
+// ════════════════════════════════════════════════
+function newMemo(){
+  if(isDirty&&currentNoteId&&!confirm('保存されていない変更があります。破棄しますか？'))return;
+  const note={id:Date.now().toString(),title:'',body:'',tags:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  notes.push(note);openNote(note.id);renderAll();
   document.getElementById('memo-title').focus();
 }
-
-function openNote(id) {
-  if (isDirty && currentNoteId && currentNoteId!==id && !confirm('保存されていない変更があります。破棄しますか？')) return;
-  currentNoteId=id; isDirty=false;
-  const note=notes.find(n=>n.id===id);
-  if (!note) return;
-  if (currentView==='tree') switchView('memo');
+function openNote(id){
+  if(isDirty&&currentNoteId&&currentNoteId!==id&&!confirm('保存されていない変更があります。破棄しますか？'))return;
+  currentNoteId=id;isDirty=false;
+  const note=notes.find(n=>n.id===id);if(!note)return;
+  if(currentView==='tree')switchView('memo');
   document.getElementById('empty-state').style.display='none';
   document.getElementById('editor').style.display='flex';
   document.getElementById('memo-title').value=note.title||'';
   document.getElementById('memo-body').innerHTML=note.body||'';
-  renderCurrentTags(note.tags||[]);
-  renderMemoList();
-  const body=document.getElementById('memo-body');
-  body.oninput=markDirty;
+  renderCurrentTags(note.tags||[]);renderMemoList();
+  document.getElementById('memo-body').oninput=markDirty;
 }
-
-// ── Tag dropdown ───────────────────────────────
-function toggleTagDropdown() {
-  const dd = document.getElementById('tag-dropdown');
-  const isOpen = dd.classList.contains('open');
-  if (isOpen) { dd.classList.remove('open'); return; }
-  renderTagDropdown();
-  dd.classList.add('open');
-  document.getElementById('tag-dropdown-input').focus();
-}
-
-function renderTagDropdown() {
-  const note = notes.find(n=>n.id===currentNoteId);
-  const currentTags = note ? (note.tags||[]) : [];
-  const allTags = [...new Set([...masterTags, ...Object.keys(getAllTagsFromNotes())])].sort();
-  const list = document.getElementById('tag-dropdown-list');
-  list.innerHTML = '';
-  if (!allTags.length) {
-    list.innerHTML = '<div style="padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--text-light);">タグがありません</div>';
-    return;
-  }
-  allTags.forEach(tag=>{
-    const div = document.createElement('div');
-    div.className = 'tag-dropdown-item' + (currentTags.includes(tag)?' selected':'');
-    div.textContent = tag;
-    div.onclick = () => toggleTagOnNote(tag);
-    list.appendChild(div);
-  });
-}
-
-function toggleTagOnNote(tag) {
-  const note = notes.find(n=>n.id===currentNoteId); if(!note) return;
-  const idx = (note.tags||[]).indexOf(tag);
-  if (idx>=0) note.tags.splice(idx,1);
-  else note.tags = [...(note.tags||[]), tag];
-  renderCurrentTags(note.tags);
-  renderTagDropdown();
-  renderTagFilter();
-  markDirty();
-}
-
-function handleTagDropdownInput(e) {
-  if (e.key==='Enter') addTagFromDropdown();
-}
-
-function addTagFromDropdown() {
-  const input = document.getElementById('tag-dropdown-input');
-  const val = input.value.trim();
-  if (!val) return;
-  // masterTagsに追加
-  if (!masterTags.includes(val)) { masterTags.push(val); saveTags(); }
-  // 現在のノートにも追加
-  const note = notes.find(n=>n.id===currentNoteId);
-  if (note && !(note.tags||[]).includes(val)) {
-    note.tags = [...(note.tags||[]), val];
-    renderCurrentTags(note.tags);
-    markDirty();
-  }
-  input.value='';
-  renderTagDropdown();
-  renderTagFilter();
-}
-
-function handleOutsideClick(e) {
-  const wrapper = document.getElementById('tag-dropdown-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) {
-    document.getElementById('tag-dropdown').classList.remove('open');
-  }
-}
-
-function renderCurrentTags(tags) {
+function renderCurrentTags(tags){
   document.getElementById('current-tags').innerHTML=tags.map(t=>
     `<span class="current-tag">${t}<button onclick="removeTag('${t}')">×</button></span>`
   ).join('');
 }
-
-function removeTag(tag) {
-  const note=notes.find(n=>n.id===currentNoteId); if(!note) return;
+function removeTag(tag){
+  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
   note.tags=(note.tags||[]).filter(t=>t!==tag);
-  renderCurrentTags(note.tags); markDirty(); renderTagFilter();
+  renderCurrentTags(note.tags);markDirty();renderTagFilter();
 }
-
-function markDirty() {
-  isDirty=true;
-  clearTimeout(autoSaveTimer);
+function markDirty(){
+  isDirty=true;clearTimeout(autoSaveTimer);
   autoSaveTimer=setTimeout(()=>saveMemo(true),3000);
 }
-
-async function saveMemo(auto=false) {
+async function saveMemo(auto=false){
   clearTimeout(autoSaveTimer);
-  const note=notes.find(n=>n.id===currentNoteId); if(!note) return;
+  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
   note.title=document.getElementById('memo-title').value.trim();
   note.body=document.getElementById('memo-body').innerHTML;
-  note.updatedAt=new Date().toISOString();
-  isDirty=false;
-  try {
-    await saveNotes(`${auto?'Auto save':'Save'} memo: ${note.title||'（タイトルなし）'}`);
-    renderAll();
-    if (!auto) toast('保存しました');
-  } catch(e) { toast('保存に失敗しました',true); }
+  note.updatedAt=new Date().toISOString();isDirty=false;
+  try{await saveNotes(`${auto?'Auto save':'Save'} memo: ${note.title||'（タイトルなし）'}`);renderAll();if(!auto)toast('保存しました');}
+  catch(e){toast('保存に失敗しました',true);}
 }
-
-async function deleteMemo() {
-  if (!confirm('このメモを削除しますか？')) return;
+async function deleteMemo(){
+  if(!confirm('このメモを削除しますか？'))return;
   notes=notes.filter(n=>n.id!==currentNoteId);
-  currentNoteId=null; isDirty=false;
+  currentNoteId=null;isDirty=false;
   document.getElementById('empty-state').style.display='flex';
   document.getElementById('editor').style.display='none';
-  try { await saveNotes('Delete memo'); renderAll(); toast('削除しました'); }
-  catch(e) { toast('削除に失敗しました',true); }
+  try{await saveNotes('Delete memo');renderAll();toast('削除しました');}
+  catch(e){toast('削除に失敗しました',true);}
 }
 
-// ── Tag Manager ────────────────────────────────
-function openTagManager() {
-  renderTagManagerList();
-  document.getElementById('tag-manager-overlay').classList.add('open');
+// ════════════════════════════════════════════════
+//  Tag dropdown
+// ════════════════════════════════════════════════
+function toggleTagDropdown(){
+  const dd=document.getElementById('tag-dropdown');
+  if(dd.classList.contains('open')){dd.classList.remove('open');return;}
+  renderTagDropdown();dd.classList.add('open');
+  document.getElementById('tag-dropdown-input').focus();
 }
-function closeTagManager() {
-  document.getElementById('tag-manager-overlay').classList.remove('open');
-  renderTagFilter();
+function renderTagDropdown(){
+  const note=notes.find(n=>n.id===currentNoteId);
+  const cur=note?(note.tags||[]):[];
+  const list=document.getElementById('tag-dropdown-list');
+  list.innerHTML='';
+  allTagsSorted().forEach(tag=>{
+    const div=document.createElement('div');
+    div.className='tag-dropdown-item'+(cur.includes(tag)?' selected':'');
+    div.textContent=tag;div.onclick=()=>toggleTagOnNote(tag);
+    list.appendChild(div);
+  });
+  if(!allTagsSorted().length)list.innerHTML='<div style="padding:0.5rem 0.8rem;font-size:0.75rem;color:var(--text-light);">タグがありません</div>';
 }
-function closeTagManagerIfOutside(e) {
-  if (e.target===document.getElementById('tag-manager-overlay')) closeTagManager();
+function toggleTagOnNote(tag){
+  const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
+  const idx=(note.tags||[]).indexOf(tag);
+  if(idx>=0)note.tags.splice(idx,1);else note.tags=[...(note.tags||[]),tag];
+  renderCurrentTags(note.tags);renderTagDropdown();renderTagFilter();markDirty();
+}
+function addTagFromDropdown(){
+  const input=document.getElementById('tag-dropdown-input');
+  const val=input.value.trim();if(!val)return;
+  if(!masterTags.includes(val)){masterTags.push(val);saveTags();}
+  const note=notes.find(n=>n.id===currentNoteId);
+  if(note&&!(note.tags||[]).includes(val)){note.tags=[...(note.tags||[]),val];renderCurrentTags(note.tags);markDirty();}
+  input.value='';renderTagDropdown();renderTagFilter();
+}
+function handleOutsideClick(e){
+  const w=document.getElementById('tag-dropdown-wrapper');
+  if(w&&!w.contains(e.target))document.getElementById('tag-dropdown').classList.remove('open');
 }
 
-function renderTagManagerList() {
-  const ul = document.getElementById('tag-manage-list');
-  ul.innerHTML = '';
-  const allTags = [...new Set([...masterTags, ...Object.keys(getAllTagsFromNotes())])].sort();
-  if (!allTags.length) {
-    ul.innerHTML='<li style="padding:0.5rem;font-size:0.8rem;color:var(--text-light);">タグがありません</li>';
-    return;
-  }
-  allTags.forEach(tag=>{
-    const li = document.createElement('li');
-    li.className = 'tag-manage-item';
-    li.dataset.tag = tag;
-    li.innerHTML = `
+// ════════════════════════════════════════════════
+//  Tag Manager
+// ════════════════════════════════════════════════
+function openTagManager(){renderTagManagerList();document.getElementById('tag-manager-overlay').classList.add('open');}
+function closeTagManager(){document.getElementById('tag-manager-overlay').classList.remove('open');renderTagFilter();}
+function renderTagManagerList(){
+  const ul=document.getElementById('tag-manage-list');ul.innerHTML='';
+  const all=[...new Set([...masterTags,...Object.keys(getAllTagsFromNotes())])].sort();
+  if(!all.length){ul.innerHTML='<li style="padding:0.5rem;font-size:0.8rem;color:var(--text-light);">タグがありません</li>';return;}
+  all.forEach(tag=>{
+    const li=document.createElement('li');li.className='tag-manage-item';
+    li.innerHTML=`
       <span class="tag-manage-name">${tag}</span>
-      <input class="tag-manage-input" type="text" value="${tag}" onkeydown="if(event.key==='Enter')saveTagEdit(this,'${tag}')">
-      <button class="tag-manage-btn-sm" onclick="startTagEdit(this)">編集</button>
-      <button class="tag-manage-btn-sm save" onclick="saveTagEdit(this.previousElementSibling,'${tag}')" style="display:none">保存</button>
-      <button class="tag-manage-btn-sm del" onclick="deleteTag('${tag}')">削除</button>
-    `;
+      <input class="tag-manage-input" type="text" value="${tag}">
+      <button class="tag-manage-btn-sm edit-btn" onclick="startTagEdit(this)">編集</button>
+      <button class="tag-manage-btn-sm ok" onclick="saveTagEdit(this,'${tag}')">保存</button>
+      <button class="tag-manage-btn-sm del" onclick="deleteTag('${tag}')">削除</button>`;
+    const inp=li.querySelector('.tag-manage-input');
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const ok=li.querySelector('.ok');saveTagEdit(ok,tag);}});
     ul.appendChild(li);
   });
 }
-
-function startTagEdit(btn) {
-  const li = btn.closest('li');
+function startTagEdit(btn){
+  const li=btn.closest('li');
   li.querySelector('.tag-manage-name').classList.add('editing');
   li.querySelector('.tag-manage-input').classList.add('editing');
-  btn.style.display = 'none';
-  li.querySelector('.tag-manage-btn-sm.save').style.display = 'inline-block';
+  btn.style.display='none';
+  li.querySelector('.ok').style.display='inline-block';
   li.querySelector('.tag-manage-input').focus();
 }
-
-function saveTagEdit(inputEl, oldTag) {
-  if (inputEl.tagName==='BUTTON') { // called from save button
-    inputEl = inputEl.previousElementSibling;
-  }
-  const newTag = inputEl.value.trim();
-  if (!newTag || newTag===oldTag) {
-    const li = inputEl.closest('li');
+function saveTagEdit(btn,oldTag){
+  const li=btn.closest('li');
+  const newTag=li.querySelector('.tag-manage-input').value.trim();
+  if(!newTag||newTag===oldTag){
     li.querySelector('.tag-manage-name').classList.remove('editing');
     li.querySelector('.tag-manage-input').classList.remove('editing');
-    li.querySelector('.tag-manage-btn-sm:not(.del):not(.save)').style.display='inline-block';
-    li.querySelector('.tag-manage-btn-sm.save').style.display='none';
-    return;
+    li.querySelector('.edit-btn').style.display='inline-block';
+    btn.style.display='none';return;
   }
-  // masterTagsを更新
-  const idx = masterTags.indexOf(oldTag);
-  if (idx>=0) masterTags[idx]=newTag; else if(!masterTags.includes(newTag)) masterTags.push(newTag);
-  // notesのタグも更新
-  notes.forEach(n=>{
-    if ((n.tags||[]).includes(oldTag)) {
-      n.tags = n.tags.map(t=>t===oldTag?newTag:t);
-    }
-  });
-  saveTags();
-  saveNotes('Rename tag: '+oldTag+' -> '+newTag);
-  toast('タグを変更しました');
-  renderTagManagerList();
+  const idx=masterTags.indexOf(oldTag);
+  if(idx>=0)masterTags[idx]=newTag;else if(!masterTags.includes(newTag))masterTags.push(newTag);
+  notes.forEach(n=>{if((n.tags||[]).includes(oldTag))n.tags=n.tags.map(t=>t===oldTag?newTag:t);});
+  saveTags();saveNotes('Rename tag: '+oldTag+' -> '+newTag);
+  toast('タグを変更しました');renderTagManagerList();
+}
+async function deleteTag(tag){
+  if(!confirm(`タグ「${tag}」を削除しますか？\nメモからも除去されます。`))return;
+  masterTags=masterTags.filter(t=>t!==tag);
+  notes.forEach(n=>{n.tags=(n.tags||[]).filter(t=>t!==tag);});
+  await saveTags();await saveNotes('Delete tag: '+tag);
+  toast('タグを削除しました');renderTagManagerList();
+}
+async function addNewTag(){
+  const input=document.getElementById('new-tag-input');
+  const val=input.value.trim();if(!val)return;
+  if(!masterTags.includes(val)){masterTags.push(val);await saveTags();toast('タグを追加しました');}
+  input.value='';renderTagManagerList();
 }
 
-async function deleteTag(tag) {
-  if (!confirm(`タグ「${tag}」を削除しますか？\nメモからも除去されます。`)) return;
-  masterTags = masterTags.filter(t=>t!==tag);
-  notes.forEach(n=>{ n.tags=(n.tags||[]).filter(t=>t!==tag); });
-  await saveTags();
-  await saveNotes('Delete tag: '+tag);
-  toast('タグを削除しました');
-  renderTagManagerList();
-}
+// ════════════════════════════════════════════════
+//  Logic Tree
+// ════════════════════════════════════════════════
+let ltMode='tag';        // 'tag' | 'memo'
+let ltSelectedId=null;
+let ltCustomNodes={};    // id -> {note,children:[]} for non-auto nodes
+let ltNextId=1000;       // custom node IDs start high
 
-async function addNewTag() {
-  const input = document.getElementById('new-tag-input');
-  const val = input.value.trim();
-  if (!val) return;
-  if (!masterTags.includes(val)) {
-    masterTags.push(val);
-    await saveTags();
-    toast('タグを追加しました');
-  }
-  input.value='';
-  renderTagManagerList();
-}
+// Build a virtual tree from memo data
+function buildLtData(){
+  // Root node always id=0
+  const root={id:0,text:'メモ',note:'',children:[],_type:'root'};
 
-// ── Logic Tree ─────────────────────────────────
-function setTreeMode(mode) {
-  treeMode = mode;
-  document.getElementById('tree-mode-tag').className = 'tree-mode-btn'+(mode==='tag'?' active':'');
-  document.getElementById('tree-mode-title').className = 'tree-mode-btn'+(mode==='title'?' active':'');
-  renderTree();
-}
+  if(ltMode==='tag'){
+    const tags=allTagsSorted();
+    const tagMap=getAllTagsFromNotes();
 
-function renderTree() {
-  const container = document.getElementById('tree-content');
-  container.innerHTML = '';
-  if (!notes.length) {
-    container.innerHTML = '<div style="color:var(--text-light);font-size:0.8rem;padding:1rem;">メモがありません</div>';
-    return;
-  }
-  if (treeMode==='tag') renderTagTree(container);
-  else renderTitleTree(container);
-}
-
-function renderTagTree(container) {
-  const tagMap = getAllTagsFromNotes();
-  const allTags = [...new Set([...masterTags, ...Object.keys(tagMap)])].sort();
-
-  allTags.forEach(tag=>{
-    const tagNotes = notes.filter(n=>(n.tags||[]).includes(tag));
-    if (!tagNotes.length && !masterTags.includes(tag)) return;
-    const section = document.createElement('div');
-    section.className = 'tree-section';
-    const header = document.createElement('div');
-    header.className = 'tree-section-header';
-    header.innerHTML = `
-      <span class="tree-section-toggle">▾</span>
-      <span class="tree-section-tag">${tag}</span>
-      <span class="tree-section-count">${tagNotes.length}件</span>
-    `;
-    header.onclick = ()=>{
-      section.classList.toggle('collapsed');
-      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
-    };
-    const memosDiv = document.createElement('div');
-    memosDiv.className = 'tree-section-memos';
-    if (!tagNotes.length) {
-      memosDiv.innerHTML = '<div class="tree-no-tag">メモなし</div>';
-    } else {
-      [...tagNotes].reverse().forEach(note=>{
-        const link = document.createElement('div');
-        link.className = 'tree-memo-link';
-        const otherTags = (note.tags||[]).filter(t=>t!==tag);
-        link.innerHTML = `
-          <span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>
-          ${otherTags.length?`<span class="tree-memo-link-tags">${otherTags.map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('')}</span>`:''}
-        `;
-        link.onclick = ()=>openTreePreview(note.id);
-        memosDiv.appendChild(link);
+    tags.forEach((tag,i)=>{
+      const tagId=-(i+1); // negative IDs = auto tag nodes
+      const tagNode={id:tagId,text:tag,note:'',children:[],_type:'tag',_tag:tag};
+      const tagNotes=notes.filter(n=>(n.tags||[]).includes(tag));
+      tagNotes.forEach(note=>{
+        tagNode.children.push({id:`m_${note.id}`,text:note.title||'（タイトルなし）',note:'',children:[],_type:'memo',_noteId:note.id});
       });
+      root.children.push(tagNode);
+    });
+
+    // untagged
+    const untagged=notes.filter(n=>!(n.tags||[]).length);
+    if(untagged.length){
+      const uid=-999;
+      const uNode={id:uid,text:'タグなし',note:'',children:[],_type:'tag'};
+      untagged.forEach(note=>{
+        uNode.children.push({id:`m_${note.id}`,text:note.title||'（タイトルなし）',note:'',children:[],_type:'memo',_noteId:note.id});
+      });
+      root.children.push(uNode);
     }
-    section.appendChild(header);
-    section.appendChild(memosDiv);
-    container.appendChild(section);
-  });
-
-  // タグなし
-  const untagged = notes.filter(n=>!(n.tags||[]).length);
-  if (untagged.length) {
-    const section = document.createElement('div');
-    section.className = 'tree-section tree-untagged';
-    const header = document.createElement('div');
-    header.className = 'tree-section-header';
-    header.innerHTML = `<span class="tree-section-toggle">▾</span><span class="tree-section-tag" style="opacity:0.5">タグなし</span><span class="tree-section-count">${untagged.length}件</span>`;
-    header.onclick = ()=>{
-      section.classList.toggle('collapsed');
-      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
-    };
-    const memosDiv = document.createElement('div');
-    memosDiv.className = 'tree-section-memos';
-    untagged.forEach(note=>{
-      const link = document.createElement('div');
-      link.className = 'tree-memo-link';
-      link.innerHTML = `<span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>`;
-      link.onclick = ()=>openTreePreview(note.id);
-      memosDiv.appendChild(link);
+  } else {
+    // memo mode: flat list of all memos as direct children of root
+    [...notes].sort((a,b)=>(a.title||'').localeCompare(b.title||'','ja')).forEach(note=>{
+      root.children.push({id:`m_${note.id}`,text:note.title||'（タイトルなし）',note:'',children:[],_type:'memo',_noteId:note.id});
     });
-    section.appendChild(header);
-    section.appendChild(memosDiv);
-    container.appendChild(section);
   }
+
+  return root;
 }
 
-function renderTitleTree(container) {
-  // タイトルの頭文字でグループ化
-  const grouped = {};
-  [...notes].sort((a,b)=>(a.title||'').localeCompare(b.title||'','ja')).forEach(note=>{
-    const key = (note.title||'（タイトルなし）').slice(0,1) || '—';
-    if (!grouped[key]) grouped[key]=[];
-    grouped[key].push(note);
-  });
-  Object.entries(grouped).forEach(([key,groupNotes])=>{
-    const section = document.createElement('div');
-    section.className = 'tree-section';
-    const header = document.createElement('div');
-    header.className = 'tree-section-header';
-    header.innerHTML = `<span class="tree-section-toggle">▾</span><span class="tree-section-tag">${key}</span><span class="tree-section-count">${groupNotes.length}件</span>`;
-    header.onclick = ()=>{
-      section.classList.toggle('collapsed');
-      header.querySelector('.tree-section-toggle').textContent = section.classList.contains('collapsed') ? '▸' : '▾';
-    };
-    const memosDiv = document.createElement('div');
-    memosDiv.className = 'tree-section-memos';
-    groupNotes.forEach(note=>{
-      const link = document.createElement('div');
-      link.className = 'tree-memo-link';
-      const tagsHtml = (note.tags||[]).map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('');
-      link.innerHTML = `
-        <span class="tree-memo-link-title">${note.title||'（タイトルなし）'}</span>
-        ${tagsHtml?`<span class="tree-memo-link-tags">${tagsHtml}</span>`:''}
-      `;
-      link.onclick = ()=>openTreePreview(note.id);
-      memosDiv.appendChild(link);
+// find node in tree
+function ltFind(node,id){
+  if(String(node.id)===String(id))return node;
+  for(const c of node.children){const f=ltFind(c,id);if(f)return f;}
+  return null;
+}
+function ltGetPath(node,id,path=[]){
+  path=[...path,node.text];
+  if(String(node.id)===String(id))return path;
+  for(const c of node.children){const r=ltGetPath(c,id,path);if(r)return r;}
+  return null;
+}
+
+let ltTree=null; // current tree data
+
+function ltRenderAll(){
+  ltTree=buildLtData();
+  const treeEl=document.getElementById('lt-tree');
+  treeEl.innerHTML='';
+  treeEl.appendChild(ltBuildNode(ltTree));
+  ltUpdatePanel();
+  requestAnimationFrame(ltDrawLines);
+}
+
+function ltBuildNode(node){
+  const wrap=document.createElement('div');wrap.className='node-wrap';
+
+  const card=document.createElement('div');
+  let cls='node-card';
+  if(node.id===0)cls+=' is-root';
+  if(node._type==='tag')cls+=' is-tag';
+  if(node._type==='memo')cls+=' is-memo';
+  if(String(node.id)===String(ltSelectedId))cls+=' is-selected';
+  card.className=cls;
+  card.dataset.nid=node.id;
+
+  const label=document.createElement('div');
+  label.className='node-label';
+  label.textContent=node.text;
+
+  // memo nodes: click to preview
+  if(node._type==='memo'){
+    card.addEventListener('click',e=>{
+      e.stopPropagation();
+      ltSelectedId=node.id;
+      document.querySelectorAll('.node-card').forEach(el=>el.classList.toggle('is-selected',el.dataset.nid===String(node.id)));
+      ltShowMemoPanel(node._noteId);
     });
-    section.appendChild(header);
-    section.appendChild(memosDiv);
-    container.appendChild(section);
+  } else {
+    // tag / root: select
+    card.addEventListener('mousedown',e=>{
+      if(e.target===label)return;
+      e.preventDefault();
+      ltSelectNode(node.id);
+    });
+    label.addEventListener('focus',()=>ltSelectNode(node.id));
+    // badge: child count
+    if(node._type==='tag'&&node.children.length){
+      const badge=document.createElement('span');
+      badge.className='node-badge';badge.textContent=node.children.length;
+      card.appendChild(badge);
+    }
+  }
+
+  card.appendChild(label);
+
+  // actions: only for root (no del) — tag/memo nodes are auto
+  if(node.id===0){
+    const actions=document.createElement('div');actions.className='node-actions';
+    const addBtn=document.createElement('button');addBtn.className='node-btn add';addBtn.title='子ノード追加';addBtn.textContent='+';
+    addBtn.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();/* no-op for auto tree */});
+    actions.appendChild(addBtn);card.appendChild(actions);
+  }
+
+  wrap.appendChild(card);
+
+  if(node.children.length){
+    const gap=document.createElement('div');gap.className='node-gap';wrap.appendChild(gap);
+    const col=document.createElement('div');col.className='node-col';
+    node.children.forEach(c=>col.appendChild(ltBuildNode(c)));
+    wrap.appendChild(col);
+  }
+  return wrap;
+}
+
+function ltSelectNode(id){
+  ltSelectedId=id;
+  document.querySelectorAll('.node-card').forEach(el=>el.classList.toggle('is-selected',String(el.dataset.nid)===String(id)));
+  ltUpdatePanel();
+}
+
+function ltUpdatePanel(){
+  const panel=document.getElementById('lt-panel');
+  if(ltSelectedId===null){panel.innerHTML='<div class="lt-panel-empty">ノードを選択</div>';return;}
+  const node=ltFind(ltTree,ltSelectedId);
+  if(!node){panel.innerHTML='<div class="lt-panel-empty">ノードを選択</div>';return;}
+
+  // memo node → show memo preview in panel
+  if(node._type==='memo'){ltShowMemoPanel(node._noteId);return;}
+
+  const path=ltGetPath(ltTree,ltSelectedId)||[];
+  panel.innerHTML=`
+    <div class="lt-panel-header">ノード情報</div>
+    <div class="lt-panel-path">${path.slice(0,-1).join(' › ')}</div>
+    <div class="lt-panel-node-title">${escHtml(node.text)}</div>
+    <div class="lt-panel-prompts">
+      <button class="lt-prompt-btn" data-p="なぜ？\n">なぜ？</button>
+      <button class="lt-prompt-btn" data-p="どのように？\n">どのように？</button>
+      <button class="lt-prompt-btn" data-p="具体的には？\n">具体的には？</button>
+      <button class="lt-prompt-btn" data-p="課題は？\n">課題は？</button>
+    </div>
+    <textarea class="lt-panel-note" id="panel-note" placeholder="メモを入力...">${escHtml(node.note||'')}</textarea>`;
+  document.getElementById('panel-note').addEventListener('input',e=>{node.note=e.target.value;});
+  document.querySelectorAll('.lt-prompt-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const ta=document.getElementById('panel-note');
+      ta.value+=(ta.value&&!ta.value.endsWith('\n')?'\n':'')+btn.dataset.p;
+      ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;
+      node.note=ta.value;
+    });
   });
 }
 
-// ── Tree preview ───────────────────────────────
-function openTreePreview(id) {
-  const note = notes.find(n=>n.id===id); if(!note) return;
-  previewNoteId = id;
-  document.getElementById('tree-preview-title').textContent = note.title||'（タイトルなし）';
-  document.getElementById('tree-preview-tags').innerHTML = (note.tags||[]).map(t=>`<span class="tree-memo-link-tag">${t}</span>`).join('');
-  document.getElementById('tree-preview-body').innerHTML = note.body||'';
-  document.getElementById('tree-preview-overlay').classList.add('open');
-  document.getElementById('tree-preview-panel').classList.add('open');
+function ltShowMemoPanel(noteId){
+  const panel=document.getElementById('lt-panel');
+  const note=notes.find(n=>n.id===noteId);
+  if(!note){panel.innerHTML='<div class="lt-panel-empty">メモが見つかりません</div>';return;}
+  const tagsHtml=(note.tags||[]).map(t=>`<span class="lt-memo-preview-tag">${t}</span>`).join('');
+  panel.innerHTML=`
+    <div class="lt-panel-header">メモプレビュー</div>
+    <div class="lt-panel-path" style="font-size:12px;font-weight:300;color:var(--text);padding:10px 18px;border-bottom:1px solid var(--border);">${escHtml(note.title||'（タイトルなし）')}</div>
+    ${tagsHtml?`<div class="lt-memo-preview-tags">${tagsHtml}</div>`:''}
+    <div class="lt-memo-preview" id="lt-memo-preview-wrap">
+      <div class="lt-memo-preview-body">${note.body||'（本文なし）'}</div>
+    </div>
+    <div class="lt-memo-preview-footer">
+      <button class="lt-memo-edit-btn" onclick="openNoteFromTree('${note.id}')">編集する →</button>
+    </div>`;
 }
 
-function closeTreePreview() {
-  document.getElementById('tree-preview-overlay').classList.remove('open');
-  document.getElementById('tree-preview-panel').classList.remove('open');
-  previewNoteId = null;
+function openNoteFromTree(id){openNote(id);}
+
+function ltClearCustomNodes(){
+  // just re-render (custom state is in-memory only for auto tree)
+  ltSelectedId=null;ltRenderAll();toast('リセットしました');
 }
 
-function openNoteFromTree() {
-  const id = previewNoteId;
-  closeTreePreview();
-  openNote(id);
+function setLtMode(mode){
+  ltMode=mode;
+  document.getElementById('lt-mode-tag').className='lt-btn'+(mode==='tag'?' active':'');
+  document.getElementById('lt-mode-memo').className='lt-btn'+(mode==='memo'?' active':'');
+  ltSelectedId=null;ltRenderAll();
 }
 
-// ── Image upload ───────────────────────────────
-function triggerImageUpload() { document.getElementById('file-input').click(); }
-async function handleFileSelect(e) {
-  const files=[...e.target.files]; e.target.value='';
-  if (!files.length) return;
-  await uploadAndInsertImages(files);
+// ── SVG connections ──
+function ltDrawLines(){
+  const svg=document.getElementById('lt-svg');
+  const area=document.getElementById('lt-tree-area');
+  const areaRect=area.getBoundingClientRect();
+  const W=area.scrollWidth,H=area.scrollHeight;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML='';
+  function draw(node){
+    if(!node.children.length)return;
+    const fromEl=document.querySelector(`.node-card[data-nid="${node.id}"]`);
+    if(!fromEl)return;
+    const fr=fromEl.getBoundingClientRect();
+    const fx=fr.right-areaRect.left+area.scrollLeft;
+    const fy=fr.top+fr.height/2-areaRect.top+area.scrollTop;
+    node.children.forEach(child=>{
+      const toEl=document.querySelector(`.node-card[data-nid="${child.id}"]`);
+      if(!toEl)return;
+      const tr=toEl.getBoundingClientRect();
+      const tx=tr.left-areaRect.left+area.scrollLeft;
+      const ty=tr.top+tr.height/2-areaRect.top+area.scrollTop;
+      const mx=(fx+tx)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      // dashed for memo connections
+      if(child._type==='memo')path.setAttribute('stroke-dasharray','4,3');
+      path.setAttribute('d',`M${fx},${fy} C${mx},${fy} ${mx},${ty} ${tx},${ty}`);
+      path.setAttribute('stroke','#dcdcdc');path.setAttribute('stroke-width','1');path.setAttribute('fill','none');
+      svg.appendChild(path);
+      draw(child);
+    });
+  }
+  if(ltTree)draw(ltTree);
 }
-async function uploadAndInsertImages(files) {
-  if (!currentNoteId) return toast('先にメモを開いてください',true);
+
+window.addEventListener('resize',()=>requestAnimationFrame(ltDrawLines));
+document.getElementById('lt-tree-area')?.addEventListener('scroll',()=>requestAnimationFrame(ltDrawLines));
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ════════════════════════════════════════════════
+//  Image upload
+// ════════════════════════════════════════════════
+function triggerImageUpload(){document.getElementById('file-input').click();}
+async function handleFileSelect(e){const files=[...e.target.files];e.target.value='';if(!files.length)return;await uploadAndInsertImages(files);}
+async function uploadAndInsertImages(files){
+  if(!currentNoteId)return toast('先にメモを開いてください',true);
   document.getElementById('upload-overlay').classList.add('show');
-  for (const file of files) {
-    if (!file.type.startsWith('image/')) continue;
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      const b64content = dataUrl.split(',')[1];
-      const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
-      const fname = `${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
-      const path = IMG_DIR + fname;
-      await apiFetch(path, { method:'PUT', body: JSON.stringify({ message:`Upload memo image: ${fname}`, content:b64content }) });
-      insertImageAtCursor(RAW + path, fname);
-      markDirty();
-      toast(`${file.name} を挿入しました`);
-    } catch(e) { toast(`${file.name} のアップロードに失敗しました`,true); }
+  for(const file of files){
+    if(!file.type.startsWith('image/'))continue;
+    try{
+      const dataUrl=await fileToDataUrl(file);
+      const b64content=dataUrl.split(',')[1];
+      const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+      const fname=`${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+      const path=IMG_DIR+fname;
+      await apiFetch(path,{method:'PUT',body:JSON.stringify({message:`Upload memo image: ${fname}`,content:b64content})});
+      insertImageAtCursor(RAW+path,fname);markDirty();toast(`${file.name} を挿入しました`);
+    }catch(e){toast(`${file.name} のアップロードに失敗しました`,true);}
   }
   document.getElementById('upload-overlay').classList.remove('show');
 }
-function fileToDataUrl(file) {
-  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
-}
-function insertImageAtCursor(src, alt) {
-  const editor = document.getElementById('memo-body'); editor.focus();
-  const sel = window.getSelection();
-  let range;
-  if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) range = sel.getRangeAt(0);
-  else { range = document.createRange(); range.selectNodeContents(editor); range.collapse(false); }
+function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+function insertImageAtCursor(src,alt){
+  const editor=document.getElementById('memo-body');editor.focus();
+  const sel=window.getSelection();let range;
+  if(sel&&sel.rangeCount>0&&editor.contains(sel.anchorNode))range=sel.getRangeAt(0);
+  else{range=document.createRange();range.selectNodeContents(editor);range.collapse(false);}
   range.deleteContents();
-  const img = document.createElement('img'); img.src=src; img.alt=alt;
-  const br1=document.createElement('br'); const br2=document.createElement('br');
-  range.insertNode(br2); range.insertNode(img); range.insertNode(br1);
-  range.setStartAfter(img); range.collapse(true); sel.removeAllRanges(); sel.addRange(range);
+  const img=document.createElement('img');img.src=src;img.alt=alt;
+  const br1=document.createElement('br');const br2=document.createElement('br');
+  range.insertNode(br2);range.insertNode(img);range.insertNode(br1);
+  range.setStartAfter(img);range.collapse(true);sel.removeAllRanges();sel.addRange(range);
 }
 
-// ── Drag & Drop ────────────────────────────────
-function setupDragDrop() {
-  const panel = document.getElementById('editor-panel');
-  panel.addEventListener('dragover', e=>{ if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); panel.classList.add('drag-over'); } });
-  panel.addEventListener('dragleave', e=>{ if (!panel.contains(e.relatedTarget)) panel.classList.remove('drag-over'); });
-  panel.addEventListener('drop', e=>{
-    e.preventDefault(); panel.classList.remove('drag-over');
-    if (!currentNoteId) return toast('先にメモを開いてください',true);
+// ════════════════════════════════════════════════
+//  Drag & Drop
+// ════════════════════════════════════════════════
+function setupDragDrop(){
+  const panel=document.getElementById('editor-panel');
+  panel.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();panel.classList.add('drag-over');}});
+  panel.addEventListener('dragleave',e=>{if(!panel.contains(e.relatedTarget))panel.classList.remove('drag-over');});
+  panel.addEventListener('drop',e=>{
+    e.preventDefault();panel.classList.remove('drag-over');
+    if(!currentNoteId)return toast('先にメモを開いてください',true);
     const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
-    if (files.length) uploadAndInsertImages(files);
+    if(files.length)uploadAndInsertImages(files);
   });
-  document.getElementById('memo-body').addEventListener('paste', e=>{
+  document.getElementById('memo-body').addEventListener('paste',e=>{
     const items=[...e.clipboardData.items].filter(i=>i.type.startsWith('image/'));
-    if (!items.length) return;
-    e.preventDefault();
-    const files = items.map(i=>i.getAsFile());
-    if (!currentNoteId) return toast('先にメモを開いてください',true);
+    if(!items.length)return;e.preventDefault();
+    const files=items.map(i=>i.getAsFile());
+    if(!currentNoteId)return toast('先にメモを開いてください',true);
     uploadAndInsertImages(files);
   });
 }
