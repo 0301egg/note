@@ -12,8 +12,13 @@
     "title": "ブランドロゴ",
     "body": "",
     "tags": [],
-    "images": [],
+    "images": [
+      {
+        "path": "images/memo/1780150102044_s9r5v.png",
+        "name": "1780150102044_s9r5v.png"
+      }
+    ],
     "createdAt": "2026-05-30T13:54:21.318Z",
-    "updatedAt": "2026-05-30T14:08:11.664Z"
+    "updatedAt": "2026-05-30T14:08:27.278Z"
   }
 ]
