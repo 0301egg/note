@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memo — note</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Password screen ── */
+    #pw-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .pw-box { text-align:center; width:300px; }
+    .pw-box h1 { font-family:'Noto Serif JP',serif; font-weight:300; font-size:1rem; letter-spacing:0.3em; color:var(--text-light); margin-bottom:2.5rem; }
+    .pw-box input { width:100%; padding:0.7rem 1rem; border:1px solid var(--border); border-radius:3px; font-size:0.85rem; background:white; color:var(--text); outline:none; text-align:center; letter-spacing:0.1em; margin-bottom:0.8rem; }
+    .pw-box input:focus { border-color:var(--accent); }
+    .pw-box .pw-btn { width:100%; padding:0.65rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.78rem; letter-spacing:0.12em; cursor:pointer; }
+    .pw-box .pw-btn:hover { background:var(--accent-dark); }
+    .pw-error { color:#c0392b; font-size:0.72rem; margin-top:0.6rem; min-height:1rem; }
+
+    /* ── App layout ── */
+    #app { display:none; }
+    .memo-layout { display:grid; grid-template-columns:240px 1fr; min-height:calc(100vh - 120px); gap:0; border-top:1px solid var(--border); }
+
+    /* ── Sidebar ── */
+    .sidebar { border-right:1px solid var(--border); padding:1.5rem 1rem; background:var(--bg-sub); }
+    .sidebar-section { margin-bottom:2rem; }
+    .sidebar-label { font-size:0.65rem; letter-spacing:0.15em; color:var(--text-light); opacity:0.6; margin-bottom:0.8rem; text-transform:uppercase; }
+
+    /* New memo button */
+    .new-btn { width:100%; padding:0.6rem; background:var(--text); color:var(--bg); border:none; border-radius:3px; font-family:'Noto Sans JP',sans-serif; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; margin-bottom:1.5rem; transition:background 0.15s; }
+    .new-btn:hover { background:var(--accent-dark); }
+
+    /* Tag list */
+    .tag-filter { list-style:none; }
+    .tag-filter li { display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.5rem; border-radius:3px; cursor:pointer; font-size:0.78rem; color:var(--text-light); transition:background 0.1s; user-select:none; }
+    .tag-filter li:hover { background:var(--border); }
+    .tag-filter li.active { background:var(--text); color:var(--bg); }
+    .tag-count { font-size:0.65rem; opacity:0.6; }
+
+    /* Memo list */
+    .memo-list-panel { border-right:1px solid var(--border); overflow-y:auto; max-height:calc(100vh - 120px); }
+    .memo-item { padding:1rem 1.2rem; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
+    .memo-item:hover { background:var(--bg-sub); }
+    .memo-item.active { background:#f0ece6; border-left:2px solid var(--accent); }
+    .memo-item-title { font-family:'Noto Serif JP',serif; font-size:0.88rem; font-weight:400; margin-bottom:0.2rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .memo-item-preview { font-size:0.7rem; color:var(--text-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .memo-item-meta { font-size:0.65rem; color:var(--text-light); opacity:0.6; margin-top:0.3rem; }
+    .memo-item-tags { display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.4rem; }
+    .tag-chip { font-size:0.6rem; padding:0.1rem 0.5rem; border:1px solid var(--border); border-radius:10px; color:var(--text-light); }
+
+    /* Editor panel */
+    .editor-panel { display:flex; flex-direction:column; overflow:hidden; }
+    .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1.5rem; border-bottom:1px solid var(--border); gap:1rem; flex-shrink:0; }
+    .toolbar-left { display:flex; gap:0.5rem; align-items:center; flex:1; min-width:0; }
+    .title-input { flex:1; border:none; background:transparent; font-family:'Noto Serif JP',serif; font-size:1rem; font-weight:400; color:var(--text); outline:none; letter-spacing:0.05em; }
+    .title-input::placeholder { color:var(--border); }
+    .toolbar-right { display:flex; gap:0.5rem; flex-shrink:0; }
+    .toolbar-btn { font-family:'Noto Sans JP',sans-serif; font-size:0.72rem; font-weight:300; letter-spacing:0.06em; border:1px solid var(--border); background:white; color:var(--text); padding:0.4rem 1rem; border-radius:3px; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+    .toolbar-btn:hover { background:var(--bg-sub); }
+    .toolbar-btn.save { background:var(--text); color:var(--bg); border-color:var(--text); }
+    .toolbar-btn.save:hover { background:var(--accent-dark); }
+    .toolbar-btn.del { color:#c0392b; border-color:#e8c4c0; }
+    .toolbar-btn.del:hover { background:#fdf0ee; }
+
+    /* Tag input */
+    .tag-input-row { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
+    .tag-input-label { font-size:0.65rem; color:var(--text-light); letter-spacing:0.1em; flex-shrink:0; }
+    .current-tags { display:flex; gap:0.3rem; flex-wrap:wrap; }
+    .current-tag { font-size:0.65rem; padding:0.15rem 0.5rem; background:var(--bg-sub); border:1px solid var(--border); border-radius:10px; color:var(--text-light); display:flex; align-items:center; gap:0.3rem; }
+    .current-tag button { border:none; background:none; cursor:pointer; color:var(--text-light); font-size:0.7rem; padding:0; line-height:1; }
+    .tag-add-input { border:none; background:transparent; font-size:0.72rem; color:var(--text); outline:none; width:100px; }
+    .tag-add-input::placeholder { color:var(--border); }
+
+    /* Body textarea */
+    .body-textarea { flex:1; border:none; background:transparent; font-family:'Noto Sans JP',sans-serif; font-size:0.88rem; font-weight:300; color:var(--text); line-height:2; padding:1.5rem; outline:none; resize:none; }
+    .body-textarea::placeholder { color:var(--border); }
+
+    /* Empty state */
+    .empty-state { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:0.8rem; letter-spacing:0.1em; opacity:0.5; }
+    .no-memos { padding:2rem; text-align:center; color:var(--text-light); font-size:0.78rem; }
+
+    /* 3-column layout */
+    .memo-layout { grid-template-columns:180px 220px 1fr; }
+
+    /* Toast */
+    #toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:0.7rem 1.6rem; border-radius:3px; font-size:0.78rem; letter-spacing:0.06em; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:200; }
+    #toast.show { opacity:1; }
+    #toast.error { background:#c0392b; }
+
+    /* Saving indicator */
+    #saving { font-size:0.68rem; color:var(--text-light); opacity:0; transition:opacity 0.3s; }
+    #saving.show { opacity:1; }
+
+    @media (max-width: 700px) {
+      .memo-layout { grid-template-columns:1fr; }
+      .memo-list-panel { max-height:200px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Password -->
+<div id="pw-screen">
+  <div class="pw-box">
+    <h1>note</h1>
+    <input type="password" id="pw-input" placeholder="パスワード">
+    <button class="pw-btn" onclick="checkPassword()">入室</button>
+    <p class="pw-error" id="pw-error"></p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header class="site-header">
+    <h1><a href="index.html">note</a></h1>
+  </header>
+  <nav>
+    <a href="about.html">About</a>
+    <a href="interest.html">Interest</a>
+    <a href="philosophy.html">Philosophy</a>
+    <a href="archive.html">Archive</a>
+    <a href="selection.html">Selection</a>
+  </nav>
+
+  <div class="memo-layout">
+
+    <!-- Sidebar: tag filter -->
+    <div class="sidebar">
+      <button class="new-btn" onclick="newMemo()">＋ 新規メモ</button>
+      <div class="sidebar-section">
+        <p class="sidebar-label">Tags</p>
+        <ul class="tag-filter" id="tag-filter">
+          <li class="active" onclick="filterByTag(null, this)" data-tag="">すべて</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Memo list -->
+    <div class="memo-list-panel" id="memo-list-panel">
+      <div class="no-memos" id="no-memos" style="display:none;">メモなし</div>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-panel" id="editor-panel">
+      <div class="empty-state" id="empty-state">メモを選択するか、新規作成してください</div>
+      <div id="editor" style="display:none; display:flex; flex-direction:column; height:100%;">
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <input class="title-input" id="memo-title" placeholder="タイトル" oninput="markDirty()">
+          </div>
+          <div class="toolbar-right">
+            <span id="saving">保存中...</span>
+            <button class="toolbar-btn save" onclick="saveMemo()">保存</button>
+            <button class="toolbar-btn del" onclick="deleteMemo()">削除</button>
+          </div>
+        </div>
+        <div class="tag-input-row">
+          <span class="tag-input-label">タグ</span>
+          <div class="current-tags" id="current-tags"></div>
+          <input class="tag-add-input" id="tag-input" placeholder="タグを追加..." onkeydown="handleTagInput(event)">
+        </div>
+        <textarea class="body-textarea" id="memo-body" placeholder="メモを入力..." oninput="markDirty()"></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const REPO = '0301egg/note';
+const BASE = 'https://api.github.com/repos/' + REPO + '/contents/';
+const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
+const SESSION_KEY = 'note_admin_auth';
+const NOTES_FILE = 'notes.json';
+
+let token = '';
+let notes = [];
+let notesSha = '';
+let currentNoteId = null;
+let isDirty = false;
+let activeTag = null;
+let autoSaveTimer = null;
+
+// ── Password & Session ─────────────────────────
+async function checkPassword() {
+  const pw = document.getElementById('pw-input').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  if (hash === PW_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    showApp();
+  } else {
+    document.getElementById('pw-error').textContent = 'パスワードが違います';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+function showApp() {
+  document.getElementById('pw-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  token = sessionStorage.getItem('note_admin_token') || '';
+  if (token) loadNotes();
+  else promptToken();
+}
+
+function promptToken() {
+  const t = prompt('GitHub Personal Access Tokenを入力してください');
+  if (t) {
+    token = t.trim();
+    sessionStorage.setItem('note_admin_token', token);
+    loadNotes();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') showApp();
+});
+document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPassword(); });
+
+// ── API ────────────────────────────────────────
+function apiFetch(path, options={}) {
+  return fetch(BASE + path, {
+    ...options,
+    headers: {'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}
+  }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+}
+function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
+
+// ── Toast ──────────────────────────────────────
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show'+(isError?' error':'');
+  setTimeout(() => el.className='', 2200);
+}
+
+// ── Load notes ─────────────────────────────────
+async function loadNotes() {
+  try {
+    const data = await apiFetch(NOTES_FILE);
+    notesSha = data.sha;
+    notes = JSON.parse(decode(data.content));
+  } catch(e) {
+    // ファイルが存在しない場合は空で初期化
+    notes = [];
+    notesSha = '';
+  }
+  renderAll();
+}
+
+// ── Save notes to GitHub ───────────────────────
+async function saveNotes(message='Update notes') {
+  const el = document.getElementById('saving');
+  el.className = 'show';
+  const body = { message, content: btoa(unescape(encodeURIComponent(JSON.stringify(notes, null, 2)))) };
+  if (notesSha) body.sha = notesSha;
+  const res = await apiFetch(NOTES_FILE, { method:'PUT', body:JSON.stringify(body) });
+  notesSha = res.content.sha;
+  el.className = '';
+}
+
+// ── Render ─────────────────────────────────────
+function renderAll() {
+  renderTagFilter();
+  renderMemoList();
+}
+
+function getAllTags() {
+  const tagMap = {};
+  notes.forEach(n => (n.tags||[]).forEach(t => { tagMap[t] = (tagMap[t]||0)+1; }));
+  return tagMap;
+}
+
+function renderTagFilter() {
+  const tagMap = getAllTags();
+  const ul = document.getElementById('tag-filter');
+  const allCount = notes.length;
+  ul.innerHTML = `<li class="${activeTag===null?'active':''}" onclick="filterByTag(null,this)">すべて<span class="tag-count">${allCount}</span></li>`;
+  Object.entries(tagMap).sort().forEach(([tag, count]) => {
+    const li = document.createElement('li');
+    li.className = activeTag===tag ? 'active' : '';
+    li.onclick = function(){ filterByTag(tag, this); };
+    li.innerHTML = `${tag}<span class="tag-count">${count}</span>`;
+    ul.appendChild(li);
+  });
+}
+
+function filterByTag(tag, el) {
+  activeTag = tag;
+  document.querySelectorAll('.tag-filter li').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  renderMemoList();
+}
+
+function getFilteredNotes() {
+  if (activeTag === null) return notes;
+  return notes.filter(n => (n.tags||[]).includes(activeTag));
+}
+
+function renderMemoList() {
+  const panel = document.getElementById('memo-list-panel');
+  const filtered = getFilteredNotes();
+  const noMemos = document.getElementById('no-memos');
+
+  // 既存のメモアイテムを削除
+  panel.querySelectorAll('.memo-item').forEach(el => el.remove());
+
+  if (!filtered.length) {
+    noMemos.style.display = 'block';
+    return;
+  }
+  noMemos.style.display = 'none';
+
+  // 新しい順に表示
+  [...filtered].reverse().forEach(note => {
+    const div = document.createElement('div');
+    div.className = 'memo-item' + (note.id === currentNoteId ? ' active' : '');
+    div.onclick = () => openNote(note.id);
+    const date = new Date(note.updatedAt).toLocaleDateString('ja-JP', {month:'numeric',day:'numeric'});
+    const tagsHtml = (note.tags||[]).map(t => `<span class="tag-chip">${t}</span>`).join('');
+    div.innerHTML = `
+      <div class="memo-item-title">${note.title || '（タイトルなし）'}</div>
+      <div class="memo-item-preview">${(note.body||'').slice(0,50)}</div>
+      <div class="memo-item-meta">${date}</div>
+      ${tagsHtml ? `<div class="memo-item-tags">${tagsHtml}</div>` : ''}
+    `;
+    panel.appendChild(div);
+  });
+}
+
+// ── Note operations ────────────────────────────
+function newMemo() {
+  if (isDirty && currentNoteId) {
+    if (!confirm('保存されていない変更があります。破棄しますか？')) return;
+  }
+  const note = {
+    id: Date.now().toString(),
+    title: '',
+    body: '',
+    tags: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  notes.push(note);
+  openNote(note.id);
+  renderAll();
+  document.getElementById('memo-title').focus();
+}
+
+function openNote(id) {
+  if (isDirty && currentNoteId && currentNoteId !== id) {
+    if (!confirm('保存されていない変更があります。破棄しますか？')) return;
+  }
+  currentNoteId = id;
+  isDirty = false;
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('editor').style.display = 'flex';
+  document.getElementById('memo-title').value = note.title || '';
+  document.getElementById('memo-body').value = note.body || '';
+  renderCurrentTags(note.tags || []);
+  renderMemoList();
+}
+
+function renderCurrentTags(tags) {
+  const container = document.getElementById('current-tags');
+  container.innerHTML = tags.map(t => `
+    <span class="current-tag">${t}
+      <button onclick="removeTag('${t}')" title="削除">×</button>
+    </span>`).join('');
+}
+
+function removeTag(tag) {
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  note.tags = (note.tags||[]).filter(t => t !== tag);
+  renderCurrentTags(note.tags);
+  markDirty();
+  renderTagFilter();
+}
+
+function handleTagInput(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = document.getElementById('tag-input').value.trim().replace(/,/g,'');
+    if (!val) return;
+    const note = notes.find(n => n.id === currentNoteId);
+    if (!note) return;
+    if (!(note.tags||[]).includes(val)) {
+      note.tags = [...(note.tags||[]), val];
+      renderCurrentTags(note.tags);
+      renderTagFilter();
+      markDirty();
+    }
+    document.getElementById('tag-input').value = '';
+  }
+}
+
+function markDirty() {
+  isDirty = true;
+  // 3秒後に自動保存
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => saveMemo(true), 3000);
+}
+
+async function saveMemo(auto=false) {
+  clearTimeout(autoSaveTimer);
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  note.title = document.getElementById('memo-title').value.trim();
+  note.body = document.getElementById('memo-body').value;
+  note.updatedAt = new Date().toISOString();
+  isDirty = false;
+  try {
+    await saveNotes(`${auto ? 'Auto save' : 'Save'} memo: ${note.title || '（タイトルなし）'}`);
+    renderAll();
+    if (!auto) toast('保存しました');
+  } catch(e) {
+    toast('保存に失敗しました', true);
+  }
+}
+
+async function deleteMemo() {
+  if (!confirm('このメモを削除しますか？')) return;
+  notes = notes.filter(n => n.id !== currentNoteId);
+  currentNoteId = null;
+  isDirty = false;
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('editor').style.display = 'none';
+  try {
+    await saveNotes('Delete memo');
+    renderAll();
+    toast('削除しました');
+  } catch(e) {
+    toast('削除に失敗しました', true);
+  }
+}
+</script>
+</body>
+</html>
