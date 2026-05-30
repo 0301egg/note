@@ -314,10 +314,11 @@
   <div id="tree-view">
     <div class="lt-toolbar">
       <span class="lt-toolbar-title">Logic Tree</span>
+      <span id="lt-saved" style="font-size:0.68rem;color:var(--text-light);opacity:0;transition:opacity 0.4s;">保存済み</span>
       <button class="lt-btn active" id="lt-mode-tag" onclick="setLtMode('tag')">タグ別</button>
       <button class="lt-btn" id="lt-mode-memo" onclick="setLtMode('memo')">メモ別</button>
       <button class="lt-btn" onclick="window.print()">Print / PDF</button>
-      <button class="lt-btn danger" onclick="ltClearCustomNodes()">カスタムリセット</button>
+      <button class="lt-btn danger" onclick="ltClearCustomNodes()">ノートメモをリセット</button>
     </div>
     <div class="lt-body">
       <div class="lt-tree-area" id="lt-tree-area">
@@ -386,6 +387,10 @@ async function checkPassword() {
 function showApp(){
   document.getElementById('pw-screen').style.display='none';
   document.getElementById('app').style.display='block';
+  ltLoadStorage();
+  // 初期モードボタン状態を反映
+  document.getElementById('lt-mode-tag').className='lt-btn'+(ltMode==='tag'?' active':'');
+  document.getElementById('lt-mode-memo').className='lt-btn'+(ltMode==='memo'?' active':'');
   token=sessionStorage.getItem('note_admin_token')||'';
   if(token){loadNotes();loadTags();}else promptToken();
   setupDragDrop();
@@ -544,7 +549,11 @@ function renderCurrentTags(tags){
 function removeTag(tag){
   const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
   note.tags=(note.tags||[]).filter(t=>t!==tag);
-  renderCurrentTags(note.tags);markDirty();renderTagFilter();
+  renderCurrentTags(note.tags);renderTagFilter();
+  // 即時保存
+  note.updatedAt=new Date().toISOString();
+  isDirty=false;clearTimeout(autoSaveTimer);
+  saveNotes(`Remove tag: ${tag}`).then(()=>renderAll()).catch(()=>toast('保存に失敗しました',true));
 }
 function markDirty(){
   isDirty=true;clearTimeout(autoSaveTimer);
@@ -595,7 +604,11 @@ function toggleTagOnNote(tag){
   const note=notes.find(n=>n.id===currentNoteId);if(!note)return;
   const idx=(note.tags||[]).indexOf(tag);
   if(idx>=0)note.tags.splice(idx,1);else note.tags=[...(note.tags||[]),tag];
-  renderCurrentTags(note.tags);renderTagDropdown();renderTagFilter();markDirty();
+  renderCurrentTags(note.tags);renderTagDropdown();renderTagFilter();
+  // 即時保存
+  note.updatedAt=new Date().toISOString();
+  isDirty=false;clearTimeout(autoSaveTimer);
+  saveNotes(`Toggle tag: ${tag}`).then(()=>renderAll()).catch(()=>toast('保存に失敗しました',true));
 }
 function addTagFromDropdown(){
   const input=document.getElementById('tag-dropdown-input');
@@ -676,11 +689,23 @@ let ltMode='tag';        // 'tag' | 'memo'
 let ltSelectedId=null;
 let ltCustomNodes={};    // id -> {note,children:[]} for non-auto nodes
 let ltNextId=1000;       // custom node IDs start high
+let ltNodeNotes={};      // nodeId -> note string (persisted to localStorage)
+const LT_NOTES_KEY='memo-lt-node-notes';
+const LT_MODE_KEY='memo-lt-mode';
+
+function ltLoadStorage(){
+  try{ ltNodeNotes=JSON.parse(localStorage.getItem(LT_NOTES_KEY)||'{}'); }catch(e){ ltNodeNotes={}; }
+  try{ const m=localStorage.getItem(LT_MODE_KEY); if(m==='tag'||m==='memo')ltMode=m; }catch(e){}
+}
+function ltSaveNodeNote(id,text){
+  ltNodeNotes[String(id)]=text;
+  try{ localStorage.setItem(LT_NOTES_KEY,JSON.stringify(ltNodeNotes)); }catch(e){}
+}
 
 // Build a virtual tree from memo data
 function buildLtData(){
   // Root node always id=0
-  const root={id:0,text:'メモ',note:'',children:[],_type:'root'};
+  const root={id:0,text:'メモ',note:ltNodeNotes['0']||'',children:[],_type:'root'};
 
   if(ltMode==='tag'){
     const tags=allTagsSorted();
@@ -688,7 +713,7 @@ function buildLtData(){
 
     tags.forEach((tag,i)=>{
       const tagId=-(i+1); // negative IDs = auto tag nodes
-      const tagNode={id:tagId,text:tag,note:'',children:[],_type:'tag',_tag:tag};
+      const tagNode={id:tagId,text:tag,note:ltNodeNotes[String(tagId)]||'',children:[],_type:'tag',_tag:tag};
       const tagNotes=notes.filter(n=>(n.tags||[]).includes(tag));
       tagNotes.forEach(note=>{
         tagNode.children.push({id:`m_${note.id}`,text:note.title||'（タイトルなし）',note:'',children:[],_type:'memo',_noteId:note.id});
@@ -700,7 +725,7 @@ function buildLtData(){
     const untagged=notes.filter(n=>!(n.tags||[]).length);
     if(untagged.length){
       const uid=-999;
-      const uNode={id:uid,text:'タグなし',note:'',children:[],_type:'tag'};
+      const uNode={id:uid,text:'タグなし',note:ltNodeNotes[String(uid)]||'',children:[],_type:'tag'};
       untagged.forEach(note=>{
         uNode.children.push({id:`m_${note.id}`,text:note.title||'（タイトルなし）',note:'',children:[],_type:'memo',_noteId:note.id});
       });
@@ -828,13 +853,13 @@ function ltUpdatePanel(){
       <button class="lt-prompt-btn" data-p="課題は？\n">課題は？</button>
     </div>
     <textarea class="lt-panel-note" id="panel-note" placeholder="メモを入力...">${escHtml(node.note||'')}</textarea>`;
-  document.getElementById('panel-note').addEventListener('input',e=>{node.note=e.target.value;});
+  document.getElementById('panel-note').addEventListener('input',e=>{node.note=e.target.value;ltSaveNodeNote(node.id,node.note);ltShowSaved();});
   document.querySelectorAll('.lt-prompt-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const ta=document.getElementById('panel-note');
       ta.value+=(ta.value&&!ta.value.endsWith('\n')?'\n':'')+btn.dataset.p;
       ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;
-      node.note=ta.value;
+      node.note=ta.value;ltSaveNodeNote(node.id,node.note);ltShowSaved();
     });
   });
 }
@@ -859,12 +884,15 @@ function ltShowMemoPanel(noteId){
 function openNoteFromTree(id){openNote(id);}
 
 function ltClearCustomNodes(){
-  // just re-render (custom state is in-memory only for auto tree)
+  if(!confirm('ツリーのノードメモをすべてリセットしますか？'))return;
+  ltNodeNotes={};
+  try{localStorage.removeItem(LT_NOTES_KEY);}catch(e){}
   ltSelectedId=null;ltRenderAll();toast('リセットしました');
 }
 
 function setLtMode(mode){
   ltMode=mode;
+  try{localStorage.setItem(LT_MODE_KEY,mode);}catch(e){}
   document.getElementById('lt-mode-tag').className='lt-btn'+(mode==='tag'?' active':'');
   document.getElementById('lt-mode-memo').className='lt-btn'+(mode==='memo'?' active':'');
   ltSelectedId=null;ltRenderAll();
@@ -906,6 +934,14 @@ function ltDrawLines(){
 
 window.addEventListener('resize',()=>requestAnimationFrame(ltDrawLines));
 document.getElementById('lt-tree-area')?.addEventListener('scroll',()=>requestAnimationFrame(ltDrawLines));
+
+function ltShowSaved(){
+  const el=document.getElementById('lt-saved');
+  if(!el)return;
+  el.style.opacity='1';
+  clearTimeout(ltShowSaved._t);
+  ltShowSaved._t=setTimeout(()=>{el.style.opacity='0';},1800);
+}
 
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
