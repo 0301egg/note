@@ -15,52 +15,42 @@
     }
     body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); font-weight: 300; line-height: 1.9; -webkit-font-smoothing: antialiased; }
 
-    /* ── Password screen ── */
-    #pw-screen {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh;
-    }
-    .pw-box {
-      text-align: center; width: 300px;
-    }
-    .pw-box h1 {
-      font-family: 'Noto Serif JP', serif; font-weight: 300;
-      font-size: 1rem; letter-spacing: 0.3em; color: var(--text-light);
-      margin-bottom: 2.5rem;
-    }
-    .pw-box input {
-      width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border);
-      border-radius: 3px; font-size: 0.85rem; background: white;
-      color: var(--text); outline: none; text-align: center;
-      letter-spacing: 0.1em; margin-bottom: 0.8rem;
-    }
+    /* Password */
+    #pw-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .pw-box { text-align: center; width: 300px; }
+    .pw-box h1 { font-family: 'Noto Serif JP', serif; font-weight: 300; font-size: 1rem; letter-spacing: 0.3em; color: var(--text-light); margin-bottom: 2.5rem; }
+    .pw-box input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 3px; font-size: 0.85rem; background: white; color: var(--text); outline: none; text-align: center; letter-spacing: 0.1em; margin-bottom: 0.8rem; }
     .pw-box input:focus { border-color: var(--accent); }
-    .pw-box button {
-      width: 100%; padding: 0.65rem; background: var(--text); color: var(--bg);
-      border: none; border-radius: 3px; font-family: 'Noto Sans JP', sans-serif;
-      font-size: 0.78rem; letter-spacing: 0.12em; cursor: pointer;
-      transition: background 0.15s;
-    }
+    .pw-box button { width: 100%; padding: 0.65rem; background: var(--text); color: var(--bg); border: none; border-radius: 3px; font-family: 'Noto Sans JP', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; cursor: pointer; }
     .pw-box button:hover { background: var(--accent-dark); }
     .pw-error { color: var(--danger); font-size: 0.72rem; margin-top: 0.6rem; min-height: 1rem; }
 
-    /* ── Main app ── */
+    /* App */
     #app { display: none; }
     header { padding: 2rem 2rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 1.5rem; }
     header h1 { font-family: 'Noto Serif JP', serif; font-weight: 300; font-size: 1rem; letter-spacing: 0.3em; color: var(--text-light); }
     header span { font-size: 0.72rem; color: var(--text-light); opacity: 0.6; letter-spacing: 0.1em; }
-    .container { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 6rem; }
 
-    /* ── Token setup ── */
+    /* Tab nav */
+    .tab-nav { display: flex; border-bottom: 1px solid var(--border); padding: 0 2rem; max-width: 760px; margin: 0 auto; }
+    .tab-btn { font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 300; letter-spacing: 0.1em; padding: 1rem 1.5rem 0.9rem; border: none; background: none; color: var(--text-light); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Token */
     #setup { background: var(--bg-sub); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; margin-bottom: 3rem; }
     #setup h2 { font-family: 'Noto Serif JP', serif; font-size: 0.85rem; font-weight: 400; letter-spacing: 0.1em; margin-bottom: 1rem; color: var(--text-light); }
     #setup p { font-size: 0.78rem; color: var(--text-light); margin-bottom: 1rem; }
     .token-row { display: flex; gap: 0.8rem; }
-    #setup input { flex: 1; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 3px; font-family: monospace; font-size: 0.78rem; background: white; color: var(--text); outline: none; }
-    #setup input:focus { border-color: var(--accent); }
+    #token-input { flex: 1; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 3px; font-family: monospace; font-size: 0.78rem; background: white; color: var(--text); outline: none; }
+    #token-input:focus { border-color: var(--accent); }
 
-    /* ── Buttons ── */
-    button { font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 300; letter-spacing: 0.08em; border: 1px solid var(--border); background: white; color: var(--text); padding: 0.5rem 1.2rem; border-radius: 3px; cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap; }
+    /* Buttons */
+    button { font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 300; letter-spacing: 0.08em; border: 1px solid var(--border); background: white; color: var(--text); padding: 0.5rem 1.2rem; border-radius: 3px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
     button:hover { background: var(--bg-sub); }
     button.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
     button.primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
@@ -68,20 +58,29 @@
     button.danger:hover { background: #fdf0ee; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ── Section ── */
+    /* Section */
     .section-title { font-family: 'Noto Serif JP', serif; font-size: 1rem; font-weight: 400; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
     .section-subtitle { font-size: 0.75rem; color: var(--text-light); margin-bottom: 1.8rem; }
     .divider { width: 32px; height: 1px; background: var(--accent); opacity: 0.4; margin: 0.6rem 0 1.8rem; }
 
-    /* ── Category list ── */
-    #cat-section { margin-bottom: 4rem; }
-    #cat-list { list-style: none; margin-bottom: 1.5rem; }
-    #cat-list li { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border); gap: 1rem; }
-    .cat-label { font-size: 0.88rem; }
-    .cat-label span { font-size: 0.72rem; color: var(--text-light); margin-left: 0.6rem; }
-    .cat-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    /* Lists */
+    .edit-list { list-style: none; margin-bottom: 1.5rem; }
+    .edit-list li { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border); gap: 1rem; }
+    .item-label { font-size: 0.88rem; }
+    .item-label span { font-size: 0.72rem; color: var(--text-light); margin-left: 0.6rem; }
+    .item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
-    /* ── Forms ── */
+    /* Entry list */
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-title { font-size: 0.9rem; font-family: 'Noto Serif JP', serif; }
+    .entry-sub { font-size: 0.72rem; color: var(--text-light); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Page selector */
+    .page-selector { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .page-btn { font-size: 0.72rem; letter-spacing: 0.06em; padding: 0.4rem 1rem; }
+    .page-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    /* Forms */
     .add-form { background: var(--bg-sub); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; margin-top: 1rem; }
     .add-form h3 { font-size: 0.78rem; color: var(--text-light); letter-spacing: 0.1em; margin-bottom: 1.2rem; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 0.8rem; }
@@ -92,34 +91,21 @@
     textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
     .form-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1rem; }
 
-    /* ── Page editor ── */
-    #page-section { margin-bottom: 4rem; }
-    .page-selector { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .page-btn { font-size: 0.72rem; letter-spacing: 0.06em; padding: 0.4rem 1rem; }
-    .page-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-
-    /* ── Entry list ── */
-    #entry-list { list-style: none; margin-bottom: 1.5rem; }
-    #entry-list li { display: flex; align-items: flex-start; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--border); gap: 1rem; }
-    .entry-info { flex: 1; min-width: 0; }
-    .entry-title { font-size: 0.9rem; font-family: 'Noto Serif JP', serif; }
-    .entry-sub { font-size: 0.72rem; color: var(--text-light); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .entry-actions { display: flex; gap: 0.5rem; flex-shrink: 0; padding-top: 0.1rem; }
-
-    /* ── Modal ── */
+    /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(44,44,44,0.4); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
     .modal h3 { font-family: 'Noto Serif JP', serif; font-size: 0.9rem; font-weight: 400; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.5rem; }
 
-    /* ── Toast ── */
+    /* Toast */
     #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 0.7rem 1.6rem; border-radius: 3px; font-size: 0.78rem; letter-spacing: 0.06em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
     #toast.show { opacity: 1; }
     #toast.error { background: var(--danger); }
 
-    .loading { text-align: center; padding: 2rem; color: var(--text-light); font-size: 0.8rem; letter-spacing: 0.1em; }
-    .empty { color: var(--text-light); font-size: 0.82rem; padding: 1.5rem 0; }
+    .loading { text-align: center; padding: 2rem; color: var(--text-light); font-size: 0.8rem; }
+    .empty { color: var(--text-light); font-size: 0.82rem; padding: 1.5rem 0; display: block; }
+    .section-gap { margin-bottom: 3.5rem; }
   </style>
 </head>
 <body>
@@ -128,7 +114,7 @@
 <div id="pw-screen">
   <div class="pw-box">
     <h1>note</h1>
-    <input type="password" id="pw-input" placeholder="パスワード" onkeydown="if(event.key==='Enter')checkPassword()">
+    <input type="password" id="pw-input" placeholder="パスワード">
     <button onclick="checkPassword()">入室</button>
     <p class="pw-error" id="pw-error"></p>
   </div>
@@ -141,12 +127,18 @@
     <span>管理画面</span>
   </header>
 
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('index')">トップページ</button>
+    <button class="tab-btn" onclick="switchTab('selection')">Selection</button>
+  </div>
+
   <div class="container">
 
-    <!-- Token Setup -->
+    <!-- Token Setup (shared) -->
     <div id="setup">
       <h2>GitHub 接続設定</h2>
-      <p>Personal Access Token（repo権限）を入力してください。このページ内にのみ保存され、外部には送信されません。</p>
+      <p>Personal Access Token（repo権限）を入力してください。このページ内にのみ保存されます。</p>
       <div class="token-row">
         <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
         <button onclick="saveToken()">接続</button>
@@ -154,65 +146,135 @@
       <p id="token-status" style="margin-top:0.8rem; font-size:0.72rem;"></p>
     </div>
 
-    <!-- Category Section -->
-    <div id="cat-section">
-      <h2 class="section-title">カテゴリ管理</h2>
-      <p class="section-subtitle">Selection ページのカテゴリ一覧を編集する</p>
-      <div class="divider"></div>
-      <ul id="cat-list"><li class="loading">— トークンを設定してください —</li></ul>
-      <button onclick="toggleAddCat()">＋ カテゴリを追加</button>
-      <div class="add-form" id="add-cat-form" style="display:none; margin-top:1rem;">
-        <h3>新規カテゴリ</h3>
-        <div class="form-row">
-          <div><label>英語名（例: Essay）</label><input type="text" id="new-cat-en" placeholder="Essay"></div>
-          <div><label>日本語名（例: エッセイ）</label><input type="text" id="new-cat-ja" placeholder="エッセイ"></div>
-        </div>
-        <div class="form-actions">
-          <button onclick="toggleAddCat()">キャンセル</button>
-          <button class="primary" onclick="addCategory()">追加して保存</button>
-        </div>
-      </div>
-    </div>
+    <!-- ═══ TAB: トップページ ═══ -->
+    <div id="tab-index" class="tab-panel active">
 
-    <!-- Page Content Section -->
-    <div id="page-section">
-      <h2 class="section-title">ページ内容の編集</h2>
-      <p class="section-subtitle">各カテゴリページのエントリを追加・削除する</p>
-      <div class="divider"></div>
-      <div class="page-selector" id="page-selector"><span class="empty">カテゴリを読み込み中...</span></div>
-      <div id="entry-area" style="display:none;">
-        <ul id="entry-list"></ul>
-        <button onclick="toggleAddEntry()">＋ エントリを追加</button>
-        <div class="add-form" id="entry-add-form" style="display:none;">
-          <h3>新規エントリ</h3>
+      <!-- Nav管理 -->
+      <div class="section-gap">
+        <h2 class="section-title">ナビゲーション</h2>
+        <p class="section-subtitle">index.html のナビバーのリンクを編集する</p>
+        <div class="divider"></div>
+        <ul class="edit-list" id="nav-list"><li class="loading">— トークンを設定してください —</li></ul>
+        <button onclick="toggleForm('add-nav-form')">＋ ナビリンクを追加</button>
+        <div class="add-form" id="add-nav-form" style="display:none; margin-top:1rem;">
+          <h3>新規ナビリンク</h3>
           <div class="form-row">
-            <div><label>タイトル *</label><input type="text" id="new-title" placeholder="作品名・人物名など"></div>
-            <div><label>サブタイトル（著者・肩書など）</label><input type="text" id="new-author" placeholder="著者名など"></div>
-          </div>
-          <div class="form-row">
-            <div><label>メタ情報（出版年・出身地など）</label><input type="text" id="new-meta" placeholder="2023年 / 日本"></div>
-            <div><label>画像パス（省略可）</label><input type="text" id="new-img" placeholder="images/filename.jpg"></div>
-          </div>
-          <div class="form-row full">
-            <div><label>説明文 *</label><textarea id="new-desc" placeholder="このエントリについての説明文を入力..."></textarea></div>
-          </div>
-          <div class="form-row">
-            <div><label>リンクURL（省略可）</label><input type="text" id="new-link-url" placeholder="https://..."></div>
-            <div><label>リンクテキスト</label><input type="text" id="new-link-text" placeholder="Amazon で見る"></div>
+            <div><label>表示名（例: Blog）</label><input type="text" id="new-nav-label" placeholder="Blog"></div>
+            <div><label>リンク先ファイル（例: blog.html）</label><input type="text" id="new-nav-href" placeholder="blog.html"></div>
           </div>
           <div class="form-actions">
-            <button onclick="toggleAddEntry()">キャンセル</button>
-            <button class="primary" onclick="addEntry()">追加して保存</button>
+            <button onclick="toggleForm('add-nav-form')">キャンセル</button>
+            <button class="primary" onclick="addNavItem()">追加して保存</button>
           </div>
         </div>
       </div>
+
+      <!-- カード管理 -->
+      <div class="section-gap">
+        <h2 class="section-title">トップカード</h2>
+        <p class="section-subtitle">index.html のカード一覧（メインメニュー）を編集する</p>
+        <div class="divider"></div>
+        <ul class="edit-list" id="card-list"><li class="loading">— トークンを設定してください —</li></ul>
+        <button onclick="toggleForm('add-card-form')">＋ カードを追加</button>
+        <div class="add-form" id="add-card-form" style="display:none; margin-top:1rem;">
+          <h3>新規カード</h3>
+          <div class="form-row">
+            <div><label>タイトル（例: Blog）</label><input type="text" id="new-card-title" placeholder="Blog"></div>
+            <div><label>リンク先ファイル（例: blog.html）</label><input type="text" id="new-card-href" placeholder="blog.html"></div>
+          </div>
+          <div class="form-row full">
+            <div><label>説明文</label><input type="text" id="new-card-desc" placeholder="ブログ記事一覧"></div>
+          </div>
+          <div class="form-actions">
+            <button onclick="toggleForm('add-card-form')">キャンセル</button>
+            <button class="primary" onclick="addCardItem()">追加して保存</button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
+    <!-- ═══ TAB: Selection ═══ -->
+    <div id="tab-selection" class="tab-panel">
+
+      <!-- カテゴリ管理 -->
+      <div class="section-gap">
+        <h2 class="section-title">カテゴリ管理</h2>
+        <p class="section-subtitle">Selection ページのカテゴリ一覧を編集する</p>
+        <div class="divider"></div>
+        <ul class="edit-list" id="cat-list"><li class="loading">— トークンを設定してください —</li></ul>
+        <button onclick="toggleForm('add-cat-form')">＋ カテゴリを追加</button>
+        <div class="add-form" id="add-cat-form" style="display:none; margin-top:1rem;">
+          <h3>新規カテゴリ</h3>
+          <div class="form-row">
+            <div><label>英語名（例: Essay）</label><input type="text" id="new-cat-en" placeholder="Essay"></div>
+            <div><label>日本語名（例: エッセイ）</label><input type="text" id="new-cat-ja" placeholder="エッセイ"></div>
+          </div>
+          <div class="form-actions">
+            <button onclick="toggleForm('add-cat-form')">キャンセル</button>
+            <button class="primary" onclick="addCategory()">追加して保存</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- エントリ管理 -->
+      <div class="section-gap">
+        <h2 class="section-title">エントリ管理</h2>
+        <p class="section-subtitle">各カテゴリページのエントリを追加・編集・削除する</p>
+        <div class="divider"></div>
+        <div class="page-selector" id="page-selector"><span class="empty">カテゴリを読み込み中...</span></div>
+        <div id="entry-area" style="display:none;">
+          <ul class="edit-list" id="entry-list"></ul>
+          <button onclick="toggleForm('entry-add-form')">＋ エントリを追加</button>
+          <div class="add-form" id="entry-add-form" style="display:none;">
+            <h3>新規エントリ</h3>
+            <div class="form-row">
+              <div><label>タイトル *</label><input type="text" id="new-title" placeholder="作品名・人物名など"></div>
+              <div><label>サブタイトル</label><input type="text" id="new-author" placeholder="著者名など"></div>
+            </div>
+            <div class="form-row">
+              <div><label>メタ情報</label><input type="text" id="new-meta" placeholder="2023年 / 日本"></div>
+              <div><label>画像パス（省略可）</label><input type="text" id="new-img" placeholder="images/filename.jpg"></div>
+            </div>
+            <div class="form-row full">
+              <div><label>説明文 *</label><textarea id="new-desc" placeholder="説明文を入力..."></textarea></div>
+            </div>
+            <div class="form-row">
+              <div><label>リンクURL（省略可）</label><input type="text" id="new-link-url" placeholder="https://..."></div>
+              <div><label>リンクテキスト</label><input type="text" id="new-link-text" placeholder="Amazon で見る"></div>
+            </div>
+            <div class="form-actions">
+              <button onclick="toggleForm('entry-add-form')">キャンセル</button>
+              <button class="primary" onclick="addEntry()">追加して保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
-<!-- Edit Modal -->
-<div class="modal-overlay" id="edit-modal">
+<!-- Edit Modal (nav/card) -->
+<div class="modal-overlay" id="edit-modal-index">
+  <div class="modal">
+    <h3 id="edit-modal-index-title">編集</h3>
+    <div class="form-row">
+      <div><label id="edit-label-a">表示名</label><input type="text" id="edit-idx-a"></div>
+      <div><label id="edit-label-b">リンク先</label><input type="text" id="edit-idx-b"></div>
+    </div>
+    <div class="form-row full" id="edit-desc-row" style="display:none;">
+      <div><label>説明文</label><input type="text" id="edit-idx-desc"></div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeModal('edit-modal-index')">キャンセル</button>
+      <button class="primary" onclick="saveIndexEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal (entry) -->
+<div class="modal-overlay" id="edit-modal-entry">
   <div class="modal">
     <h3>エントリを編集</h3>
     <div class="form-row">
@@ -231,8 +293,8 @@
       <div><label>リンクテキスト</label><input type="text" id="edit-link-text"></div>
     </div>
     <div class="modal-actions">
-      <button onclick="closeModal()">キャンセル</button>
-      <button class="primary" onclick="saveEdit()">保存</button>
+      <button onclick="closeModal('edit-modal-entry')">キャンセル</button>
+      <button class="primary" onclick="saveEntryEdit()">保存</button>
     </div>
   </div>
 </div>
@@ -245,13 +307,13 @@ const BASE = 'https://api.github.com/repos/' + REPO + '/contents/';
 const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f9';
 
 let token = '';
-let currentPage = null;
-let currentPageContent = '';
-let currentPageSha = '';
-let editingIndex = -1;
+let indexContent = '', indexSha = '';
 let categories = [];
+let currentPage = null, currentPageContent = '', currentPageSha = '';
+let editingMode = ''; // 'nav' | 'card' | 'cat'
+let editingIndex = -1;
 
-// ── Password ──────────────────────────────────
+// ── Password ───────────────────────────────────
 async function checkPassword() {
   const pw = document.getElementById('pw-input').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
@@ -266,51 +328,214 @@ async function checkPassword() {
 }
 document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPassword(); });
 
+// ── Tab ────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['index','selection'][i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── API ────────────────────────────────────────
+function apiFetch(path, options={}) {
+  return fetch(BASE+path, {
+    ...options,
+    headers: { 'Authorization':'token '+token, 'Content-Type':'application/json', ...options.headers }
+  }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+}
+function apiPut(path, content, sha, message) {
+  return apiFetch(path, {
+    method:'PUT',
+    body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))), sha })
+  });
+}
+function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
+
+// ── Toast ──────────────────────────────────────
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show'+(isError?' error':'');
+  setTimeout(() => el.className='', 2500);
+}
+
 // ── Token ──────────────────────────────────────
 function saveToken() {
   token = document.getElementById('token-input').value.trim();
   if (!token) return;
   document.getElementById('token-status').textContent = '接続確認中...';
-  apiFetch('selection.html')
-    .then(() => {
-      document.getElementById('token-status').style.color = 'var(--success)';
-      document.getElementById('token-status').textContent = '✓ 接続しました';
-      loadCategories();
-    })
-    .catch(() => {
-      document.getElementById('token-status').style.color = 'var(--danger)';
-      document.getElementById('token-status').textContent = '✗ 接続失敗。トークンを確認してください。';
-    });
-}
-
-// ── API ────────────────────────────────────────
-function apiFetch(path, options = {}) {
-  return fetch(BASE + path, {
-    ...options,
-    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', ...options.headers }
-  }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
-}
-
-function apiPut(path, content, sha, message) {
-  return apiFetch(path, {
-    method: 'PUT',
-    body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))), sha })
+  apiFetch('index.html').then(() => {
+    document.getElementById('token-status').style.color = 'var(--success)';
+    document.getElementById('token-status').textContent = '✓ 接続しました';
+    loadAll();
+  }).catch(() => {
+    document.getElementById('token-status').style.color = 'var(--danger)';
+    document.getElementById('token-status').textContent = '✗ 接続失敗。トークンを確認してください。';
   });
 }
 
-// ── Toast ──────────────────────────────────────
-function toast(msg, isError = false) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show' + (isError ? ' error' : '');
-  setTimeout(() => el.className = '', 2500);
+async function loadAll() {
+  await loadIndex();
+  await loadCategories();
 }
 
-// ── Categories ─────────────────────────────────
+// ── index.html ─────────────────────────────────
+async function loadIndex() {
+  const data = await apiFetch('index.html');
+  indexSha = data.sha;
+  indexContent = decode(data.content);
+  renderNavList();
+  renderCardList();
+}
+
+function parseNavItems(html) {
+  return [...html.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
+    .map(m => ({ href: m[1], label: m[2].trim() }));
+}
+
+function parseCardItems(html) {
+  return [...html.matchAll(/<li>\s*<a href="([^"]+)">\s*<span class="card-title">([^<]+)<\/span>\s*<p class="card-desc">([^<]+)<\/p>\s*<\/a>\s*<\/li>/g)]
+    .map(m => ({ href: m[1], title: m[2].trim(), desc: m[3].trim() }));
+}
+
+function renderNavList() {
+  const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+  const ul = document.getElementById('nav-list');
+  if (!items.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
+  ul.innerHTML = items.map((it, i) => `
+    <li>
+      <div class="item-label">${it.label}<span>${it.href}</span></div>
+      <div class="item-actions">
+        <button onclick="openIndexEdit('nav',${i})">編集</button>
+        <button class="danger" onclick="deleteNavItem(${i})">削除</button>
+      </div>
+    </li>`).join('');
+}
+
+function renderCardList() {
+  const items = parseCardItems(indexContent);
+  const ul = document.getElementById('card-list');
+  if (!items.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
+  ul.innerHTML = items.map((it, i) => `
+    <li>
+      <div class="item-label">${it.title}<span>${it.desc}</span></div>
+      <div class="item-actions">
+        <button onclick="openIndexEdit('card',${i})">編集</button>
+        <button class="danger" onclick="deleteCardItem(${i})">削除</button>
+      </div>
+    </li>`).join('');
+}
+
+// Nav CRUD
+async function addNavItem() {
+  const label = document.getElementById('new-nav-label').value.trim();
+  const href  = document.getElementById('new-nav-href').value.trim();
+  if (!label || !href) return toast('表示名とリンク先を入力してください', true);
+  let html = indexContent;
+  html = html.replace('</nav>', `    <a href="${href}">${label}</a>\n  </nav>`);
+  await apiPut('index.html', html, indexSha, `Add nav: ${label}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  document.getElementById('new-nav-label').value = '';
+  document.getElementById('new-nav-href').value = '';
+  toggleForm('add-nav-form');
+  renderNavList();
+  toast(`ナビに「${label}」を追加しました`);
+}
+
+async function deleteNavItem(i) {
+  const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+  const it = items[i];
+  if (!confirm(`ナビから「${it.label}」を削除しますか？`)) return;
+  const escaped = it.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let html = indexContent.replace(new RegExp(`\\s*<a href="${escaped}">[^<]+<\\/a>`), '');
+  await apiPut('index.html', html, indexSha, `Remove nav: ${it.label}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  renderNavList(); toast(`「${it.label}」を削除しました`);
+}
+
+// Card CRUD
+async function addCardItem() {
+  const title = document.getElementById('new-card-title').value.trim();
+  const href  = document.getElementById('new-card-href').value.trim();
+  const desc  = document.getElementById('new-card-desc').value.trim();
+  if (!title || !href) return toast('タイトルとリンク先を入力してください', true);
+  const newItem = `        <li>\n          <a href="${href}">\n            <span class="card-title">${title}</span>\n            <p class="card-desc">${desc}</p>\n          </a>\n        </li>`;
+  let html = indexContent.replace('      </ul>', newItem + '\n      </ul>');
+  await apiPut('index.html', html, indexSha, `Add card: ${title}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  document.getElementById('new-card-title').value = '';
+  document.getElementById('new-card-href').value = '';
+  document.getElementById('new-card-desc').value = '';
+  toggleForm('add-card-form');
+  renderCardList(); toast(`カードに「${title}」を追加しました`);
+}
+
+async function deleteCardItem(i) {
+  const items = parseCardItems(indexContent);
+  const it = items[i];
+  if (!confirm(`カードから「${it.title}」を削除しますか？`)) return;
+  const esc = it.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pat = new RegExp(`\\s*<li>\\s*<a href="[^"]+">\\s*<span class="card-title">${esc}<\\/span>[\\s\\S]*?<\\/a>\\s*<\\/li>`);
+  let html = indexContent.replace(pat, '');
+  await apiPut('index.html', html, indexSha, `Remove card: ${it.title}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  renderCardList(); toast(`「${it.title}」を削除しました`);
+}
+
+// Index edit modal
+function openIndexEdit(mode, i) {
+  editingMode = mode; editingIndex = i;
+  if (mode === 'nav') {
+    const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+    const it = items[i];
+    document.getElementById('edit-modal-index-title').textContent = 'ナビリンクを編集';
+    document.getElementById('edit-label-a').textContent = '表示名';
+    document.getElementById('edit-label-b').textContent = 'リンク先';
+    document.getElementById('edit-idx-a').value = it.label;
+    document.getElementById('edit-idx-b').value = it.href;
+    document.getElementById('edit-desc-row').style.display = 'none';
+  } else {
+    const items = parseCardItems(indexContent);
+    const it = items[i];
+    document.getElementById('edit-modal-index-title').textContent = 'カードを編集';
+    document.getElementById('edit-label-a').textContent = 'タイトル';
+    document.getElementById('edit-label-b').textContent = 'リンク先';
+    document.getElementById('edit-idx-a').value = it.title;
+    document.getElementById('edit-idx-b').value = it.href;
+    document.getElementById('edit-idx-desc').value = it.desc;
+    document.getElementById('edit-desc-row').style.display = 'grid';
+  }
+  document.getElementById('edit-modal-index').classList.add('open');
+}
+
+async function saveIndexEdit() {
+  const a = document.getElementById('edit-idx-a').value.trim();
+  const b = document.getElementById('edit-idx-b').value.trim();
+  const desc = document.getElementById('edit-idx-desc').value.trim();
+  let html = indexContent;
+
+  if (editingMode === 'nav') {
+    const items = parseNavItems(html.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+    const old = items[editingIndex];
+    const escHref = old.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    html = html.replace(new RegExp(`<a href="${escHref}">[^<]+<\\/a>`), `<a href="${b}">${a}</a>`);
+  } else {
+    const items = parseCardItems(html);
+    const old = items[editingIndex];
+    const esc = old.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pat = new RegExp(`(<li>\\s*<a href=")[^"]+("[^>]*>\\s*<span class="card-title">)${esc}(<\\/span>\\s*<p class="card-desc">)[^<]*(<\\/p>\\s*<\\/a>\\s*<\\/li>)`);
+    html = html.replace(pat, `$1${b}$2${a}$3${desc}$4`);
+  }
+
+  await apiPut('index.html', html, indexSha, `Edit ${editingMode}: ${a}`);
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  closeModal('edit-modal-index');
+  renderNavList(); renderCardList();
+  toast(`更新しました`);
+}
+
+// ── Selection / Categories ─────────────────────
 async function loadCategories() {
   const data = await apiFetch('selection.html');
-  const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
-  currentPageSha = data.sha;
+  const content = decode(data.content);
   const matches = [...content.matchAll(/<a href="(selection-[^"]+\.html)">\s*<span class="card-title">([^<]+)<\/span>\s*<p class="card-desc">([^<]+)<\/p>/g)];
   categories = matches.map(m => ({ file: m[1], en: m[2].trim(), ja: m[3].trim() }));
   renderCatList();
@@ -319,41 +544,37 @@ async function loadCategories() {
 
 function renderCatList() {
   const ul = document.getElementById('cat-list');
-  if (!categories.length) { ul.innerHTML = '<li class="empty">カテゴリなし</li>'; return; }
+  if (!categories.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
   ul.innerHTML = categories.map((c, i) => `
     <li>
-      <div class="cat-label">${c.en}<span>${c.ja}</span></div>
-      <div class="cat-actions"><button class="danger" onclick="deleteCategory(${i})">削除</button></div>
+      <div class="item-label">${c.en}<span>${c.ja}</span></div>
+      <div class="item-actions">
+        <button class="danger" onclick="deleteCategory(${i})">削除</button>
+      </div>
     </li>`).join('');
 }
 
 function renderPageSelector() {
   const sel = document.getElementById('page-selector');
   sel.innerHTML = categories.map(c =>
-    `<button class="page-btn" onclick="selectPage('${c.file}', this)">${c.en}</button>`
+    `<button class="page-btn" onclick="selectPage('${c.file}',this)">${c.en}</button>`
   ).join('');
-}
-
-function toggleAddCat() {
-  const f = document.getElementById('add-cat-form');
-  f.style.display = f.style.display === 'none' ? 'block' : 'none';
 }
 
 async function addCategory() {
   const en = document.getElementById('new-cat-en').value.trim();
   const ja = document.getElementById('new-cat-ja').value.trim();
   if (!en || !ja) return toast('英語名と日本語名を入力してください', true);
-  const slug = 'selection-' + en.toLowerCase().replace(/\s+/g, '-') + '.html';
+  const slug = 'selection-' + en.toLowerCase().replace(/\s+/g,'-') + '.html';
   const data = await apiFetch('selection.html');
-  let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+  let html = decode(data.content);
   const newItem = `        <li>\n          <a href="${slug}">\n            <span class="card-title">${en}</span>\n            <p class="card-desc">${ja}</p>\n          </a>\n        </li>`;
   html = html.replace('      </ul>', newItem + '\n      </ul>');
   await apiPut('selection.html', html, data.sha, `Add category: ${en}`);
-  const newPage = buildNewPage(en, ja);
-  try { await apiPut(slug, newPage, '', `Create ${slug}`); } catch(e) {}
+  try { await apiPut(slug, buildNewPage(en, ja), '', `Create ${slug}`); } catch(e){}
   document.getElementById('new-cat-en').value = '';
   document.getElementById('new-cat-ja').value = '';
-  toggleAddCat();
+  toggleForm('add-cat-form');
   await loadCategories();
   toast(`「${en}」を追加しました`);
 }
@@ -362,19 +583,18 @@ async function deleteCategory(i) {
   const cat = categories[i];
   if (!confirm(`「${cat.en}」を削除しますか？`)) return;
   const data = await apiFetch('selection.html');
-  let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
-  const pattern = new RegExp(`\\s*<li>\\s*<a href="${cat.file.replace('.', '\\.')}">.*?</a>\\s*</li>`, 's');
-  html = html.replace(pattern, '');
+  let html = decode(data.content);
+  const pat = new RegExp(`\\s*<li>\\s*<a href="${cat.file.replace('.','\\.')}">.*?<\\/a>\\s*<\\/li>`, 's');
+  html = html.replace(pat, '');
   await apiPut('selection.html', html, data.sha, `Remove category: ${cat.en}`);
-  await loadCategories();
-  toast(`「${cat.en}」を削除しました`);
+  await loadCategories(); toast(`「${cat.en}」を削除しました`);
 }
 
 function buildNewPage(en, ja) {
   return `<!DOCTYPE html>\n<html lang="ja">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${en} — note</title>\n  <link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n\n  <header class="site-header">\n    <h1><a href="index.html">note</a></h1>\n  </header>\n\n  <nav>\n    <a href="about.html">About</a>\n    <a href="interest.html">Interest</a>\n    <a href="philosophy.html">Philosophy</a>\n    <a href="archive.html">Archive</a>\n    <a href="selection.html">Selection</a>\n  </nav>\n\n  <main>\n    <div class="page">\n      <p class="page-subtitle"><a href="selection.html">&larr; Selection</a></p>\n      <h2 class="page-title">${en}</h2>\n      <p class="page-subtitle">${ja}</p>\n      <div class="divider"></div>\n\n      <div class="section">\n        <p>準備中です。</p>\n      </div>\n    </div>\n  </main>\n\n  <footer>\n    <p>&copy; 2025 note</p>\n  </footer>\n\n</body>\n</html>\n`;
 }
 
-// ── Page entries ───────────────────────────────
+// ── Entry ──────────────────────────────────────
 async function selectPage(file, btn) {
   document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -382,7 +602,7 @@ async function selectPage(file, btn) {
   document.getElementById('entry-area').style.display = 'block';
   document.getElementById('entry-list').innerHTML = '<li class="loading">読み込み中...</li>';
   const data = await apiFetch(file);
-  currentPageContent = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+  currentPageContent = decode(data.content);
   currentPageSha = data.sha;
   renderEntries();
 }
@@ -392,14 +612,14 @@ function parseEntries(html) {
   const regex = /<div class="book-card">([\s\S]*?)<\/div>\s*<\/div>\s*(?=<div class="book-card">|<\/div>\s*<\/main>)/g;
   let m;
   while ((m = regex.exec(html)) !== null) {
-    const block = m[1];
-    const title   = (block.match(/<h3 class="book-title">([^<]*)<\/h3>/) || [])[1]?.trim() || '';
-    const author  = (block.match(/<p class="book-author">([^<]*)<\/p>/) || [])[1]?.trim() || '';
-    const meta    = (block.match(/<p class="book-meta">([\s\S]*?)<\/p>/) || [])[1]?.replace(/<br>/g,'').trim() || '';
-    const desc    = (block.match(/<p class="book-desc">([\s\S]*?)<\/p>/) || [])[1]?.trim() || '';
-    const img     = (block.match(/<img src="([^"]*)"/) || [])[1] || '';
-    const linkUrl = (block.match(/<a class="book-link" href="([^"]*)"/) || [])[1] || '';
-    const linkTxt = (block.match(/<a class="book-link"[^>]*>([^<]*)<\/a>/) || [])[1]?.trim() || '';
+    const b = m[1];
+    const title   = (b.match(/<h3 class="book-title">([^<]*)<\/h3>/) || [])[1]?.trim() || '';
+    const author  = (b.match(/<p class="book-author">([^<]*)<\/p>/) || [])[1]?.trim() || '';
+    const meta    = (b.match(/<p class="book-meta">([\s\S]*?)<\/p>/) || [])[1]?.replace(/<br>/g,'').trim() || '';
+    const desc    = (b.match(/<p class="book-desc">([\s\S]*?)<\/p>/) || [])[1]?.trim() || '';
+    const img     = (b.match(/<img src="([^"]*)"/) || [])[1] || '';
+    const linkUrl = (b.match(/<a class="book-link" href="([^"]*)"/) || [])[1] || '';
+    const linkTxt = (b.match(/<a class="book-link"[^>]*>([^<]*)<\/a>/) || [])[1]?.trim() || '';
     if (title) entries.push({ title, author, meta, desc, img, linkUrl, linkTxt });
   }
   return entries;
@@ -408,28 +628,23 @@ function parseEntries(html) {
 function renderEntries() {
   const entries = parseEntries(currentPageContent);
   const ul = document.getElementById('entry-list');
-  if (!entries.length) { ul.innerHTML = '<li class="empty">エントリなし</li>'; return; }
+  if (!entries.length) { ul.innerHTML = '<li><span class="empty">エントリなし</span></li>'; return; }
   ul.innerHTML = entries.map((e, i) => `
     <li>
       <div class="entry-info">
         <div class="entry-title">${e.title}</div>
-        <div class="entry-sub">${e.author}${e.meta ? ' — ' + e.meta : ''}</div>
+        <div class="entry-sub">${e.author}${e.meta?' — '+e.meta:''}</div>
       </div>
-      <div class="entry-actions">
-        <button onclick="openEdit(${i})">編集</button>
+      <div class="item-actions">
+        <button onclick="openEntryEdit(${i})">編集</button>
         <button class="danger" onclick="deleteEntry(${i})">削除</button>
       </div>
     </li>`).join('');
 }
 
-function toggleAddEntry() {
-  const f = document.getElementById('entry-add-form');
-  f.style.display = f.style.display === 'none' || f.style.display === '' ? 'block' : 'none';
-}
-
 function buildCardHtml(e) {
   const imgHtml = e.img ? `        <div class="book-cover">\n          <img src="${e.img}" alt="${e.title}">\n        </div>\n` : '';
-  const linkHtml = e.linkUrl ? `\n          <a class="book-link" href="${e.linkUrl}" target="_blank" rel="noopener">${e.linkTxt || 'リンク'}</a>` : '';
+  const linkHtml = e.linkUrl ? `\n          <a class="book-link" href="${e.linkUrl}" target="_blank" rel="noopener">${e.linkTxt||'リンク'}</a>` : '';
   return `\n      <div class="book-card">\n${imgHtml}        <div class="book-info">\n          <h3 class="book-title">${e.title}</h3>\n          <p class="book-author">${e.author}</p>\n          <p class="book-meta">${e.meta}</p>\n          <p class="book-desc">\n            ${e.desc}\n          </p>${linkHtml}\n        </div>\n      </div>\n`;
 }
 
@@ -446,39 +661,25 @@ async function addEntry() {
   if (!e.title || !e.desc) return toast('タイトルと説明文は必須です', true);
   let html = currentPageContent;
   const placeholder = /\s*<div class="section">\s*<p>準備中です。<\/p>\s*<\/div>/;
-  if (placeholder.test(html)) {
-    html = html.replace(placeholder, buildCardHtml(e));
-  } else {
-    html = html.replace('    </div>\n  </main>', buildCardHtml(e) + '\n    </div>\n  </main>');
-  }
+  html = placeholder.test(html) ? html.replace(placeholder, buildCardHtml(e)) : html.replace('    </div>\n  </main>', buildCardHtml(e)+'\n    </div>\n  </main>');
   await apiPut(currentPage, html, currentPageSha, `Add entry: ${e.title}`);
-  currentPageContent = html;
-  const data = await apiFetch(currentPage);
-  currentPageSha = data.sha;
-  ['new-title','new-author','new-meta','new-desc','new-img','new-link-url','new-link-text'].forEach(id => { document.getElementById(id).value = ''; });
-  toggleAddEntry();
-  renderEntries();
-  toast(`「${e.title}」を追加しました`);
+  currentPageContent = html; const d = await apiFetch(currentPage); currentPageSha = d.sha;
+  ['new-title','new-author','new-meta','new-desc','new-img','new-link-url','new-link-text'].forEach(id => document.getElementById(id).value='');
+  toggleForm('entry-add-form'); renderEntries(); toast(`「${e.title}」を追加しました`);
 }
 
 async function deleteEntry(i) {
   const entries = parseEntries(currentPageContent);
   const e = entries[i];
   if (!confirm(`「${e.title}」を削除しますか？`)) return;
-  let html = currentPageContent;
-  const escapedTitle = e.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`\\s*<div class="book-card">[\\s\\S]*?<h3 class="book-title">${escapedTitle}<\\/h3>[\\s\\S]*?<\\/div>\\s*<\\/div>`, '');
-  html = html.replace(pattern, '');
+  const esc = e.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = currentPageContent.replace(new RegExp(`\\s*<div class="book-card">[\\s\\S]*?<h3 class="book-title">${esc}<\\/h3>[\\s\\S]*?<\\/div>\\s*<\\/div>`), '');
   await apiPut(currentPage, html, currentPageSha, `Remove entry: ${e.title}`);
-  currentPageContent = html;
-  const data = await apiFetch(currentPage);
-  currentPageSha = data.sha;
-  renderEntries();
-  toast(`「${e.title}」を削除しました`);
+  currentPageContent = html; const d = await apiFetch(currentPage); currentPageSha = d.sha;
+  renderEntries(); toast(`「${e.title}」を削除しました`);
 }
 
-// ── Edit modal ─────────────────────────────────
-function openEdit(i) {
+function openEntryEdit(i) {
   const entries = parseEntries(currentPageContent);
   const e = entries[i];
   editingIndex = i;
@@ -489,15 +690,10 @@ function openEdit(i) {
   document.getElementById('edit-img').value      = e.img;
   document.getElementById('edit-link-url').value  = e.linkUrl;
   document.getElementById('edit-link-text').value = e.linkTxt;
-  document.getElementById('edit-modal').classList.add('open');
+  document.getElementById('edit-modal-entry').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('edit-modal').classList.remove('open');
-  editingIndex = -1;
-}
-
-async function saveEdit() {
+async function saveEntryEdit() {
   const entries = parseEntries(currentPageContent);
   const old = entries[editingIndex];
   const updated = {
@@ -509,21 +705,22 @@ async function saveEdit() {
     linkUrl: document.getElementById('edit-link-url').value.trim(),
     linkTxt: document.getElementById('edit-link-text').value.trim(),
   };
-  const escapedTitle = old.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`\\s*<div class="book-card">[\\s\\S]*?<h3 class="book-title">${escapedTitle}<\\/h3>[\\s\\S]*?<\\/div>\\s*<\\/div>`, '');
-  let html = currentPageContent.replace(pattern, buildCardHtml(updated));
+  const esc = old.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = currentPageContent.replace(new RegExp(`\\s*<div class="book-card">[\\s\\S]*?<h3 class="book-title">${esc}<\\/h3>[\\s\\S]*?<\\/div>\\s*<\\/div>`), buildCardHtml(updated));
   await apiPut(currentPage, html, currentPageSha, `Edit entry: ${updated.title}`);
-  currentPageContent = html;
-  const data = await apiFetch(currentPage);
-  currentPageSha = data.sha;
-  closeModal();
-  renderEntries();
-  toast(`「${updated.title}」を更新しました`);
+  currentPageContent = html; const d = await apiFetch(currentPage); currentPageSha = d.sha;
+  closeModal('edit-modal-entry'); renderEntries(); toast(`「${updated.title}」を更新しました`);
 }
 
-document.getElementById('edit-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+// ── Utilities ──────────────────────────────────
+function toggleForm(id) {
+  const f = document.getElementById(id);
+  f.style.display = (f.style.display==='none'||f.style.display==='') ? 'block' : 'none';
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.getElementById('edit-modal-index').addEventListener('click', function(e){ if(e.target===this) closeModal('edit-modal-index'); });
+document.getElementById('edit-modal-entry').addEventListener('click', function(e){ if(e.target===this) closeModal('edit-modal-entry'); });
 </script>
 </body>
 </html>
