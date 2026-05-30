@@ -47,7 +47,6 @@
     #setup p { font-size: 0.78rem; color: var(--text-light); margin-bottom: 1rem; }
     .token-row { display: flex; gap: 0.8rem; }
     #token-input { flex: 1; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 3px; font-family: monospace; font-size: 0.78rem; background: white; color: var(--text); outline: none; }
-    #token-input:focus { border-color: var(--accent); }
 
     /* Buttons */
     button { font-family: 'Noto Sans JP', sans-serif; font-size: 0.75rem; font-weight: 300; letter-spacing: 0.08em; border: 1px solid var(--border); background: white; color: var(--text); padding: 0.5rem 1.2rem; border-radius: 3px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
@@ -56,19 +55,32 @@
     button.primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
     button.danger { color: var(--danger); border-color: #e8c4c0; }
     button.danger:hover { background: #fdf0ee; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.save-order { background: var(--success); color: white; border-color: var(--success); }
+    button.save-order:hover { background: #219a52; }
 
     /* Section */
     .section-title { font-family: 'Noto Serif JP', serif; font-size: 1rem; font-weight: 400; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
     .section-subtitle { font-size: 0.75rem; color: var(--text-light); margin-bottom: 1.8rem; }
     .divider { width: 32px; height: 1px; background: var(--accent); opacity: 0.4; margin: 0.6rem 0 1.8rem; }
+    .section-gap { margin-bottom: 3.5rem; }
 
     /* Lists */
-    .edit-list { list-style: none; margin-bottom: 1.5rem; }
-    .edit-list li { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--border); gap: 1rem; }
-    .item-label { font-size: 0.88rem; }
+    .edit-list { list-style: none; margin-bottom: 1rem; }
+    .edit-list li { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0.6rem; border-bottom: 1px solid var(--border); gap: 1rem; border-radius: 3px; transition: background 0.1s; }
+    .edit-list li.dragging { opacity: 0.4; }
+    .edit-list li.drag-over { background: #f0ece6; border-bottom-color: var(--accent); }
+    .item-label { font-size: 0.88rem; flex: 1; min-width: 0; }
     .item-label span { font-size: 0.72rem; color: var(--text-light); margin-left: 0.6rem; }
-    .item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    .item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center; }
+
+    /* Drag handle */
+    .drag-handle { cursor: grab; color: var(--border); font-size: 1rem; padding: 0 0.4rem; user-select: none; flex-shrink: 0; }
+    .drag-handle:hover { color: var(--accent); }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* Sort bar */
+    .sort-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+    .sort-hint { font-size: 0.7rem; color: var(--text-light); letter-spacing: 0.05em; }
 
     /* Entry list */
     .entry-info { flex: 1; min-width: 0; }
@@ -105,7 +117,6 @@
 
     .loading { text-align: center; padding: 2rem; color: var(--text-light); font-size: 0.8rem; }
     .empty { color: var(--text-light); font-size: 0.82rem; padding: 1.5rem 0; display: block; }
-    .section-gap { margin-bottom: 3.5rem; }
   </style>
 </head>
 <body>
@@ -127,7 +138,6 @@
     <span>管理画面</span>
   </header>
 
-  <!-- Tab Navigation -->
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('index')">トップページ</button>
     <button class="tab-btn" onclick="switchTab('selection')">Selection</button>
@@ -135,7 +145,7 @@
 
   <div class="container">
 
-    <!-- Token Setup (shared) -->
+    <!-- Token -->
     <div id="setup">
       <h2>GitHub 接続設定</h2>
       <p>Personal Access Token（repo権限）を入力してください。このページ内にのみ保存されます。</p>
@@ -149,18 +159,22 @@
     <!-- ═══ TAB: トップページ ═══ -->
     <div id="tab-index" class="tab-panel active">
 
-      <!-- Nav管理 -->
+      <!-- Nav -->
       <div class="section-gap">
         <h2 class="section-title">ナビゲーション</h2>
-        <p class="section-subtitle">index.html のナビバーのリンクを編集する</p>
+        <p class="section-subtitle">navバーのリンクを追加・編集・削除・並び替え</p>
         <div class="divider"></div>
+        <div class="sort-bar">
+          <span class="sort-hint">☰ ドラッグして並び替え</span>
+          <button class="save-order" onclick="saveNavOrder()" id="save-nav-btn" style="display:none;">順序を保存</button>
+        </div>
         <ul class="edit-list" id="nav-list"><li class="loading">— トークンを設定してください —</li></ul>
         <button onclick="toggleForm('add-nav-form')">＋ ナビリンクを追加</button>
         <div class="add-form" id="add-nav-form" style="display:none; margin-top:1rem;">
           <h3>新規ナビリンク</h3>
           <div class="form-row">
-            <div><label>表示名（例: Blog）</label><input type="text" id="new-nav-label" placeholder="Blog"></div>
-            <div><label>リンク先ファイル（例: blog.html）</label><input type="text" id="new-nav-href" placeholder="blog.html"></div>
+            <div><label>表示名</label><input type="text" id="new-nav-label" placeholder="Blog"></div>
+            <div><label>リンク先ファイル</label><input type="text" id="new-nav-href" placeholder="blog.html"></div>
           </div>
           <div class="form-actions">
             <button onclick="toggleForm('add-nav-form')">キャンセル</button>
@@ -169,18 +183,22 @@
         </div>
       </div>
 
-      <!-- カード管理 -->
+      <!-- Cards -->
       <div class="section-gap">
         <h2 class="section-title">トップカード</h2>
-        <p class="section-subtitle">index.html のカード一覧（メインメニュー）を編集する</p>
+        <p class="section-subtitle">index.htmlのカード一覧を追加・編集・削除・並び替え</p>
         <div class="divider"></div>
+        <div class="sort-bar">
+          <span class="sort-hint">☰ ドラッグして並び替え</span>
+          <button class="save-order" onclick="saveCardOrder()" id="save-card-btn" style="display:none;">順序を保存</button>
+        </div>
         <ul class="edit-list" id="card-list"><li class="loading">— トークンを設定してください —</li></ul>
         <button onclick="toggleForm('add-card-form')">＋ カードを追加</button>
         <div class="add-form" id="add-card-form" style="display:none; margin-top:1rem;">
           <h3>新規カード</h3>
           <div class="form-row">
-            <div><label>タイトル（例: Blog）</label><input type="text" id="new-card-title" placeholder="Blog"></div>
-            <div><label>リンク先ファイル（例: blog.html）</label><input type="text" id="new-card-href" placeholder="blog.html"></div>
+            <div><label>タイトル</label><input type="text" id="new-card-title" placeholder="Blog"></div>
+            <div><label>リンク先ファイル</label><input type="text" id="new-card-href" placeholder="blog.html"></div>
           </div>
           <div class="form-row full">
             <div><label>説明文</label><input type="text" id="new-card-desc" placeholder="ブログ記事一覧"></div>
@@ -197,18 +215,22 @@
     <!-- ═══ TAB: Selection ═══ -->
     <div id="tab-selection" class="tab-panel">
 
-      <!-- カテゴリ管理 -->
+      <!-- Categories -->
       <div class="section-gap">
         <h2 class="section-title">カテゴリ管理</h2>
-        <p class="section-subtitle">Selection ページのカテゴリ一覧を編集する</p>
+        <p class="section-subtitle">Selectionページのカテゴリを追加・削除・並び替え</p>
         <div class="divider"></div>
+        <div class="sort-bar">
+          <span class="sort-hint">☰ ドラッグして並び替え</span>
+          <button class="save-order" onclick="saveCatOrder()" id="save-cat-btn" style="display:none;">順序を保存</button>
+        </div>
         <ul class="edit-list" id="cat-list"><li class="loading">— トークンを設定してください —</li></ul>
         <button onclick="toggleForm('add-cat-form')">＋ カテゴリを追加</button>
         <div class="add-form" id="add-cat-form" style="display:none; margin-top:1rem;">
           <h3>新規カテゴリ</h3>
           <div class="form-row">
-            <div><label>英語名（例: Essay）</label><input type="text" id="new-cat-en" placeholder="Essay"></div>
-            <div><label>日本語名（例: エッセイ）</label><input type="text" id="new-cat-ja" placeholder="エッセイ"></div>
+            <div><label>英語名</label><input type="text" id="new-cat-en" placeholder="Essay"></div>
+            <div><label>日本語名</label><input type="text" id="new-cat-ja" placeholder="エッセイ"></div>
           </div>
           <div class="form-actions">
             <button onclick="toggleForm('add-cat-form')">キャンセル</button>
@@ -217,13 +239,17 @@
         </div>
       </div>
 
-      <!-- エントリ管理 -->
+      <!-- Entries -->
       <div class="section-gap">
         <h2 class="section-title">エントリ管理</h2>
-        <p class="section-subtitle">各カテゴリページのエントリを追加・編集・削除する</p>
+        <p class="section-subtitle">各カテゴリページのエントリを追加・編集・削除・並び替え</p>
         <div class="divider"></div>
         <div class="page-selector" id="page-selector"><span class="empty">カテゴリを読み込み中...</span></div>
         <div id="entry-area" style="display:none;">
+          <div class="sort-bar">
+            <span class="sort-hint">☰ ドラッグして並び替え</span>
+            <button class="save-order" onclick="saveEntryOrder()" id="save-entry-btn" style="display:none;">順序を保存</button>
+          </div>
           <ul class="edit-list" id="entry-list"></ul>
           <button onclick="toggleForm('entry-add-form')">＋ エントリを追加</button>
           <div class="add-form" id="entry-add-form" style="display:none;">
@@ -308,10 +334,9 @@ const PW_HASH = 'ceb76678729b9fa5aac1144ff72c3d760a7a696fbe5a68a8eb07152f38d247f
 
 let token = '';
 let indexContent = '', indexSha = '';
-let categories = [];
+let categories = [], selectionSha = '';
 let currentPage = null, currentPageContent = '', currentPageSha = '';
-let editingMode = ''; // 'nav' | 'card' | 'cat'
-let editingIndex = -1;
+let editingMode = '', editingIndex = -1;
 
 // ── Password ───────────────────────────────────
 async function checkPassword() {
@@ -339,14 +364,11 @@ function switchTab(name) {
 function apiFetch(path, options={}) {
   return fetch(BASE+path, {
     ...options,
-    headers: { 'Authorization':'token '+token, 'Content-Type':'application/json', ...options.headers }
+    headers: {'Authorization':'token '+token,'Content-Type':'application/json',...options.headers}
   }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
 }
 function apiPut(path, content, sha, message) {
-  return apiFetch(path, {
-    method:'PUT',
-    body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))), sha })
-  });
+  return apiFetch(path, {method:'PUT', body:JSON.stringify({message, content:btoa(unescape(encodeURIComponent(content))), sha})});
 }
 function decode(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
 
@@ -371,57 +393,110 @@ function saveToken() {
     document.getElementById('token-status').textContent = '✗ 接続失敗。トークンを確認してください。';
   });
 }
+async function loadAll() { await loadIndex(); await loadCategories(); }
 
-async function loadAll() {
-  await loadIndex();
-  await loadCategories();
+// ── Drag & Drop ────────────────────────────────
+let dragSrc = null;
+
+function makeDraggable(ul, onReorder) {
+  ul.addEventListener('dragstart', e => {
+    dragSrc = e.target.closest('li');
+    if (!dragSrc) return;
+    dragSrc.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  ul.addEventListener('dragover', e => {
+    e.preventDefault();
+    const target = e.target.closest('li');
+    if (!target || target === dragSrc) return;
+    ul.querySelectorAll('li').forEach(l => l.classList.remove('drag-over'));
+    target.classList.add('drag-over');
+    const rect = target.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if (e.clientY < mid) ul.insertBefore(dragSrc, target);
+    else ul.insertBefore(dragSrc, target.nextSibling);
+  });
+  ul.addEventListener('dragend', () => {
+    ul.querySelectorAll('li').forEach(l => { l.classList.remove('dragging','drag-over'); });
+    dragSrc = null;
+    onReorder();
+  });
 }
 
 // ── index.html ─────────────────────────────────
 async function loadIndex() {
   const data = await apiFetch('index.html');
-  indexSha = data.sha;
-  indexContent = decode(data.content);
-  renderNavList();
-  renderCardList();
+  indexSha = data.sha; indexContent = decode(data.content);
+  renderNavList(); renderCardList();
 }
 
 function parseNavItems(html) {
-  return [...html.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
+  const navBlock = html.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '';
+  return [...navBlock.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
     .map(m => ({ href: m[1], label: m[2].trim() }));
 }
-
 function parseCardItems(html) {
   return [...html.matchAll(/<li>\s*<a href="([^"]+)">\s*<span class="card-title">([^<]+)<\/span>\s*<p class="card-desc">([^<]+)<\/p>\s*<\/a>\s*<\/li>/g)]
     .map(m => ({ href: m[1], title: m[2].trim(), desc: m[3].trim() }));
 }
 
 function renderNavList() {
-  const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+  const items = parseNavItems(indexContent);
   const ul = document.getElementById('nav-list');
-  if (!items.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
-  ul.innerHTML = items.map((it, i) => `
-    <li>
+  ul.innerHTML = items.length ? items.map((it,i) => `
+    <li draggable="true" data-idx="${i}">
+      <span class="drag-handle">☰</span>
       <div class="item-label">${it.label}<span>${it.href}</span></div>
       <div class="item-actions">
         <button onclick="openIndexEdit('nav',${i})">編集</button>
         <button class="danger" onclick="deleteNavItem(${i})">削除</button>
       </div>
-    </li>`).join('');
+    </li>`).join('') : '<li><span class="empty">なし</span></li>';
+  makeDraggable(ul, () => document.getElementById('save-nav-btn').style.display = 'inline-block');
 }
 
 function renderCardList() {
   const items = parseCardItems(indexContent);
   const ul = document.getElementById('card-list');
-  if (!items.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
-  ul.innerHTML = items.map((it, i) => `
-    <li>
+  ul.innerHTML = items.length ? items.map((it,i) => `
+    <li draggable="true" data-idx="${i}">
+      <span class="drag-handle">☰</span>
       <div class="item-label">${it.title}<span>${it.desc}</span></div>
       <div class="item-actions">
         <button onclick="openIndexEdit('card',${i})">編集</button>
         <button class="danger" onclick="deleteCardItem(${i})">削除</button>
       </div>
-    </li>`).join('');
+    </li>`).join('') : '<li><span class="empty">なし</span></li>';
+  makeDraggable(ul, () => document.getElementById('save-card-btn').style.display = 'inline-block');
+}
+
+// Nav save order
+async function saveNavOrder() {
+  const lis = [...document.getElementById('nav-list').querySelectorAll('li[draggable]')];
+  const allItems = parseNavItems(indexContent);
+  const newOrder = lis.map(li => allItems[parseInt(li.dataset.idx)]);
+  let html = indexContent;
+  const newNav = newOrder.map(it => `    <a href="${it.href}">${it.label}</a>`).join('\n');
+  html = html.replace(/<nav>[\s\S]*?<\/nav>/, `<nav>\n${newNav}\n  </nav>`);
+  await apiPut('index.html', html, indexSha, 'Reorder nav');
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  document.getElementById('save-nav-btn').style.display = 'none';
+  renderNavList(); toast('ナビの順序を保存しました');
+}
+
+// Card save order
+async function saveCardOrder() {
+  const lis = [...document.getElementById('card-list').querySelectorAll('li[draggable]')];
+  const allItems = parseCardItems(indexContent);
+  const newOrder = lis.map(li => allItems[parseInt(li.dataset.idx)]);
+  const newCards = newOrder.map(it =>
+    `        <li>\n          <a href="${it.href}">\n            <span class="card-title">${it.title}</span>\n            <p class="card-desc">${it.desc}</p>\n          </a>\n        </li>`
+  ).join('\n');
+  let html = indexContent.replace(/<ul class="card-list">[\s\S]*?<\/ul>/, `<ul class="card-list">\n${newCards}\n      </ul>`);
+  await apiPut('index.html', html, indexSha, 'Reorder cards');
+  indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
+  document.getElementById('save-card-btn').style.display = 'none';
+  renderCardList(); toast('カードの順序を保存しました');
 }
 
 // Nav CRUD
@@ -429,23 +504,19 @@ async function addNavItem() {
   const label = document.getElementById('new-nav-label').value.trim();
   const href  = document.getElementById('new-nav-href').value.trim();
   if (!label || !href) return toast('表示名とリンク先を入力してください', true);
-  let html = indexContent;
-  html = html.replace('</nav>', `    <a href="${href}">${label}</a>\n  </nav>`);
+  let html = indexContent.replace('</nav>', `    <a href="${href}">${label}</a>\n  </nav>`);
   await apiPut('index.html', html, indexSha, `Add nav: ${label}`);
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
   document.getElementById('new-nav-label').value = '';
   document.getElementById('new-nav-href').value = '';
-  toggleForm('add-nav-form');
-  renderNavList();
-  toast(`ナビに「${label}」を追加しました`);
+  toggleForm('add-nav-form'); renderNavList(); toast(`ナビに「${label}」を追加しました`);
 }
-
 async function deleteNavItem(i) {
-  const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
+  const items = parseNavItems(indexContent);
   const it = items[i];
   if (!confirm(`ナビから「${it.label}」を削除しますか？`)) return;
-  const escaped = it.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  let html = indexContent.replace(new RegExp(`\\s*<a href="${escaped}">[^<]+<\\/a>`), '');
+  const esc = it.href.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = indexContent.replace(new RegExp(`\\s*<a href="${esc}">[^<]+<\\/a>`), '');
   await apiPut('index.html', html, indexSha, `Remove nav: ${it.label}`);
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
   renderNavList(); toast(`「${it.label}」を削除しました`);
@@ -461,20 +532,15 @@ async function addCardItem() {
   let html = indexContent.replace('      </ul>', newItem + '\n      </ul>');
   await apiPut('index.html', html, indexSha, `Add card: ${title}`);
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  document.getElementById('new-card-title').value = '';
-  document.getElementById('new-card-href').value = '';
-  document.getElementById('new-card-desc').value = '';
-  toggleForm('add-card-form');
-  renderCardList(); toast(`カードに「${title}」を追加しました`);
+  ['new-card-title','new-card-href','new-card-desc'].forEach(id => document.getElementById(id).value='');
+  toggleForm('add-card-form'); renderCardList(); toast(`「${title}」を追加しました`);
 }
-
 async function deleteCardItem(i) {
   const items = parseCardItems(indexContent);
   const it = items[i];
-  if (!confirm(`カードから「${it.title}」を削除しますか？`)) return;
-  const esc = it.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pat = new RegExp(`\\s*<li>\\s*<a href="[^"]+">\\s*<span class="card-title">${esc}<\\/span>[\\s\\S]*?<\\/a>\\s*<\\/li>`);
-  let html = indexContent.replace(pat, '');
+  if (!confirm(`「${it.title}」を削除しますか？`)) return;
+  const esc = it.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  let html = indexContent.replace(new RegExp(`\\s*<li>\\s*<a href="[^"]+">\\s*<span class="card-title">${esc}<\\/span>[\\s\\S]*?<\\/a>\\s*<\\/li>`), '');
   await apiPut('index.html', html, indexSha, `Remove card: ${it.title}`);
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
   renderCardList(); toast(`「${it.title}」を削除しました`);
@@ -484,8 +550,7 @@ async function deleteCardItem(i) {
 function openIndexEdit(mode, i) {
   editingMode = mode; editingIndex = i;
   if (mode === 'nav') {
-    const items = parseNavItems(indexContent.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
-    const it = items[i];
+    const it = parseNavItems(indexContent)[i];
     document.getElementById('edit-modal-index-title').textContent = 'ナビリンクを編集';
     document.getElementById('edit-label-a').textContent = '表示名';
     document.getElementById('edit-label-b').textContent = 'リンク先';
@@ -493,8 +558,7 @@ function openIndexEdit(mode, i) {
     document.getElementById('edit-idx-b').value = it.href;
     document.getElementById('edit-desc-row').style.display = 'none';
   } else {
-    const items = parseCardItems(indexContent);
-    const it = items[i];
+    const it = parseCardItems(indexContent)[i];
     document.getElementById('edit-modal-index-title').textContent = 'カードを編集';
     document.getElementById('edit-label-a').textContent = 'タイトル';
     document.getElementById('edit-label-b').textContent = 'リンク先';
@@ -505,60 +569,69 @@ function openIndexEdit(mode, i) {
   }
   document.getElementById('edit-modal-index').classList.add('open');
 }
-
 async function saveIndexEdit() {
   const a = document.getElementById('edit-idx-a').value.trim();
   const b = document.getElementById('edit-idx-b').value.trim();
   const desc = document.getElementById('edit-idx-desc').value.trim();
   let html = indexContent;
-
   if (editingMode === 'nav') {
-    const items = parseNavItems(html.match(/<nav>([\s\S]*?)<\/nav>/)?.[1] || '');
-    const old = items[editingIndex];
-    const escHref = old.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    html = html.replace(new RegExp(`<a href="${escHref}">[^<]+<\\/a>`), `<a href="${b}">${a}</a>`);
+    const old = parseNavItems(html)[editingIndex];
+    const esc = old.href.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    html = html.replace(new RegExp(`<a href="${esc}">[^<]+<\\/a>`), `<a href="${b}">${a}</a>`);
   } else {
-    const items = parseCardItems(html);
-    const old = items[editingIndex];
-    const esc = old.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pat = new RegExp(`(<li>\\s*<a href=")[^"]+("[^>]*>\\s*<span class="card-title">)${esc}(<\\/span>\\s*<p class="card-desc">)[^<]*(<\\/p>\\s*<\\/a>\\s*<\\/li>)`);
-    html = html.replace(pat, `$1${b}$2${a}$3${desc}$4`);
+    const old = parseCardItems(html)[editingIndex];
+    const esc = old.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    html = html.replace(
+      new RegExp(`(<li>\\s*<a href=")[^"]+(">\\s*<span class="card-title">)${esc}(<\\/span>\\s*<p class="card-desc">)[^<]*(<\\/p>\\s*<\\/a>\\s*<\\/li>)`),
+      `$1${b}$2${a}$3${desc}$4`
+    );
   }
-
   await apiPut('index.html', html, indexSha, `Edit ${editingMode}: ${a}`);
   indexContent = html; const d = await apiFetch('index.html'); indexSha = d.sha;
-  closeModal('edit-modal-index');
-  renderNavList(); renderCardList();
-  toast(`更新しました`);
+  closeModal('edit-modal-index'); renderNavList(); renderCardList(); toast('更新しました');
 }
 
 // ── Selection / Categories ─────────────────────
 async function loadCategories() {
   const data = await apiFetch('selection.html');
+  selectionSha = data.sha;
   const content = decode(data.content);
   const matches = [...content.matchAll(/<a href="(selection-[^"]+\.html)">\s*<span class="card-title">([^<]+)<\/span>\s*<p class="card-desc">([^<]+)<\/p>/g)];
   categories = matches.map(m => ({ file: m[1], en: m[2].trim(), ja: m[3].trim() }));
-  renderCatList();
-  renderPageSelector();
+  renderCatList(); renderPageSelector();
 }
 
 function renderCatList() {
   const ul = document.getElementById('cat-list');
-  if (!categories.length) { ul.innerHTML = '<li><span class="empty">なし</span></li>'; return; }
-  ul.innerHTML = categories.map((c, i) => `
-    <li>
+  ul.innerHTML = categories.length ? categories.map((c,i) => `
+    <li draggable="true" data-idx="${i}">
+      <span class="drag-handle">☰</span>
       <div class="item-label">${c.en}<span>${c.ja}</span></div>
       <div class="item-actions">
         <button class="danger" onclick="deleteCategory(${i})">削除</button>
       </div>
-    </li>`).join('');
+    </li>`).join('') : '<li><span class="empty">なし</span></li>';
+  makeDraggable(ul, () => document.getElementById('save-cat-btn').style.display = 'inline-block');
 }
 
 function renderPageSelector() {
-  const sel = document.getElementById('page-selector');
-  sel.innerHTML = categories.map(c =>
+  document.getElementById('page-selector').innerHTML = categories.map(c =>
     `<button class="page-btn" onclick="selectPage('${c.file}',this)">${c.en}</button>`
   ).join('');
+}
+
+async function saveCatOrder() {
+  const lis = [...document.getElementById('cat-list').querySelectorAll('li[draggable]')];
+  const newOrder = lis.map(li => categories[parseInt(li.dataset.idx)]);
+  const data = await apiFetch('selection.html');
+  let html = decode(data.content);
+  const newItems = newOrder.map(c =>
+    `        <li>\n          <a href="${c.file}">\n            <span class="card-title">${c.en}</span>\n            <p class="card-desc">${c.ja}</p>\n          </a>\n        </li>`
+  ).join('\n');
+  html = html.replace(/<ul class="card-list">[\s\S]*?<\/ul>/, `<ul class="card-list">\n${newItems}\n      </ul>`);
+  await apiPut('selection.html', html, data.sha, 'Reorder categories');
+  document.getElementById('save-cat-btn').style.display = 'none';
+  await loadCategories(); toast('カテゴリの順序を保存しました');
 }
 
 async function addCategory() {
@@ -574,9 +647,7 @@ async function addCategory() {
   try { await apiPut(slug, buildNewPage(en, ja), '', `Create ${slug}`); } catch(e){}
   document.getElementById('new-cat-en').value = '';
   document.getElementById('new-cat-ja').value = '';
-  toggleForm('add-cat-form');
-  await loadCategories();
-  toast(`「${en}」を追加しました`);
+  toggleForm('add-cat-form'); await loadCategories(); toast(`「${en}」を追加しました`);
 }
 
 async function deleteCategory(i) {
@@ -584,8 +655,7 @@ async function deleteCategory(i) {
   if (!confirm(`「${cat.en}」を削除しますか？`)) return;
   const data = await apiFetch('selection.html');
   let html = decode(data.content);
-  const pat = new RegExp(`\\s*<li>\\s*<a href="${cat.file.replace('.','\\.')}">.*?<\\/a>\\s*<\\/li>`, 's');
-  html = html.replace(pat, '');
+  html = html.replace(new RegExp(`\\s*<li>\\s*<a href="${cat.file.replace('.','\\.')}">.*?<\\/a>\\s*<\\/li>`,'s'), '');
   await apiPut('selection.html', html, data.sha, `Remove category: ${cat.en}`);
   await loadCategories(); toast(`「${cat.en}」を削除しました`);
 }
@@ -594,16 +664,16 @@ function buildNewPage(en, ja) {
   return `<!DOCTYPE html>\n<html lang="ja">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${en} — note</title>\n  <link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n\n  <header class="site-header">\n    <h1><a href="index.html">note</a></h1>\n  </header>\n\n  <nav>\n    <a href="about.html">About</a>\n    <a href="interest.html">Interest</a>\n    <a href="philosophy.html">Philosophy</a>\n    <a href="archive.html">Archive</a>\n    <a href="selection.html">Selection</a>\n  </nav>\n\n  <main>\n    <div class="page">\n      <p class="page-subtitle"><a href="selection.html">&larr; Selection</a></p>\n      <h2 class="page-title">${en}</h2>\n      <p class="page-subtitle">${ja}</p>\n      <div class="divider"></div>\n\n      <div class="section">\n        <p>準備中です。</p>\n      </div>\n    </div>\n  </main>\n\n  <footer>\n    <p>&copy; 2025 note</p>\n  </footer>\n\n</body>\n</html>\n`;
 }
 
-// ── Entry ──────────────────────────────────────
+// ── Entries ────────────────────────────────────
 async function selectPage(file, btn) {
   document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentPage = file;
   document.getElementById('entry-area').style.display = 'block';
+  document.getElementById('save-entry-btn').style.display = 'none';
   document.getElementById('entry-list').innerHTML = '<li class="loading">読み込み中...</li>';
   const data = await apiFetch(file);
-  currentPageContent = decode(data.content);
-  currentPageSha = data.sha;
+  currentPageContent = decode(data.content); currentPageSha = data.sha;
   renderEntries();
 }
 
@@ -628,9 +698,9 @@ function parseEntries(html) {
 function renderEntries() {
   const entries = parseEntries(currentPageContent);
   const ul = document.getElementById('entry-list');
-  if (!entries.length) { ul.innerHTML = '<li><span class="empty">エントリなし</span></li>'; return; }
-  ul.innerHTML = entries.map((e, i) => `
-    <li>
+  ul.innerHTML = entries.length ? entries.map((e,i) => `
+    <li draggable="true" data-idx="${i}">
+      <span class="drag-handle">☰</span>
       <div class="entry-info">
         <div class="entry-title">${e.title}</div>
         <div class="entry-sub">${e.author}${e.meta?' — '+e.meta:''}</div>
@@ -639,13 +709,27 @@ function renderEntries() {
         <button onclick="openEntryEdit(${i})">編集</button>
         <button class="danger" onclick="deleteEntry(${i})">削除</button>
       </div>
-    </li>`).join('');
+    </li>`).join('') : '<li><span class="empty">エントリなし</span></li>';
+  makeDraggable(ul, () => document.getElementById('save-entry-btn').style.display = 'inline-block');
 }
 
 function buildCardHtml(e) {
   const imgHtml = e.img ? `        <div class="book-cover">\n          <img src="${e.img}" alt="${e.title}">\n        </div>\n` : '';
   const linkHtml = e.linkUrl ? `\n          <a class="book-link" href="${e.linkUrl}" target="_blank" rel="noopener">${e.linkTxt||'リンク'}</a>` : '';
   return `\n      <div class="book-card">\n${imgHtml}        <div class="book-info">\n          <h3 class="book-title">${e.title}</h3>\n          <p class="book-author">${e.author}</p>\n          <p class="book-meta">${e.meta}</p>\n          <p class="book-desc">\n            ${e.desc}\n          </p>${linkHtml}\n        </div>\n      </div>\n`;
+}
+
+async function saveEntryOrder() {
+  const lis = [...document.getElementById('entry-list').querySelectorAll('li[draggable]')];
+  const allEntries = parseEntries(currentPageContent);
+  const newOrder = lis.map(li => allEntries[parseInt(li.dataset.idx)]);
+  // カード部分だけ置換
+  const newCards = newOrder.map(e => buildCardHtml(e)).join('');
+  let html = currentPageContent.replace(/([\s\S]*?<div class="divider"><\/div>\s*\n)([\s\S]*?)(\s*<\/div>\s*<\/main>)/, `$1${newCards}$3`);
+  await apiPut(currentPage, html, currentPageSha, 'Reorder entries');
+  currentPageContent = html; const d = await apiFetch(currentPage); currentPageSha = d.sha;
+  document.getElementById('save-entry-btn').style.display = 'none';
+  renderEntries(); toast('エントリの順序を保存しました');
 }
 
 async function addEntry() {
@@ -680,8 +764,7 @@ async function deleteEntry(i) {
 }
 
 function openEntryEdit(i) {
-  const entries = parseEntries(currentPageContent);
-  const e = entries[i];
+  const e = parseEntries(currentPageContent)[i];
   editingIndex = i;
   document.getElementById('edit-title').value    = e.title;
   document.getElementById('edit-author').value   = e.author;
@@ -694,8 +777,7 @@ function openEntryEdit(i) {
 }
 
 async function saveEntryEdit() {
-  const entries = parseEntries(currentPageContent);
-  const old = entries[editingIndex];
+  const old = parseEntries(currentPageContent)[editingIndex];
   const updated = {
     title:   document.getElementById('edit-title').value.trim(),
     author:  document.getElementById('edit-author').value.trim(),
@@ -718,7 +800,6 @@ function toggleForm(id) {
   f.style.display = (f.style.display==='none'||f.style.display==='') ? 'block' : 'none';
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
 document.getElementById('edit-modal-index').addEventListener('click', function(e){ if(e.target===this) closeModal('edit-modal-index'); });
 document.getElementById('edit-modal-entry').addEventListener('click', function(e){ if(e.target===this) closeModal('edit-modal-entry'); });
 </script>
